@@ -8548,11 +8548,5 @@ Func _Inferno($bSaveBinary = False, $sSavePath = @ScriptDir)
 	Local $bString = _WinAPI_Base64Decode($Inferno)
 	If @error Then Return SetError(1, 0, 0)
 	$bString = Binary($bString)
-	If $bSaveBinary Then
-		Local Const $hFile = FileOpen($sSavePath & "\Dream Tear Down v2.xm", 18)
-		If @error Then Return SetError(2, 0, $bString)
-		FileWrite($hFile, $bString)
-		FileClose($hFile)
-	EndIf
 	Return $bString
 EndFunc
