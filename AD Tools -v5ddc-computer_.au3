@@ -5372,6 +5372,60 @@ Func auto_remove() ;nettoyage ancienne Directive si detecté
 				_ad_removeuserfromgroup($groupsidrh3, $idrh1)
 				$actiongroups = $actiongroups & $groupsidrh3 & " ; "
 			 EndIf
+   ;VirtuOS 28-01-2022 (Vir_01 à Vir_014)
+			If StringInStr($groupsidrh3,"RG-PITR_CM_CF_SCLI_Agent") then
+			   _ad_removeuserfromgroup($groupsidrh3, $idrh1)
+				$actiongroups = $actiongroups & $groupsidrh3 & " ; "
+			 EndIf
+			If StringInStr($groupsidrh3,"RG-PITR_CM_CF_Credit-Immo_Agent") then
+			   _ad_removeuserfromgroup($groupsidrh3, $idrh1)
+				$actiongroups = $actiongroups & $groupsidrh3 & " ; "
+			 EndIf
+		   If StringInStr($groupsidrh3,"RG-PITR_CM_CF_SQA_Agent") then
+			   _ad_removeuserfromgroup($groupsidrh3, $idrh1)
+				$actiongroups = $actiongroups & $groupsidrh3 & " ; "
+			 EndIf
+			If StringInStr($groupsidrh3,"RG-PITR_CM_CF_Succession_Agent") then
+			   _ad_removeuserfromgroup($groupsidrh3, $idrh1)
+				$actiongroups = $actiongroups & $groupsidrh3 & " ; "
+			 EndIf
+			If StringInStr($groupsidrh3,"RG-PITR_CM_CF_DRCR_Agent") then
+			   _ad_removeuserfromgroup($groupsidrh3, $idrh1)
+				$actiongroups = $actiongroups & $groupsidrh3 & " ; "
+			 EndIf
+			If StringInStr($groupsidrh3,"RG-PITR_CM_CF_SDEV_Agent") then
+			   _ad_removeuserfromgroup($groupsidrh3, $idrh1)
+				$actiongroups = $actiongroups & $groupsidrh3 & " ; "
+			 EndIf
+			If StringInStr($groupsidrh3,"RG-PITR_CM_CF_CNMR-3639_Agent") then
+			   _ad_removeuserfromgroup($groupsidrh3, $idrh1)
+				$actiongroups = $actiongroups & $groupsidrh3 & " ; "
+			 EndIf
+			If StringInStr($groupsidrh3,"RG-PITR_CM_CF_CNBEL_Agent") then
+			   _ad_removeuserfromgroup($groupsidrh3, $idrh1)
+				$actiongroups = $actiongroups & $groupsidrh3 & " ; "
+			 EndIf
+			If StringInStr($groupsidrh3,"RG-PITR_CM_CF_Appui_Agent") then
+			   _ad_removeuserfromgroup($groupsidrh3, $idrh1)
+				$actiongroups = $actiongroups & $groupsidrh3 & " ; "
+			 EndIf
+			If StringInStr($groupsidrh3,"RG-PITR_CM_CF_CNMR-CI_Agent") then
+			   _ad_removeuserfromgroup($groupsidrh3, $idrh1)
+				$actiongroups = $actiongroups & $groupsidrh3 & " ; "
+			 EndIf
+			If StringInStr($groupsidrh3,"RG-PITR_CM_CF_VDC_Agent") then
+			   _ad_removeuserfromgroup($groupsidrh3, $idrh1)
+				$actiongroups = $actiongroups & $groupsidrh3 & " ; "
+			 EndIf
+			If StringInStr($groupsidrh3,"RG-PITR_CM_CF_DSCS_Agent") then
+			   _ad_removeuserfromgroup($groupsidrh3, $idrh1)
+				$actiongroups = $actiongroups & $groupsidrh3 & " ; "
+			 EndIf
+			If StringInStr($groupsidrh3,"RG-PITR_CM_CF_SBA_Agent") then
+			   _ad_removeuserfromgroup($groupsidrh3, $idrh1)
+				$actiongroups = $actiongroups & $groupsidrh3 & " ; "
+			 EndIf
+   ;VirtuOS 28-01-2022 (Vir_01 à Vir_014)
 		Next
 	 EndIf
 	Return $actiongroups
@@ -6183,6 +6237,22 @@ Func liste_directives() ;Liste globale des Directives sous forme Matricielle
 		_arrayadd($array2, "799 RG-[EAID]_SM_Centres Financiers et Centres Nationaux;RG-PITR_CM_DIR-CF_DOVM")
 		_arrayadd($array2, "800 RG-[EAID]_SM_Centres Financiers et Centres Nationaux;RG-PITR_CM_DIR-CF_Standard")
 		_arrayadd($array2, "801 RG-[EAID]_SM_Centres Financiers et Centres Nationaux;RG-PITR_CM_DIR-CF_Rumba")
+		;VirtuOS 28-01-2022
+		_arrayadd($array2, "V01 RG-[EAID]_SM_Centres Financiers et Centres Nationaux;RG-PITR_CM_CF_SCLI_Agent")
+		_arrayadd($array2, "V02 RG-[EAID]_SM_Centres Financiers et Centres Nationaux;RG-PITR_CM_CF_Credit-Immo_Agent")
+		_arrayadd($array2, "V03 RG-[EAID]_SM_Centres Financiers et Centres Nationaux;RG-PITR_CM_CF_SQA_Agent")
+		_arrayadd($array2, "V04 RG-[EAID]_SM_Centres Financiers et Centres Nationaux;RG-PITR_CM_CF_Succession_Agent")
+		_arrayadd($array2, "V05 RG-[EAID]_SM_Centres Financiers et Centres Nationaux;RG-PITR_CM_CF_Succession_Agent")
+		_arrayadd($array2, "V06 RG-[EAID]_SM_Centres Financiers et Centres Nationaux;RG-PITR_CM_CF_DRCR_Agent")
+		_arrayadd($array2, "V07 RG-[EAID]_SM_Centres Financiers et Centres Nationaux;RG-PITR_CM_CF_SDEV_Agent")
+		_arrayadd($array2, "V08 RG-[EAID]_SM_Centres Financiers et Centres Nationaux;RG-PITR_CM_CF_CNMR-3639_Agent")
+		_arrayadd($array2, "V09 RG-[EAID]_SM_Centres Financiers et Centres Nationaux;RG-PITR_CM_CF_CNBEL_Agent")
+		_arrayadd($array2, "V10 RG-[EAID]_SM_Centres Financiers et Centres Nationaux;RG-PITR_CM_CF_Appui_Agent")
+		_arrayadd($array2, "V11 RG-[EAID]_SM_Centres Financiers et Centres Nationaux;RG-PITR_CM_CF_CNMR-CI_Agent")
+		_arrayadd($array2, "V12 RG-[EAID]_SM_Centres Financiers et Centres Nationaux;RG-PITR_CM_CF_VDC_Agent")
+		_arrayadd($array2, "V13 RG-[EAID]_SM_Centres Financiers et Centres Nationaux;RG-PITR_CM_CF_DSCS_Agent")
+		_arrayadd($array2, "V14 RG-[EAID]_SM_Centres Financiers et Centres Nationaux;RG-PITR_CM_CF_SBA_Agent")
+		;VirtuOS 28-01-2022
 	#EndRegion Liste des Directives
 
 	For $i = 0 To UBound($array2) - 1
