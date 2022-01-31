@@ -3588,9 +3588,19 @@ Func computergroup()
 	 EndIf
 
 	$filterou = ""
-	$text = "La POSTE/DSEM/EAPI69/NR"
+	if $test=0 Then
+	$text = "  computer(s):  action is,  [+]  groups"
+    Else
+	$text = "  computer(s):  action is,  [-]   groups"
+    EndIf
+
 	Global $aselected[1]
-	Global $hgui2 = GUICreate("Select computer for SCCM/PITR and [ Apply ] !  (" & $text & ")", 1000, 500)
+		 If $isdct = 1 Then
+	  Global $hgui2 = GUICreate("Select computer(s) for SCCM/PITR groups, and [ Apply ] !  (" & $text & ")", 1000, 500)
+	    Else
+	  Global $hgui2 = GUICreate("Select computer(s) for groups, and [ Apply ] !  (" & $text & ")", 1000, 500)
+	    EndIf
+
 	Global $hlistbox = _guictrllistbox_create($hgui2, "String upon creation", 10, 30, 980, 470, BitOR($ws_border, $lbs_hasstrings, $ws_vscroll, $lbs_multiplesel))
 	_guictrllistbox_beginupdate($hlistbox)
 	_guictrllistbox_resetcontent($hlistbox)
