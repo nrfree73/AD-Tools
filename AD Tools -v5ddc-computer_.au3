@@ -692,12 +692,12 @@ Local $idmsg
 									EndIf
 								EndIf
 								Return 0
-							 Case $idcheckboxcommonname = 1
-								  if $domainname="" Then
-		   MsgBox(0,"Info !","no Active Directory found ! unable to scan...",15)
+						    Case $idcheckboxcommonname = 1
+	  if $domainname="" Then
+		   MsgBox(0,"Info !","no Active Directory found ! unable to scan..." & @crlf & $domainname,15)
 		   ToolTip("",5,5,"")
 		   Return 0
-		EndIf
+	  EndIf
 								ToolTip("", 5, 5,"")
 								$defautdc = $defautdcinit
 								$filtreperso = 0
@@ -3560,6 +3560,13 @@ Func computergroup()
 	Global $multipleidrhbis = ""
 	Global $displayname = ""
 	Global $actualcomputername = ""
+
+	  if $domainname="" Then
+		   MsgBox(0,"Info !","no Active Directory found ! unable to scan...",15)
+		   ToolTip("",5,5,"")
+		   Return 0
+		EndIf
+
 	$t = MsgBox(4, "Choix (O/N)", "[Oui]: ajoute un groupe => ordinateur" & @CRLF & @CRLF & "[Non]: retire un groupe => ordinateur")
 	If $t = 6 Then
 		$test = 0
@@ -3567,14 +3574,10 @@ Func computergroup()
 		$test = 1
 	EndIf
 	_ad_open()
-	  if $domainname="" Then
-		   MsgBox(0,"Info !","no Active Directory found ! unable to scan...",15)
-		   ToolTip("",5,5,"")
-		   Return 0
-		EndIf
 
 	treeview_affiche()
 	treeselect()
+
 	Global $aous = _ad_getobjectsinou($sout, "(objectClass=computer)")
 	$filez = FileOpen(@ScriptDir & "\computers-AD_OU" & ".txt", 2)
 	If @error > 0 Then
@@ -3582,7 +3585,8 @@ Func computergroup()
 		GUICtrlSetData($aff, @CRLF & "SCCM PITR /DCT ! No computers found in this OU: " & $sout, 1)
 		ToolTip("", 5, 5)
 		Return 0
-	EndIf
+	 EndIf
+
 	$filterou = ""
 	$text = "La POSTE/DSEM/EAPI69/NR"
 	Global $aselected[1]
@@ -3652,7 +3656,42 @@ Func computergroup()
 	If IsArray($sitems) = 0 Then
 		MsgBox(4160, "warning !", "no computer(s) selected !... abort !")
 		Return 0
-	EndIf
+	 EndIf
+
+  $multipleidrh=$sItems
+
+		for $i=1 to $multipleidrh[0]
+$multipleidrhbis=$multipleidrh[$i]
+
+$groupsComputer = _AD_GetUserGroups($multipleidrhbis)
+If @error > 0 Then
+Else
+    _ArraySort($groupsComputer, 0, 1)
+   _ArrayDelete($groupsComputer,0)
+Global $groupIDRH_final=""
+Global $groupidrh1_add=$groupsComputer
+
+for $k=0 to UBound($groupsComputer)-1
+$groupIDRH=$groupsComputer[$k]
+$groupIDRH=stringsplit($groupIDRH,",")
+$groupIDRH_int=$groupIDRH[1]
+$groupIDRH_int=StringReplace($groupIDRH_int,"CN=","")
+$groupIDRH_final=$groupIDRH_final & $groupIDRH_int & " ; " ;@crlf
+next
+
+   $groupsComputer = $groupIDRH_final
+   EndIf
+
+if $groupsComputer<>"" then
+$result=$result & @crlf & @CRLF & "  "  & $multipleidrhbis  & "  =>  groupes:  " & $groupsComputer &  @CRLF
+endif
+;
+next ;$i
+
+GUICTRLSETDATA($aff,@crlf & "  Time: " & @hour & ":" & @min & ":" & @sec & "     Actual computer groups: " & $result & @crlf ,1)
+$historik=$historik & @crlf & "  Time: " & @hour & ":" & @min & ":" & @sec & "   Actual computer groups: " & $result & @CRLF
+
+
 	If $isdct = 1 Then
 		$unite = InputBox("default OU ? 2 or 4 chr$", "ex: MILY, MITE, BPLY, GAUB, MI ... virtuos" & @CRLF & "?? : scan all OUs...", "PITR")
 		If StringLen($unite) < 2 OR StringLen($unite) > 4 AND NOT ($unite = "virtuos" OR $unite = "??") Then
@@ -3673,33 +3712,44 @@ Func computergroup()
 	$defautdc = StringReplace($defautdc, ".", ",DC=")
 	$defautdc = ",DC=" & $defautdc
 	ToolTip("", 5, 5)
+
 	If $allouu = 1 Then
 		$unite = ""
 		$allouu = 0
 		Global $souu = $sout
 	Else
 		Global $souu = "OU=Groupes,OU=" & $unite & ",OU=" & StringMid($unite, 1, 2) & $defautdc
-	EndIf
+	 EndIf
+
 	If $unite = "MI" Then
 		Global $souu = "OU=Groupes,OU=_Support Transverse,OU=MI" & $defautdc
-	EndIf
+	 EndIf
+
 	If $unite = "virtuos" Then
 		Global $souu = "OU=FunctionalGroups,OU=_Flexible Workspace Commun" & $defautdc
-	EndIf
+	 EndIf
+
 	$filezz = FileOpen(@ScriptDir & "\Groups-AD_OU-" & $unite & ".txt", 2)
 	Global $aouus = _ad_getobjectsinou($souu, "(objectClass=group)")
 	If @error > 0 Then
 		MsgBox(64, $adroot, "No Groups found ! " & @CRLF & $souu)
 		ToolTip("", 5, 5)
 		Return 0
-	EndIf
-	$filterouu = InputBox("filtering groups ?", "empty = all groups , or type: cbk, dpi ... ", "W9D;")
-	Global $aselected[1]
-	If $test = 1 Then
-		Global $hgui2 = GUICreate("Select groups to remove  and [ Apply ] !  (" & $filterouu & ")", 1000, 500)
-	Else
-		Global $hgui2 = GUICreate("Select groups for adding and [ Apply ] !  (" & $filterouu & ")", 1000, 500)
-	EndIf
+	 EndIf
+
+ if $isDCT=1 Then
+$filterOUu=InputBox("filtering groups ? [;]","empty = all groups , or type: W9D; etc... ","W9D;")
+Else
+$filterOUu=InputBox("filtering groups ? [;]","empty = all groups , or type keyword1;keyword2 ... ","")
+   EndIf
+
+Global $aSelected[1]
+if $test=1 then
+Global $hGUI2 = GUICreate("Select groups to remove  and [ Apply ] !  (" & $filterOUu & ")", 1000, 500)
+Else
+Global $hGUI2 = GUICreate("Select groups for adding and [ Apply ] !  (" & $filterOUu & ")", 1000, 500)
+EndIf
+
 	Global $hlistboxx = _guictrllistbox_create($hgui2, "String upon creation", 10, 30, 980, 470, BitOR($ws_border, $lbs_hasstrings, $ws_vscroll, $lbs_multiplesel))
 	_guictrllistbox_beginupdate($hlistboxx)
 	_guictrllistbox_resetcontent($hlistboxx)
@@ -3725,20 +3775,24 @@ Func computergroup()
 				EndIf
 			EndIf
 		Next
-	EndIf
+	 EndIf
+
 	FileClose($filezz)
 	FileDelete(@ScriptDir & "\Groups-AD_OU-" & $unite & ".txt")
+
 	If _ispressed("10", $hdll) Then
 	Else
 		FileDelete(@ScriptDir & "\Groups-AD_OU-" & $unite & ".txt")
-	EndIf
+	 EndIf
+
 	If IsArray($aouus) = 0 Then
 		$idcheckboxgroup = 2
 		GUIDelete($hgui2)
 		ToolTip("", 5, 5)
 		MsgBox(0, "Info !", "aborting, no groups found in: " & $unite, 7)
 		Return 0
-	EndIf
+	 EndIf
+
 	Global $hbutton = GUICtrlCreateButton("[ Apply ]", 20, 3, 80, 25)
 	GUISetState()
 	While 1
@@ -3838,7 +3892,7 @@ Func computergroup()
 	Return 0
 EndFunc
 
-#REgion Directives Metiers
+#Region Directives Metiers
 ;/////////////////////////////////////////////////////  Directives Metiers domaine DCT uniquement  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Func directives() ;routine principale des Directives Metiers
