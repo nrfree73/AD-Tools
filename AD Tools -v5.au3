@@ -3668,12 +3668,12 @@ Func computergroup()
 		Return 0
 	 EndIf
 
-  $multipleidrh=$sItems
+  ;$multipleidrh=$sItems
 
-		for $i=1 to $multipleidrh[0]
-$multipleidrhbis=$multipleidrh[$i]
+		for $i=1 to $sItems[0]
+$computers=$sItems[$i]
 
-$groupsComputer = _AD_GetUserGroups($multipleidrhbis)
+$groupsComputer = _AD_GetUserGroups($computers)
 If @error > 0 Then
 Else
     _ArraySort($groupsComputer, 0, 1)
@@ -3688,18 +3688,18 @@ $groupIDRH_int=$groupIDRH[1]
 $groupIDRH_int=StringReplace($groupIDRH_int,"CN=","")
 $groupIDRH_final=$groupIDRH_final & $groupIDRH_int & " ; " ;@crlf
 next
-
    $groupsComputer = $groupIDRH_final
    EndIf
 
-if $groupsComputer<>"" then
-$result=$result & @crlf & @CRLF & "  "  & $multipleidrhbis  & "  =>  groupes:  " & $groupsComputer &  @CRLF
+;if $groupsComputer<>"" then
+if $computers<>"" Then
+$result=$result & "  "  & $computers  & "  =>  groupes:  " & $groupsComputer &  @CRLF
 endif
 ;
 next ;$i
 
-GUICTRLSETDATA($aff,@crlf & "  Time: " & @hour & ":" & @min & ":" & @sec & "     Actual computer groups: " & $result & @crlf ,1)
-$historik=$historik & @crlf & "  Time: " & @hour & ":" & @min & ":" & @sec & "   Actual computer groups: " & $result & @CRLF
+GUICTRLSETDATA($aff,@crlf & "  Time: " & @hour & ":" & @min & ":" & @sec & "     Actual computer groups: " & @crlf & $result & @crlf ,1)
+$historik=$historik & @crlf & "  Time: " & @hour & ":" & @min & ":" & @sec & "   Actual computer groups: " & @crlf & $result & @CRLF
 
 
 	If $isdct = 1 Then
@@ -3829,40 +3829,40 @@ EndIf
 						MsgBox(4160, "warning !", "no group(s) selected !... abort !")
 						Return 0
 					EndIf
-					$multipleidrh = $sitems
-					For $i = 1 To $multipleidrh[0]
-						$multipleidrhbis = $multipleidrh[$i]
-						$actualcomputername = $multipleidrhbis
-						$userexist = _ad_objectexists($multipleidrhbis)
+
+					For $i = 1 To $sitems[0]
+						$computers = $sitems[$i]
+
+						$userexist = _ad_objectexists($computers)
 						If $userexist = 1 Then
 							For $z = 1 To $sitemss[0]
 								If StringLen($sitemss[$z]) <> 0 Then
 									$multipleidrh = $sitems
 									If $test = 0 Then
-										$ivalue = _ad_addusertogroup($sitemss[$z], $multipleidrhbis)
+										$ivalue = _ad_addusertogroup($sitemss[$z], $computers)
 										If $ivalue = 1 Then
 											$txt = " 	: [OK]"
 										Else
 											$txt = " 	: [KO], est deja membre ou pb. de droits à l'ajout du groupe."
 										EndIf
-										$result = $result & @CRLF & "[+] groupe: " & $sitemss[$z] & "  =>  computer:  " & $multipleidrhbis & $txt
+										$result = $result &  "[+] groupe: " & $sitemss[$z] & "  =>  computer:  " & $computers & $txt & @crlf
 									Else
-										$ivalue = _ad_removeuserfromgroup($sitemss[$z], $multipleidrhbis)
+										$ivalue = _ad_removeuserfromgroup($sitemss[$z], $computers)
 										If $ivalue = 1 Then
 											$txt = " 	: [OK]"
 										Else
 											$txt = " 	: [KO], n'est deja pas membre ou pb. de droits pour retirer le groupe."
 										EndIf
-										$result = $result & @CRLF & "[-] groupe: " & $sitemss[$z] & "  =>  computer:  " & $multipleidrhbis & $txt
+										$result = $result &  "[-] groupe: " & $sitemss[$z] & "  =>  computer:  " & $computers & $txt & @crlf
 									EndIf
 								Else
-									If $multipleidrhbis <> "" AND $userexist = 0 Then
-										$result = $result & $multipleidrhbis & " pas trouvé sur l'AD ! "
+									If $computers <> "" AND $userexist = 0 Then
+										$result = $result & $computers & " pas trouvé sur l'AD ! "
 									EndIf
 								EndIf
 							Next
 						EndIf
-						$groupscomputer = _ad_getusergroups($multipleidrhbis)
+						$groupscomputer = _ad_getusergroups($computers)
 						If @error > 0 Then
 						Else
 							_arraysort($groupscomputer, 0, 1)
@@ -3879,9 +3879,10 @@ EndIf
 							$groupscomputer = $groupidrh_final
 						EndIf
 						If $groupscomputer <> "" Then
-							$result = $result & @CRLF & @CRLF & "  " & $multipleidrhbis & "  =>  groupes:  " & $groupscomputer & @CRLF
+							$result = $result &  "  " & $computers & "  =>  Liste des groupes:  " & $groupscomputer & @CRLF & @crlf
 						EndIf
-					Next
+					 Next
+
 					ToolTip("", 5, 5)
 					GUIDelete($hgui2)
 					ClipPut($result)
