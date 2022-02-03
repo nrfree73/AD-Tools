@@ -3647,7 +3647,6 @@ Func computergroup()
 					$sitem = " items"
 				EndIf
 				$sitems = ""
-				GUIDelete($hgui2)
 				For $i = 1 To $aselected[0]
 					$sitems &= _guictrllistbox_gettext($hlistbox, $aselected[$i]) & @CRLF
 				Next
@@ -3808,13 +3807,14 @@ EndIf
 	GUISetState()
 	While 1
 		Switch GUIGetMsg()
-			Case $hbutton
+		Case $hbutton
 				$aselected = _guictrllistbox_getselitems($hlistboxx)
 				If $aselected[0] = 1 Then
 					$sitem = " item"
 				Else
 					$sitem = " items"
-				EndIf
+				 EndIf
+				 GUIDelete($hgui2)
 				$sitemss = ""
 				For $i = 1 To $aselected[0]
 					$sitemss &= _guictrllistbox_gettext($hlistboxx, $aselected[$i]) & @CRLF
