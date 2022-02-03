@@ -3651,6 +3651,7 @@ Func computergroup()
 					$sitem = " items"
 				EndIf
 				$sitems = ""
+				GUIDelete($hgui2)
 				For $i = 1 To $aselected[0]
 					$sitems &= _guictrllistbox_gettext($hlistbox, $aselected[$i]) & @CRLF
 				Next
@@ -3905,7 +3906,7 @@ EndIf
 		EndSwitch
 	WEnd
 	ToolTip("", 5, 5)
-	GUIDelete($hgui2)
+	;GUIDelete($hgui2)
 	Return 0
 EndFunc
 
