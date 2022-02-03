@@ -3577,7 +3577,7 @@ Func computergroup()
 
 	treeview_affiche()
 	treeselect()
-
+    $sout2=$sout ;branche selectionnée...
 	Global $aous = _ad_getobjectsinou($sout, "(objectClass=computer)")
 	$filez = FileOpen(@ScriptDir & "\computers-AD_OU" & ".txt", 2)
 	If @error > 0 Then
@@ -3701,6 +3701,7 @@ next ;$i
 GUICTRLSETDATA($aff,@crlf & "  Time: " & @hour & ":" & @min & ":" & @sec & "     Actual computer groups: " & @crlf & $result & @crlf ,1)
 $historik=$historik & @crlf & "  Time: " & @hour & ":" & @min & ":" & @sec & "   Actual computer groups: " & @crlf & $result & @CRLF
 
+;$sout2 au lieu De $souu
 
 	If $isdct = 1 Then
 		$unite = InputBox("default OU ? 2 or 4 chr$", "ex: MILY, MITE, BPLY, GAUB, MI ... virtuos" & @CRLF & "?? : scan all OUs...", "PITR")
@@ -3714,8 +3715,8 @@ $historik=$historik & @crlf & "  Time: " & @hour & ":" & @min & ":" & @sec & "  
 	EndIf
 	If $unite = "??" Then
 		$allouu = 1
-		treeview_affiche()
-		treeselect()
+	;	treeview_affiche()
+	;	treeselect()
 	Else
 		$allouu = 0
 	EndIf
@@ -3726,7 +3727,7 @@ $historik=$historik & @crlf & "  Time: " & @hour & ":" & @min & ":" & @sec & "  
 	If $allouu = 1 Then
 		$unite = ""
 		$allouu = 0
-		Global $souu = $sout
+		Global $souu = $sout2 ;$sout2 au lieu De $sout
 	Else
 		Global $souu = "OU=Groupes,OU=" & $unite & ",OU=" & StringMid($unite, 1, 2) & $defautdc
 	 EndIf
@@ -3739,11 +3740,11 @@ $historik=$historik & @crlf & "  Time: " & @hour & ":" & @min & ":" & @sec & "  
 		Global $souu = "OU=FunctionalGroups,OU=_Flexible Workspace Commun" & $defautdc
 	 EndIf
 
+
 	$filezz = FileOpen(@ScriptDir & "\Groups-AD_OU-" & $unite & ".txt", 2)
-	Global $aouus = _ad_getobjectsinou($souu, "(objectClass=group)")
+	Global $aouus = _ad_getobjectsinou($sout2, "(objectClass=group)") ;$sout  ($souu)
 	If @error > 0 Then
-		MsgBox(64, $adroot, "No Groups found ! " & @CRLF & $souu)
-		ToolTip("", 5, 5)
+		MsgBox(64, $adroot, "No Groups found ! " & @CRLF & $sout2) ;$sout  ($souu)
 		Return 0
 	 EndIf
 
@@ -3815,6 +3816,7 @@ EndIf
 					$sitem = " items"
 				EndIf
 				$sitemss = ""
+					GUIDelete($hgui2)
 				For $i = 1 To $aselected[0]
 					$sitemss &= _guictrllistbox_gettext($hlistboxx, $aselected[$i]) & @CRLF
 				Next
@@ -3832,7 +3834,9 @@ EndIf
 
 					For $i = 1 To $sitems[0]
 						$computers = $sitems[$i]
-
+						if $computers<>"" then
+						   $result=$result & "> " & $computers & @CRLF
+						EndIf
 						$userexist = _ad_objectexists($computers)
 						If $userexist = 1 Then
 							For $z = 1 To $sitemss[0]
@@ -3858,9 +3862,9 @@ EndIf
 								Else
 									If $computers <> "" AND $userexist = 0 Then
 										$result = $result & $computers & " pas trouvé sur l'AD ! "
-									EndIf
+									 EndIf
 								EndIf
-							Next
+					 Next
 						EndIf
 						$groupscomputer = _ad_getusergroups($computers)
 						If @error > 0 Then
@@ -3880,6 +3884,7 @@ EndIf
 						EndIf
 						If $groupscomputer <> "" Then
 							$result = $result &  "  " & $computers & "  =>  Liste des groupes:  " & $groupscomputer & @CRLF & @crlf
+						 Else
 						EndIf
 					 Next
 
@@ -3899,7 +3904,7 @@ EndIf
 		EndSwitch
 	WEnd
 	ToolTip("", 5, 5)
-	GUIDelete($hgui2)
+;	GUIDelete($hgui2)
 	Return 0
 EndFunc
 
