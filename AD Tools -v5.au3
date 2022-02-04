@@ -3814,7 +3814,6 @@ EndIf
 				Else
 					$sitem = " items"
 				 EndIf
-				 GUIDelete($hgui2)
 				$sitemss = ""
 				For $i = 1 To $aselected[0]
 					$sitemss &= _guictrllistbox_gettext($hlistboxx, $aselected[$i]) & @CRLF
@@ -3830,7 +3829,20 @@ EndIf
 						MsgBox(4160, "warning !", "no group(s) selected !... abort !")
 						Return 0
 					EndIf
+					 ;sort de la boucle et termine boucle for $i (computers[$i])
+					ExitLoop
+				Else
+					MsgBox(4160, "warning !", "nothing selected... try again or close window")
+				EndIf
+			Case $gui_event_close
+				$idcheckboxgroup = 2
+				GUIDelete($hgui2)
+				ExitLoop
+		EndSwitch
+	 WEnd
 
+	 ; boucle for $i (computers[$i])
+	 GUIDelete($hgui2)
 					For $i = 1 To $sitems[0]
 						$computers = $sitems[$i]
 						   if $computers<>"" then
@@ -3891,16 +3903,9 @@ EndIf
 					ClipPut($result)
 					GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  " & $result & @CRLF & @CRLF & "			=====	=====	=====	=====	=====			" & @CRLF & @CRLF, 1)
 					$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  " & $result
-					ExitLoop
-				Else
-					MsgBox(4160, "warning !", "nothing selected... try again or close window")
-				EndIf
-			Case $gui_event_close
-				$idcheckboxgroup = 2
-				GUIDelete($hgui2)
-				ExitLoop
-		EndSwitch
-	WEnd
+
+	 ; fin boucle for $i (computers[$i])
+
 	ToolTip("", 5, 5)
 	;GUIDelete($hgui2)
 	Return 0
