@@ -3567,6 +3567,8 @@ Func computergroup()
 		   Return 0
 		EndIf
 
+$result=""
+
 	$t = MsgBox(4, "Choix (O/N)", "[Oui]: ajoute un groupe => ordinateur" & @CRLF & @CRLF & "[Non]: retire un groupe => ordinateur")
 	If $t = 6 Then
 		$test = 0
@@ -3589,7 +3591,7 @@ Func computergroup()
 
 	$filterou = ""
 	if $test=0 Then
-	$text = "  computer(s):  action is,  [+]  groups"
+	$text = "  computer(s):  action is,  [+]   groups"
     Else
 	$text = "  computer(s):  action is,  [-]   groups"
     EndIf
@@ -3698,8 +3700,8 @@ endif
 ;
 next ;$i
 
-GUICTRLSETDATA($aff,@crlf & "  Time: " & @hour & ":" & @min & ":" & @sec & "     Actual computer groups: " & @crlf & $result & @crlf ,1)
-$historik=$historik & @crlf & "  Time: " & @hour & ":" & @min & ":" & @sec & "   Actual computer groups: " & @crlf & $result & @CRLF
+GUICTRLSETDATA($aff,  @crlf & "  Time: " & @hour & ":" & @min & ":" & @sec & "=>   Initial computer groups: " & @crlf & $result  & "  Time: " & @hour & ":" & @min & ":" & @sec & "   Initial computer groups   <=" & @crlf,1)
+$historik=$historik & @crlf & "  Time: " & @hour & ":" & @min & ":" & @sec & "=>   Initial computer groups: " & @crlf & $result  & "  Time: " & @hour & ":" & @min & ":" & @sec & "   Initial computer groups	<=" & @crlf
 
 
 	If $isdct = 1 Then
@@ -3821,9 +3823,9 @@ EndIf
 				If $aselected[0] <> 0 Then
 					$sitemss = StringSplit($sitemss, @CRLF)
 					If $test = 0 Then
-						$result = "		Adding   multiple group to selected computer(s) ...	" & @CRLF
+						$result = "		[+] group(s) to selected computer(s) ...	" & @CRLF
 					Else
-						$result = "		removing multiple group to selected computer(s) ...	" & @CRLF
+						$result = "		[-] group(s) to selected computer(s) ...	" & @CRLF
 					EndIf
 					If IsArray($sitemss) = 0 Then
 						MsgBox(4160, "warning !", "no group(s) selected !... abort !")
@@ -3894,14 +3896,14 @@ EndIf
 							$groupscomputer = $groupidrh_final
 						EndIf
 						If $groupscomputer <> "" Then
-							$result = $result &  "  " & $computers & "  =>  Liste des groupes:  " & $groupscomputer & @CRLF & @crlf
+							$result = $result &  "  " & $computers & @CRLF & "   => Liste finale:  " & $groupscomputer & @CRLF
 						EndIf
 					 Next
 
 					ToolTip("", 5, 5)
 					GUIDelete($hgui2)
 					ClipPut($result)
-					GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  " & $result & @CRLF & @CRLF & "			=====	=====	=====	=====	=====			" & @CRLF & @CRLF, 1)
+					GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  " & $result & @CRLF & "			=====	=====	=====	=====	=====			" & @CRLF, 1)
 					$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  " & $result
 
 	 ; fin boucle for $i (computers[$i])
