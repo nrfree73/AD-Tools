@@ -4048,18 +4048,19 @@ Func directives() ;routine principale des Directives Metiers
 									Global $restoredirectives = $actiongroups
 									$restoredirectives = StringReplace($restoredirectives, " ; ", "|")
 									$actiongroups = " Removed obsolete Directives groups: " & $actiongroups
-									$ou = InputBox("default OU ?", "ex: BPLY, BPRE ... " & @CRLF & "_SM_GUICHET", "GAUB")
+									$ou = InputBox("default OU ?", "ex: BPLY, BPRE ... " & @CRLF & "_SM_GUICHET" & @crlf & " on ne met plus: RG-GAUB_SM_GUICHET...", "GAUB")
 									move_user()
-									Global $ivalue = _ad_addusertogroup("RG-" & $ou & "_SM_GUICHET", $idrh1)
+									;Global $ivalue = _ad_addusertogroup("RG-" & $ou & "_SM_GUICHET", $idrh1)
+									Global $ivalue = _ad_addusertogroup("SG-" & $ou & "_ACCES_EVS" , $idrh1)
 									If $ivalue = 1 Then
 										$dirapplied = 1
-										MsgBox(64, "", "User '" & $idrh1 & "' successfully assigned to group '" & "RG-" & $ou & "_SM_GUICHET" & "'")
+										MsgBox(64, "", "User '" & $idrh1 & "' successfully assigned to group '" & "SG-" & $ou & "_ACCES_EVS" & "'")
 									ElseIf @error = 1 Then
-										MsgBox(64, "", "Group '" & "RG-" & $ou & "_SM_GUICHET" & "' does not exist")
+										MsgBox(64, "", "Group '" & "SG-" & $ou & "_ACCES_EVS" & "' does not exist")
 									ElseIf @error = 2 Then
 										MsgBox(64, "", "User '" & $idrh1 & "' does not exist")
 									ElseIf @error = 3 Then
-										MsgBox(64, "", "User '" & $idrh1 & "' is already a member of group '" & "RG-" & $ou & "_SM_GUICHET" & "'")
+										MsgBox(64, "", "User '" & $idrh1 & "' is already a member of group '" & "SG-" & $ou & "_ACCES_EVS" & "'")
 										$dirapplied = 1
 									Else
 										MsgBox(64, "", "Return code '" & @error & "' from Active Directory")
@@ -4089,7 +4090,7 @@ Func directives() ;routine principale des Directives Metiers
 										_ad_addusertogroup("SG-GAUB_ACCES_EVS", $idrh1)
 										_ad_addusertogroup("USR_BP_GUICHET_GENE", $idrh1)
 										_ad_addusertogroup("USR_BP_GUICHET_ESPACE_CO", $idrh1)
-										_ad_addusertogroup("RG-PITR_VIR_COM1_IE11_NOREDIRECTFOLDER", $idrh1)
+									;	_ad_addusertogroup("RG-PITR_VIR_COM1_IE11_NOREDIRECTFOLDER", $idrh1)
 									EndIf
 									If $dirapplied = 1 Then
 										Global $groupsidrh1 = _ad_getusergroups($idrh1)
@@ -5439,10 +5440,10 @@ Func auto_remove() ;nettoyage ancienne Directive si detecté
 			 EndIf
    ;VirtuOS 28-01-2022 (Vir_01 à Vir_014)
    ;guichetier 09/02/2022 >
-			If StringInStr($groupsidrh3,"RG-PITR_VIR_COM1_IE11_NOREDIRECTFOLDER") Then
-			   _ad_removeuserfromgroup($groupsidrh3, $idrh1)
-				$actiongroups = $actiongroups & $groupsidrh3 & " ; "
-			 EndIf
+			;If StringInStr($groupsidrh3,"RG-PITR_VIR_COM1_IE11_NOREDIRECTFOLDER") Then
+			;   _ad_removeuserfromgroup($groupsidrh3, $idrh1)
+			;	$actiongroups = $actiongroups & $groupsidrh3 & " ; "
+			; EndIf
 
 		Next
 	 EndIf
