@@ -4089,6 +4089,7 @@ Func directives() ;routine principale des Directives Metiers
 										_ad_addusertogroup("SG-GAUB_ACCES_EVS", $idrh1)
 										_ad_addusertogroup("USR_BP_GUICHET_GENE", $idrh1)
 										_ad_addusertogroup("USR_BP_GUICHET_ESPACE_CO", $idrh1)
+										_ad_addusertogroup("RG-PITR_VIR_COM1_IE11_NOREDIRECTFOLDER", $idrh1)
 									EndIf
 									If $dirapplied = 1 Then
 										Global $groupsidrh1 = _ad_getusergroups($idrh1)
@@ -5437,6 +5438,12 @@ Func auto_remove() ;nettoyage ancienne Directive si detecté
 				$actiongroups = $actiongroups & $groupsidrh3 & " ; "
 			 EndIf
    ;VirtuOS 28-01-2022 (Vir_01 à Vir_014)
+   ;guichetier 09/02/2022 >
+			If StringInStr($groupsidrh3,"RG-PITR_VIR_COM1_IE11_NOREDIRECTFOLDER") Then
+			   _ad_removeuserfromgroup($groupsidrh3, $idrh1)
+				$actiongroups = $actiongroups & $groupsidrh3 & " ; "
+			 EndIf
+
 		Next
 	 EndIf
 	Return $actiongroups
