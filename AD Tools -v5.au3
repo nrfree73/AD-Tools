@@ -4097,7 +4097,66 @@ Func directives() ;routine principale des Directives Metiers
 										affiche_remove_groupes()
 									EndIf
 								EndIf
-								If $scomboreaddirectives = "19 _SM_Conseil Bancaire" Then
+							    If $scomboreaddirectives = "_Vendeur Formateur LPM" Then
+									Global $groupsidrh1 = _ad_getusergroups($idrh1)
+									If @error > 0 Then
+										MsgBox(0, "Info !", "user " & $idrh1 & "has no groups...", 7)
+										Return 0
+									EndIf
+									auto_remove()
+									Global $restoredirectives = $actiongroups
+									$restoredirectives = StringReplace($restoredirectives, " ; ", "|")
+									$actiongroups = " Removed obsolete Directives groups: " & $actiongroups
+									$ou = InputBox("default OU ?", "ex: BPLY, BPRE ... " & @CRLF & "_Vendeur Formateur LPM" & @crlf & " Vendeur Formateur LPM... idem Guichetier en plus:" & @crlf & "RG-PITR_VIR_COM1_IE11_NOREDIRECTFOLDER", "GAUB")
+									move_user()
+									;Global $ivalue = _ad_addusertogroup("RG-" & $ou & "_SM_GUICHET", $idrh1)
+									Global $ivalue = _ad_addusertogroup("SG-" & $ou & "_ACCES_EVS" , $idrh1)
+									If $ivalue = 1 Then
+										$dirapplied = 1
+										MsgBox(64, "", "User '" & $idrh1 & "' successfully assigned to group '" & "SG-" & $ou & "_ACCES_EVS" & "'")
+									ElseIf @error = 1 Then
+										MsgBox(64, "", "Group '" & "SG-" & $ou & "_ACCES_EVS" & "' does not exist")
+									ElseIf @error = 2 Then
+										MsgBox(64, "", "User '" & $idrh1 & "' does not exist")
+									ElseIf @error = 3 Then
+										MsgBox(64, "", "User '" & $idrh1 & "' is already a member of group '" & "SG-" & $ou & "_ACCES_EVS" & "'")
+										$dirapplied = 1
+									Else
+										MsgBox(64, "", "Return code '" & @error & "' from Active Directory")
+									EndIf
+									If $dirapplied = 0 Then
+										$defautdc = StringReplace($defautdc, ".", ",DC=")
+										$defautdc = ",DC=" & $defautdc
+										$sobject = _ad_samaccountnametofqdn($idrh1)
+										$souinitial = "OU=Utilisateurs,OU=" & $ousourcedir & ",OU=" & StringUpper(StringMid($ousourcedir, 1, 2)) & $defautdc
+										$ivalue = _ad_moveobject($souinitial, $sobject)
+										If $ivalue = 1 Then
+											MsgBox(64, "Active Directory ", $idrh1 & "' successfully replaced to '" & $ousourcedir & "'" & @CRLF & @CRLF & "Directive Not Applied...")
+											ToolTip("synchronising AD", 5, 5)
+											Sleep(3000)
+											ToolTip("", 5, 5)
+										EndIf
+										$restoredirectives = StringTrimRight($restoredirectives, 1)
+										$groupsidrh1 = StringSplit($restoredirectives, "|")
+										If IsArray($groupsidrh1) = 1 Then
+											For $z = 1 To $groupsidrh1[0]
+												_ad_addusertogroup($groupsidrh1[$z], $idrh1)
+											Next
+										EndIf
+										$actiongroups = StringReplace($actiongroups, " Removed obsolete Directives groups: ", " Replaced original Directives groups: ")
+									EndIf
+									If $dirapplied = 1 Then
+										_ad_addusertogroup("SG-GAUB_ACCES_EVS", $idrh1)
+										_ad_addusertogroup("USR_BP_GUICHET_GENE", $idrh1)
+										_ad_addusertogroup("USR_BP_GUICHET_ESPACE_CO", $idrh1)
+										_ad_addusertogroup("RG-PITR_VIR_COM1_IE11_NOREDIRECTFOLDER", $idrh1)
+									EndIf
+									If $dirapplied = 1 Then
+										Global $groupsidrh1 = _ad_getusergroups($idrh1)
+										affiche_remove_groupes()
+									EndIf
+								 EndIf
+							    If $scomboreaddirectives = "19 _SM_Conseil Bancaire" Then
 									Global $groupsidrh1 = _ad_getusergroups($idrh1)
 									If @error > 0 Then
 										MsgBox(0, "Info !", "user " & $idrh1 & "has no groups...", 7)
@@ -5439,12 +5498,12 @@ Func auto_remove() ;nettoyage ancienne Directive si detecté
 				$actiongroups = $actiongroups & $groupsidrh3 & " ; "
 			 EndIf
    ;VirtuOS 28-01-2022 (Vir_01 à Vir_014)
-   ;guichetier 09/02/2022 >
-			;If StringInStr($groupsidrh3,"RG-PITR_VIR_COM1_IE11_NOREDIRECTFOLDER") Then
-			;   _ad_removeuserfromgroup($groupsidrh3, $idrh1)
-			;	$actiongroups = $actiongroups & $groupsidrh3 & " ; "
-			; EndIf
-
+   ;Vendeur Formateur LPM 09/02/2022 >
+			If StringInStr($groupsidrh3,"RG-PITR_VIR_COM1_IE11_NOREDIRECTFOLDER") Then
+			   _ad_removeuserfromgroup($groupsidrh3, $idrh1)
+				$actiongroups = $actiongroups & $groupsidrh3 & " ; "
+			 EndIf
+   ;< Vendeur Formateur LPM 09/02/2022
 		Next
 	 EndIf
 	Return $actiongroups
@@ -6296,6 +6355,7 @@ Func liste_directives() ;Liste globale des Directives sous forme Matricielle
 		_arrayinsert($array, 0, "_SM_Conseil Bancaire W10")
 		_arrayinsert($array, 0, "19 _SM_Conseil Bancaire")
 		_arrayinsert($array, 0, "_SM_GUICHET (VirtuOS)")
+		_arrayinsert($array, 0, "_Vendeur Formateur LPM")
 		_arrayinsert($array, 0, "_SM_Management Commercial Unique")
 		_arrayinsert($array, 0, "_SM_Sites Tertiaires RLP")
 		_arrayinsert($array, 0, "[ Zero Directives ]")
