@@ -3,6 +3,7 @@ Active Directory Tools
 extension file .au3 => compiled to Autoit script exe.
 
 3 same versions, tiny, medium and large exe (tiny no music, medium music, large exe with 2d demo)
+x64 new GDI.exe, new Graphic interface, 100% working, but need some time for GDI display to be more friendly
 
 It's a tool to automate some manipulations in Active Directory (works on DCT, CORP and domain COURRIER) or other domains but some functions will not be available such like Lbpai or Directives.. only works for domain DCT...
 
