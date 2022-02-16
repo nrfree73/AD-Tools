@@ -10,7 +10,7 @@ Global $lastdateupdate = " 28-01-2022 " ;main routine information
 
 #Region n1
 
-   #Region Includes autoit
+    #Region Includes autoit
 #include <AD.au3>
 #include <TabConstants.au3>
 #include <GUIConstants.au3>
@@ -27,6 +27,7 @@ Global $lastdateupdate = " 28-01-2022 " ;main routine information
 #include <MsgBoxConstants.au3>
 #include <GUIConstantsEx.au3>
 ;#include "FModMem.au3"
+#include <GuiEdit.au3>
    #EndRegion Include
 
 	#Region Obfuscator Script autoit
@@ -78,9 +79,16 @@ Opt("TrayMenuMode", 3)
 	Global $groupsidrh1
 	Global $idrh1
     Global $domainname=""
+    Global $aff
+    Global $date_expire = ""
+    Global $date_prolonger = ""
+    Global $cyclesIDRG=0
 
 	Func _terminate()
-		Exit
+	   $t = MsgBox(4, "Quitter ?", "[Oui]: Terminer AD Tools !" & @CRLF & @CRLF & "[Non]: ne fait rien")
+					If $t = 6 Then
+						Exit
+					EndIf
 	EndFunc
 
 	Global $hdll = DllOpen("user32.dll")
@@ -121,20 +129,8 @@ Opt("TrayMenuMode", 3)
 		$isdct = 0
 	 EndIf
 
-	While 1
-		Global $defautdc = $defautdcinit
-		Global $allou = 0
-		GUIDelete($hguilg)
-		ToolTip("",5,5,"")
+;Boucle Principale _Extended()
 		_extended()
-		$iterad = $iterad + 1
-		If $iterad > 11 Then
-			$iterad = 1
-			$historik = ""
-			$historik = $lastiter
-			$lastiter = ""
-		EndIf
-	WEnd
 
 	Func __arraydisplay(Const ByRef $avarray, $stitle = "Array: ListView Display", $iitemlimit = -1, $itranspose = 0, $sseparator = "", $sreplace = "|", $sheader = "")
 		If NOT IsArray($avarray) Then Return SetError(1, 0, 0)
@@ -299,19 +295,92 @@ Opt("TrayMenuMode", 3)
 
 #Region _Extended() ;main routine
 
-	Func _extended()
-		Global $idrh1 = "", $idrh2 = "", $idgroup = "", $idgroup2 = ""
-		Global $actiongroups = ""
-		Global $actiongroupsar = ""
-		Global $driveismanual = ""
-		Global $result, $result2, $outputidrh1
-		GUIDelete($hgui)
 
-		#Region GUI
-			Global $hgui = GUICreate("    [ AD Tools ]---[ La POSTE/DSEM/EAPI69/NR ]---[ màj. " & $lastdateupdate & " ]         domain: [   " & $isdct2 & "   ]     |     iter11=" & $iterad, 1240, 595, 50, 50, $ws_sysmenu)
+	Func _extended()
+	   while 1
+	    Global $defautdc = $defautdcinit
+		Global $allou = 0
+
+		ToolTip("",5,5,"")
+
+		  #Region GUI
+			Global $hguiP = GUICreate("    [ AD Tools ]---[ La POSTE/DSEM/EAPI69/NR ]---[ màj. " & $lastdateupdate & " ]         domain: [   " & $isdct2 & "   ]" , 1240, 595, 50, 50, $ws_sysmenu)
 			GUISetBkColor(14745599)
 			Global $aff = GUICtrlCreateEdit("", 350, 5, 880, 555, -1, 512)
-			GUICtrlSetData($aff, $historik, 1)
+			;GUICtrlSetData($aff, "Ready !" & @crlf, 1)
+			_ad_open()
+
+			Global $idabout = GUICtrlCreateButton("About", 1, 1, 35, 20)
+			Global $buttonlocalgroup = GUICtrlCreateButton("Local Groups", 274, 1, 75, 20)
+			GUICtrlSetTip($buttonlocalgroup, "Manage Local Group" & @CRLF & "compare,list,add or remove locals groups...", "", 0, 1)
+			Global $buttoncomputer = GUICtrlCreateButton("Computer", 105, 1, 60, 20)
+			GUICtrlSetTip($buttoncomputer, "Add/remove 'Group' to Computer", "", 0, 1)
+			Global $buttonbitlocker = GUICtrlCreateButton("Bitlocker", 41, 1, 60, 20)
+			GUICtrlSetTip($buttonbitlocker, "'Bitlocker for Computer'", "", 0, 1)
+			;
+			Global $buttonidrh = GUICtrlCreateButton("Users (Idrh)", 175, 1, 60, 20)
+			GUICtrlSetTip($buttonidrh, "Manage users accounts (Idrh)", "", 0, 1)
+			;
+			GUISetState(@SW_SHOW, $hgui)
+			Send("{TAB}")
+		 #EndRegion GUI
+
+Local $idmsg
+		While 1
+		   	;  tooltip("Boucle Principale",5,5,"")
+			$idmsg = GUIGetMsg()
+			Switch $idmsg
+				Case $buttonlocalgroup
+					If _ispressed("10", $hdll) Then
+					Else
+						readlocalgroup2()
+					EndIf
+					GUICtrlDelete($hguilg)
+				Case $buttonbitlocker
+					$t = MsgBox(4, "Clé Bitlocker (AD) ?", "[Oui]: clé Bitlocker ordinateur" & @CRLF & @CRLF & "[Non]: ne fait rien")
+					If $t = 6 Then
+						bitlocker()
+					EndIf
+				Case $buttoncomputer
+					$t = MsgBox(4, "Computer ?", "[Oui]: Ajoute/enlève 'Groupe' => Computer" & @CRLF & @CRLF & "[Non]: ne fait rien")
+					If $t = 6 Then
+						computergroup()
+					 EndIf
+			    Case $buttonidrh
+					   _Func_Idrh()
+				Case $gui_event_close
+					 _terminate()
+
+				Case $idabout
+					about()
+					$t = MsgBox(0, "About AD Tools", "AD Tools - Nicolas RISTOVSKI" & @CRLF & @CRLF & $lastdatecompile)
+					_Exit()
+			EndSwitch
+		WEnd
+
+wend
+EndFunc
+
+#EndRegion
+
+Func _Func_Idrh()
+;$historik=""
+$cyclesIDRG=$cyclesIDRG+1
+if $cyclesIDRG>20 Then
+   $cyclesIDRG=0
+   _GUICtrlEdit_SetText($aff, "" )
+   GUICtrlSetData($aff, "Erase history: Ready !" & @crlf & @CRLF, 1)
+EndIf
+
+ Local $aPos = WinGetPos($hguiP)
+    ; Display the array values returned by WinGetPos.
+    ;MsgBox($MB_SYSTEMMODAL, "", "X-Pos: " & $aPos[0] & @CRLF & "Y-Pos: " & $aPos[1] & @CRLF )
+
+   #Region GUI
+			Global $hgui = GUICreate("    [ AD Tools ]---[ IDRH ]---	",355, 580, $aPos[0], $aPos[1]+7, $ws_sysmenu)
+			GUISetBkColor(14745599)
+			;Global $aff = GUICtrlCreateEdit("", 350, 5, 880, 555, -1, 512)
+			;GUICtrlSetData($aff, $historik, 1)
 			_ad_open()
 			$buttonidrh1 = GUICtrlCreateInput("", 50, 50, 85, 35)
 			GUICtrlSetFont(-1, 14, 400, 0, "MS Sans Serif")
@@ -437,13 +506,6 @@ Opt("TrayMenuMode", 3)
 			GUICtrlSetState(-1, $gui_unchecked)
 			Global $idok2 = GUICtrlCreateButton("OK", 55, 480, 225, 65)
 			GUICtrlSetTip($idok2, "Press OK to valid", "", 0, 1)
-			Global $idabout = GUICtrlCreateButton("About", 1, 1, 35, 20)
-			Global $buttonlocalgroup = GUICtrlCreateButton("Local Groups", 274, 1, 75, 20)
-			GUICtrlSetTip($buttonlocalgroup, "Manage Local Group" & @CRLF & "compare,list,add or remove locals groups...", "", 0, 1)
-			Global $buttoncomputer = GUICtrlCreateButton("Computer", 105, 1, 60, 20)
-			GUICtrlSetTip($buttoncomputer, "Add/remove 'Group' to Computer", "", 0, 1)
-			Global $buttonbitlocker = GUICtrlCreateButton("Bitlocker", 41, 1, 60, 20)
-			GUICtrlSetTip($buttonbitlocker, "'Bitlocker for Computer'", "", 0, 1)
 			GUISetState(@SW_SHOW, $hgui)
 			GUICtrlSetData($buttonidrh1, "")
 			GUICtrlSetBkColor($buttonidrh1, 6908265)
@@ -457,11 +519,18 @@ Opt("TrayMenuMode", 3)
 			Send("{TAB}")
 		#EndRegion GUI
 
-Local $idmsg
-		While 1
-			$idmsg = GUIGetMsg()
-			Switch $idmsg
-				Case $buttonidgroup
+	    Global $idrh1 = "", $idrh2 = "", $idgroup = "", $idgroup2 = ""
+		Global $actiongroups = ""
+		Global $actiongroupsar = ""
+		Global $driveismanual = ""
+		Global $result, $result2, $outputidrh1
+	    ;GUICtrlSetData($aff, @crlf & "---[ IDRH ]---  Ready !" & @crlf, 1)
+
+				While 1
+		   	;  tooltip("Boucle Idrh",5,5,"")
+			$idmsg2 = GUIGetMsg()
+			Switch $idmsg2
+			    Case $buttonidgroup
 					$idgroup = GUICtrlRead($buttonidgroup)
 					GUICtrlSetBkColor($buttonidgroup, 16776960)
 				Case $buttonidgroup2
@@ -475,23 +544,12 @@ Local $idmsg
 					$idrh2 = GUICtrlRead($buttonidrh2)
 					GUICtrlSetBkColor($buttonidrh2, 16776960)
 					$idrh2 = StringStripWS($idrh2, 8)
-				Case $buttonlocalgroup
-					If _ispressed("10", $hdll) Then
-					Else
-						readlocalgroup2()
-					EndIf
-					GUICtrlDelete($hguilg)
-				Case $buttonbitlocker
-					$t = MsgBox(4, "Clé Bitlocker (AD) ?", "[Oui]: clé Bitlocker ordinateur" & @CRLF & @CRLF & "[Non]: ne fait rien")
-					If $t = 6 Then
-						bitlocker()
-					EndIf
-				Case $buttoncomputer
-					$t = MsgBox(4, "Computer ?", "[Oui]: Ajoute/enlève 'Groupe' => Computer" & @CRLF & @CRLF & "[Non]: ne fait rien")
-					If $t = 6 Then
-						computergroup()
-					EndIf
-				Case $idok2
+
+			    Case $idok2
+				  ;$idrh1=GUICtrlRead($buttonidrh1)
+				  ;$idrh2=GUICtrlRead($buttonidrh2)
+				  ;$idgroup = GUICtrlRead($buttonidgroup)
+				  ;$idgroup2 = GUICtrlRead($buttonidgroup2)
 					$idcheckboxcreate = BitAND(GUICtrlRead($idcheckboxcreate), $gui_checked)
 					$idcheckboxprolonge = BitAND(GUICtrlRead($idcheckboxprolonge), $gui_checked)
 					$idcheckboxmove = BitAND(GUICtrlRead($idcheckboxmove), $gui_checked)
@@ -511,20 +569,29 @@ Local $idmsg
 					$idcheckboxlbpai = BitAND(GUICtrlRead($idcheckboxlbpai), $gui_checked)
 					$listmanualdrives = ""
 					Global $scomboreaddirectives = ""
+					;GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "IDRH: [OK]" & @CRLF, 1)
 					If $idcheckboxmove = 1 AND $isdct = 1 AND StringLen($idrh1) = 0 Then
 						massive_move()
+						GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "Massive Move;" & @CRLF, 1)
+						Guidelete($hGUI)
 						Return 0
 					EndIf
 					If $idcheckboxprolonge = 1 AND StringLen($idrh1) = 0 Then
 						massive_date()
+						GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "Massive Extend Date; (Prolongation comptes)" & @CRLF, 1)
+						Guidelete($hGUI)
 						Return 0
 					EndIf
 					If $idcheckboxdrive = 1 AND $isdct = 1 AND StringInStr($idrh1, ";") Then
 						massive_drive()
+						GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "Massive Drive Export;" & @CRLF, 1)
+						Guidelete($hGUI)
 						Return 0
 					EndIf
 					If StringCompare($idrh1, $idrh2) = 0 AND $idrh1 <> "" Then
 						MsgBox(0, "Info !", "User 'Srce' is same as User 'Dest' !" & @CRLF & "Aborting...", 7)
+						GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "User 'Srce' is same as User 'Dest' ! : Abortting..."  & @CRLF, 1)
+						Guidelete($hGUI)
 						Return 0
 					 EndIf
 
@@ -539,6 +606,8 @@ Local $idmsg
 										If StringLen($idgroup2) < 7 Then
 											ToolTip("", 5, 5)
 											MsgBox(0, "Warning !", $idgroup2 & " , lenth<7" & @CRLF & "aborting...", 7)
+											GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "Group name must be > or equal to 7 chr$" & @CRLF, 1)
+											Guidelete($hGUI)
 											Return 0
 										Else
 										EndIf
@@ -584,6 +653,7 @@ Local $idmsg
 											MsgBox(64, "Info !", "Group '" & $idgroup2 & "' successfully created" & @CRLF & $sou & @CRLF & @CRLF & "description is set to:" & @CRLF & "'" & $groupdesc & "'")
 											GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "Group '" & $idgroup2 & "' successfully created to: " & "  " & $sou & "    -   " & "description is set to:" & "  " & "'" & $groupdesc & "'" & @CRLF, 1)
 											$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "Group '" & $idgroup2 & "' successfully created to: " & "  " & $sou & "    -   " & "description is set to:" & "  " & "'" & $groupdesc & "'" & @CRLF
+										GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "Group '" & $idgroup2 & "' successfully created to: " & "  " & $sou & "    -   " & "description is set to:" & "  " & "'" & $groupdesc & "'" & @CRLF, 1)
 										ElseIf @error = 1 Then
 											MsgBox(64, "Info !", "Group '" & $idgroup2 & "' already exists in AD !")
 										ElseIf @error = 2 Then
@@ -592,6 +662,7 @@ Local $idmsg
 											MsgBox(64, "Warning !", "Return code '" & @error & "' from AD..." & @CRLF & " (access denied ? or groupname lenth is too long !) for creating group")
 										EndIf
 										ToolTip("", 5, 5)
+										Guidelete($hGUI)
 										Return 0
 									ElseIf $idgroup2 <> "" AND StringInStr($idgroup2, ";") Then
 										Global $unite = ""
@@ -635,8 +706,9 @@ Local $idmsg
 										For $z = 1 To $idgroup2[0]
 											If StringLen($idgroup2[$z]) < 7 Then
 												ToolTip("", 5, 5)
-												GUIDelete($hgui)
+
 												MsgBox(0, "Warning !", $idgroup[$z] & " , lenth<7" & @CRLF & "nothing done... aborting !", 7)
+												Guidelete($hGUI)
 												Return 0
 											Else
 											EndIf
@@ -662,10 +734,12 @@ Local $idmsg
 										$result = $result & @CRLF & @CRLF & $result2
 										GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & $result & @CRLF, 1)
 										$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & $result & @CRLF
+										Guidelete($hGUI)
 										Return 0
 									Else
 										MsgBox(0, "Warning !", "new group to create is Not Empty !", 7)
 										ToolTip("", 5, 5)
+										Guidelete($hGUI)
 										Return 0
 									EndIf
 								EndIf
@@ -691,11 +765,14 @@ Local $idmsg
 										$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & $idgroup2 & @CRLF & $win & @CRLF
 									EndIf
 								EndIf
+								Guidelete($hGUI)
 								Return 0
 						    Case $idcheckboxcommonname = 1
 	  if $domainname="" Then
 		   MsgBox(0,"Info !","no Active Directory found ! unable to scan..." & @crlf & $domainname,15)
 		   ToolTip("",5,5,"")
+
+		   Guidelete($hGUI)
 		   Return 0
 	  EndIf
 								ToolTip("", 5, 5,"")
@@ -709,7 +786,9 @@ Local $idmsg
 								If $idrh1 = "" AND $idgroup = "" AND NOT (StringRegExp($idgroup, "^S-\d-\d+-(\d+-){1,14}\d+$") OR StringRegExp($idgroup, "^S-\d-(\d+-){1,14}\d+$") OR StringInStr($idgroup, ";")) Then
 									MsgBox(64, "Info !", "If user 'Srce' is set to 'disabled' or 'locked', then it will search for thoses users in AD..." & @CRLF & @CRLF & "And Also... 'SID' will search for all category (group,person)," & @CRLF & "'SIDh' will search for all SID history for all category (group,person...)" & @CRLF & "'lbpai?' or 'iliade?' to see all groups categorys for massive import...with section 'move user' and no idrh 'srce' !")
 									ToolTip("", 5, 5)
-									Return 0
+GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "If user 'Srce' is set to 'disabled' or 'locked', then it will search for thoses users in AD..." & @CRLF & @CRLF & "And Also... 'SID' will search for all category (group,person)," & @CRLF & "'SIDh' will search for all SID history for all category (group,person...)" & @CRLF & "'lbpai?' or 'iliade?' to see all groups categorys for massive import...with section 'move user' and no idrh 'srce' !" & @CRLF, 1)
+									   Guidelete($hGUI)
+									   Return 0
 								ElseIf $idgroup <> "" AND $idrh1 = "" AND NOT StringInStr($idgroup, ";") Then
 									Global $displayname = ""
 									If StringRegExp($idgroup, "\h") AND StringLen($idgroup) > 2 Then
@@ -749,6 +828,7 @@ Local $idmsg
 											ClipPut($sidkeyg1)
 										EndIf
 										ToolTip("", 5, 5)
+										Guidelete($hGUI)
 										Return 0
 									ElseIf StringInStr($idgroup, "-") AND StringLen($idgroup) >= 20 AND $idrh1 = "" Then
 										$sidkeymatch = _ad_getobjectsinou("", "(&(objectSID=" & $idgroup & "))", 2, "sAMAccountName")
@@ -756,14 +836,18 @@ Local $idmsg
 											MsgBox(64, "Info !", "SID key not found, err: " & @error & @CRLF & "  search for SID key:  " & $idgroup)
 											$historik = $historik & "SID key not found, err: " & @error & @CRLF & "  search for SID key:  " & $idgroup
 											ToolTip("", 5, 5)
-											Return 0
+
+									   Guidelete($hGUI)
+									   Return 0
 										ElseIf NOT IsArray($idgroup) Then
 											ToolTip("", 5, 5)
 											InputBox("search SID key", "SAM Account Name:  " & $displayname & @CRLF & $sidkeymatch[1], $idgroup)
 											ToolTip("", 5, 5)
+											Guidelete($hGUI)
 											Return 0
 										EndIf
 										ToolTip("", 5, 5)
+										Guidelete($hGUI)
 										Return 0
 									EndIf
 								Else
@@ -774,6 +858,7 @@ Local $idmsg
 									If NOT IsArray($idgroup) Then
 										MsgBox(0, "Warning ! '7841'", "no SIDkeys or Objects in this Matrix !", 7)
 										ToolTip("", 5, 5)
+										Guidelete($hGUI)
 										Return 0
 									EndIf
 									Global $test = 0
@@ -844,6 +929,7 @@ Local $idmsg
 										$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & $result2
 									 EndIf
 									 ToolTip("", 5, 5)
+									Guidelete($hGUI)
 									Return 0
 								EndIf
 								$idrh1 = GUICtrlRead($buttonidrh1)
@@ -857,7 +943,8 @@ Local $idmsg
 										__arraydisplay($alocked, "Locked Users Accounts")
 									EndIf
 									ToolTip("", 5, 5)
-									$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "searching for locked users accounts"
+									$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  searching for locked users accounts"
+									Guidelete($hGUI)
 									Return 0
 								EndIf
 								$idrh1 = GUICtrlRead($buttonidrh1)
@@ -871,7 +958,8 @@ Local $idmsg
 										__arraydisplay($adisabled, "Disabled Users Accounts")
 									EndIf
 									ToolTip("", 5, 5)
-									$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "searching for disabled users accounts"
+									$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  searching for disabled users accounts"
+									Guidelete($hGUI)
 									Return 0
 								EndIf
 								$idrh1 = GUICtrlRead($buttonidrh1)
@@ -886,6 +974,7 @@ Local $idmsg
 										__arraydisplay($sid, "SID Accounts")
 									EndIf
 									ToolTip("", 5, 5)
+									Guidelete($hGUI)
 									Return 0
 								EndIf
 								$idrh1 = GUICtrlRead($buttonidrh1)
@@ -900,12 +989,15 @@ Local $idmsg
 										__arraydisplay($sidh, "SID history Accounts")
 									EndIf
 									ToolTip("", 5, 5)
+									Guidelete($hGUI)
 									Return 0
 								EndIf
 								$idrh1 = GUICtrlRead($buttonidrh1)
 								If StringInStr($idrh1, "iliade?") OR StringInStr($idrh1, "lbpai?") Then
 									$groupslbpailiade = "Chargé de Développement" & @CRLF & "Direction des Ressources Humaines" & @CRLF & "Direction adminstrative et financière" & @CRLF & "Direction Technique" & @CRLF & "Direction juridique et risque" & @CRLF & "Direction des systèmes d'information" & @CRLF & "Direction Marketing et Commerciale" & @CRLF & "Standard" & @CRLF & "commun full users" & @CRLF & "Direction générale" & @CRLF & @CRLF & "Autres categories:" & @CRLF & "----------------------------" & @CRLF & "BDD_DAF" & @CRLF & "Bibliotheque_DP" & @CRLF & "Comité de Direction" & @CRLF & "Communication Interne" & @CRLF & "Contrats" & @CRLF & "DFRC" & @CRLF & "Direction Financiere" & @CRLF & "Direction Systèmes Informatiques" & @CRLF & "DRA" & @CRLF & "Echange_DAF-DT" & @CRLF & "Echange_DM-DT" & @CRLF & "Echange_DRA-DT" & @CRLF & "Gourvernance" & @CRLF & "Risques et Conformité" & @CRLF & "Services Generaux" & @CRLF & "Supports de présentation"
 									$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & @CRLF & "		LBPAI/Iliade [Categories]" & @CRLF & @CRLF & $groupslbpailiade & @CRLF & @CRLF
+									GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "		LBPAI/Iliade [Categories]" & @CRLF & @CRLF & $groupslbpailiade & @CRLF & @CRLF, 1)
+									Guidelete($hGUI)
 									Return 0
 								EndIf
 								ToolTip("searching by common name : " & $idrh1 & " please wait... 'Ambiguous Name Resolution'", 5, 5)
@@ -913,8 +1005,10 @@ Local $idmsg
 								Global $sldapfilter = "(&(objectCategory=Person)(ANR=" & $idrh1 & " ))"
 								If $filtreperso = 1 Then
 									$sdatatoretrieve = InputBox("data to retrieve", "Ex: cn,sAMAccountName, initials,mail..", "Displayname,cn,SAMaccountName")
+									GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "ANR: modified filter= " & $sdatatoretrieve & @CRLF, 1)
 								Else
 									Global $sdatatoretrieve = "sAMAccountName,cn,DisplayName,initials,title,mail,telephoneNumber,Mobile,physicalDeliveryOfficeName,comment,Laposte00-NetworkDrive"
+									GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "ANR: normal filter= " & $sdatatoretrieve & @CRLF, 1)
 								EndIf
 								Global $auserids = _ad_getobjectsinou($sou, $sldapfilter, 2, $sdatatoretrieve, "displayName")
 								If IsArray($auserids) Then
@@ -929,8 +1023,10 @@ Local $idmsg
 									Global $sldapfilter = "(&(objectCategory=Person)(ANR=" & $readtexbox & "))"
 									If $filtreperso = 1 Then
 										$sdatatoretrieve = InputBox("data to retrieve", "Ex: cn,sAMAccountName, initials,mail..", "Displayname,cn,SAMaccountName")
+										GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "ANR: modified filter= " & $sdatatoretrieve & @CRLF, 1)
 									Else
 										Global $sdatatoretrieve = "sAMAccountName,cn,DisplayName,initials,title,mail,telephoneNumber,Mobile,physicalDeliveryOfficeName,comment"
+										GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "ANR: normal filter= " & $sdatatoretrieve & @CRLF, 1)
 									EndIf
 									Global $auserids = _ad_getobjectsinou($sou, $sldapfilter, 2, $sdatatoretrieve, "displayName")
 									If IsArray($auserids) Then
@@ -955,13 +1051,16 @@ Local $idmsg
 										GUIDelete()
 										ClipPut(_arraytostring($vargroup))
 										$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & " searching for common name 'ANR'" & @CRLF & _arraytostring($vargroup)
+										GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & " searching for common name 'ANR'" & @CRLF & _arraytostring($vargroup) & @CRLF, 1)
 										ToolTip("", 5, 5)
+										Guidelete($hGUI)
 										Return 0
 									 Else
 										ToolTip("", 5, 5,"")
 										MsgBox(64, "Warning !", "No group found with filter= " & $idrh1)
 									 EndIf
 									 ToolTip("", 5, 5,"")
+									Guidelete($hGUI)
 									Return 0
 								EndIf
 								Global $adatatoretrieve = StringSplit($sdatatoretrieve, ",", $str_nocount)
@@ -969,6 +1068,7 @@ Local $idmsg
 									$auserids[0][$i] = $adatatoretrieve[$i]
 								Next
 								ToolTip("", 5, 5)
+								Guidelete($hGUI)
 								Return 0
 							Case $multiplesrce = 1
 								$defautdc = $defautdcinit
@@ -983,6 +1083,7 @@ Local $idmsg
 								If $multipleidrh = "" Then
 									ToolTip("", 5, 5)
 									MsgBox(0, "Info !", "aborting ! no users defined by ';' in 'Source' ... " & $multipleidrh, 7)
+									Guidelete($hGUI)
 									Return 0
 								EndIf
 								If $isdct = 1 Then
@@ -990,6 +1091,7 @@ Local $idmsg
 									If StringLen($unite) < 2 OR StringLen($unite) > 4 AND NOT ($unite = "virtuos" OR $unite = "??") Then
 										ToolTip("", 5, 5)
 										MsgBox(0, "Info !", "aborting ! no default OU defined... " & $unite, 7)
+										Guidelete($hGUI)
 										Return 0
 									EndIf
 								Else
@@ -1022,6 +1124,7 @@ Local $idmsg
 								If @error > 0 Then
 									MsgBox(64, $adroot, "No Groups found ! ")
 									ToolTip("", 5, 5)
+									Guidelete($hGUI)
 									Return 0
 								Else
 									$filterou = InputBox("filtering groups ?", "empty = all groups , or type: cbk, dpi ... ", "")
@@ -1068,6 +1171,7 @@ Local $idmsg
 									GUIDelete($hgui2)
 									ToolTip("", 5, 5)
 									MsgBox(0, "Info !", "aborting, no groups found in: " & $unite, 7)
+									Guidelete($hGUI)
 									Return 0
 								EndIf
 								Global $hbutton = GUICtrlCreateButton("[ Apply ]", 20, 3, 80, 25)
@@ -1169,8 +1273,9 @@ Local $idmsg
 												ToolTip("", 5, 5)
 												GUIDelete($hgui2)
 												ClipPut($result)
-												GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  " & $result & @CRLF & @CRLF & "			=====	=====	=====	=====	=====			" & @CRLF & @CRLF, 1)
+												GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  " & $result & @CRLF & @CRLF & "			=====	=====	  		=====	=====			" & @CRLF & @CRLF, 1)
 												$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  " & $result
+												;GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & $result & @CRLF, 1)
 												ExitLoop
 											Else
 												MsgBox(4160, "warning !", "nothing selected... try again or close window")
@@ -1182,20 +1287,25 @@ Local $idmsg
 									EndSwitch
 								WEnd
 								ToolTip("", 5, 5)
+								Guidelete($hGUI)
 								Return 0
 							Case StringUpper($idrh1) = "" OR $userexist = 0 AND $multiplesrce = 0 AND $idcheckboxcreate = 0
 								$defautdc = $defautdcinit
 								MsgBox(0, "warning !", "User Idrh Srce '" & $idrh1 & "' = <empty> or bad user Idrh !", 7)
+
+								Guidelete($hGUI)
 								Return 0
 							Case $idcheckboxcreate = 1 AND $userexist = 0 OR ($idcheckboxcreate = 1 AND _ispressed("10", $hdll))
 								$defautdc = $defautdcinit
 								If _ispressed("10", $hdll) Then
 									If _ad_objectexists($idrh1) = 0 Then
 										MsgBox(0, "Warning !", "Id: " & $idrh1 & " not found...", 15)
+										Guidelete($hGUI)
 										Return 0
 									EndIf
 									Global $ireply = MsgBox(308, "Rename AD Account ?", "Do you want to rename  '" & $idrh1 & "'  ?")
 									If $ireply <> 6 Then
+										Guidelete($hGUI)
 										Return 0
 									EndIf
 									Global $prenomidrh1 = ""
@@ -1221,7 +1331,9 @@ Local $idmsg
 										Switch $nmsg
 											Case $gui_event_close, $bcancel
 												$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "   renommer un compte utilisateur AD:  " & $idrh1 & "  commande annulée !"
+												GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "   renommer un compte utilisateur AD:  " & $idrh1 & "  commande annulée !" & @CRLF, 1)
 												GUIDelete($formr)
+												Guidelete($hGUI)
 												Return 0
 											Case $bok
 												$samidrh1 = GUICtrlRead($iobject)
@@ -1230,6 +1342,7 @@ Local $idmsg
 												$descriptionidrh1 = GUICtrlRead($inewdescription)
 												GUIDelete($formr)
 												$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "   renommer un compte utilisateur AD:  " & $idrh1 & "  commande validée !"
+												GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "   renommer un compte utilisateur AD:  " & $idrh1 & "  commande validée !" & @CRLF, 1)
 												ExitLoop
 										EndSwitch
 									WEnd
@@ -1238,12 +1351,15 @@ Local $idmsg
 										If $ivalue = 1 Then
 											MsgBox(64, "Renaming user...", "User [" & $idrh1 & "] renamed to..." & @CRLF & @CRLF & "[" & $samidrh1 & "] -  " & $prenomidrh1 & " " & $nomidrh1 & "  -  '" & $descriptionidrh1 & "'" & @CRLF & @CRLF & "initially was:" & @CRLF & @CRLF & "[" & StringUpper($idrh1) & "] -  " & $initialprenom & " " & $initialnom & "  -  '" & $initialdesc & "'")
 											$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "   Renaming user..." & "  User [" & $idrh1 & "] renamed to..." & @CRLF & @CRLF & "[" & $samidrh1 & "] -  " & $prenomidrh1 & " " & $nomidrh1 & "  -  '" & $descriptionidrh1 & "'" & @CRLF & @CRLF & "compte initial:" & @CRLF & @CRLF & "[" & StringUpper($idrh1) & "] -  " & $initialprenom & " " & $initialnom & "  -  '" & $initialdesc & "'"
+										GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "   Renaming user..." & "  User [" & $idrh1 & "] renamed to..." & @CRLF & @CRLF & "[" & $samidrh1 & "] -  " & $prenomidrh1 & " " & $nomidrh1 & "  -  '" & $descriptionidrh1 & "'" & @CRLF & @CRLF & "compte initial:" & @CRLF & @CRLF & "[" & StringUpper($idrh1) & "] -  " & $initialprenom & " " & $initialnom & "  -  '" & $initialdesc & "'" & @CRLF, 1)
 										ElseIf @error = 1 Then
 											MsgBox(64, "Renaming user...", "Object '" & $samidrh1 & "' does not exist")
 											$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "   utilisateur  " & $samidrh1 & "  inexistant !"
+										GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "   utilisateur  " & $samidrh1 & "  inexistant !" & @CRLF, 1)
 										Else
 											MsgBox(64, "Renaming user...", "Return code '" & @error & "' from Active Directory")
 											$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "   code erreur: " & @error & "  accès refusé ?!"
+											GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "   code erreur: " & @error & "  accès refusé ?!" & @CRLF, 1)
 										EndIf
 										_ad_modifyattribute($idrh1, "givenName", $prenomidrh1, 2)
 										_ad_modifyattribute($idrh1, "sn", $nomidrh1, 2)
@@ -1261,7 +1377,9 @@ Local $idmsg
 									Else
 										MsgBox(0, "Warning !", "'" & $idrh1 & "'" & " can't be renamed to '" & $samidrh1 & "' !" & @CRLF & "This ID is already used ...", 15)
 										$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "   Warning !  " & "  '" & $idrh1 & "'" & " can't be renamed to '" & $samidrh1 & "' !" & "   " & "This ID is already used !"
+									GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "   Warning !  " & "  '" & $idrh1 & "'" & " can't be renamed to '" & $samidrh1 & "' !" & "   " & "This ID is already used !" & @CRLF, 1)
 									EndIf
+									Guidelete($hGUI)
 									Return 0
 								Else
 									If $isdct = 1 Then
@@ -1269,9 +1387,12 @@ Local $idmsg
 										If @error Then
 											MsgBox(0, "Info !", "Aborting... create user !")
 											$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  annulation creation nouvel utilisateur !"
+											GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "  annulation creation nouvel utilisateur !" & @CRLF, 1)
+											Guidelete($hGUI)
 											Return 0
 										EndIf
 										If StringLen($unite) < 2 OR StringLen($unite) > 4 AND ($unite <> "??") Then
+											Guidelete($hGUI)
 											Return 0
 										EndIf
 									Else
@@ -1315,6 +1436,7 @@ Local $idmsg
 									If $ivalue = 1 Then
 										MsgBox(64, "", "User '" & $idrh1 & "' in OU '" & $sou & "' successfully created" & @CRLF & @CRLF & "mot de passe initial (à changer): " & $passwordtoset)
 										$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  " & $idrh1 & "' in OU '" & $sou & "' à été crée, " & "le mot de passe initial (à changer): " & $passwordtoset & @CRLF & @CRLF
+										GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & $idrh1 & "' in OU '" & $sou & "' à été crée, " & "le mot de passe initial (à changer): " & $passwordtoset & @CRLF  & @CRLF, 1)
 										If StringUpper($domainname) = "COURRIER" Then
 											$oudep = InputBox("code regate", " code regate à 6 chiffres...", "")
 											_ad_addusertogroup("GLD-Z-UtilEtab-Etab" & $oudep, $idrh1)
@@ -1322,6 +1444,7 @@ Local $idmsg
 										EndIf
 										If $isdct = 1 Then
 											$historik = $historik & "Autopilote, groupe rajouté: rg-pitr_cm_dir-tertiaire_standard_std" & @CRLF & @CRLF
+											GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "Autopilote, groupe rajouté: rg-pitr_cm_dir-tertiaire_standard_std" & @CRLF  & @CRLF, 1)
 										EndIf
 										ToolTip("working...", 5, 5, "")
 										Sleep(3000)
@@ -1341,6 +1464,7 @@ Local $idmsg
 												Switch GUIGetMsg()
 													Case $gui_event_close
 														GUIDelete($hguicalendar)
+														Guidelete($hGUI)
 														Return 0
 													Case $idbtn
 														Global $dateprolonge = GUICtrlRead(($iddate))
@@ -1357,31 +1481,39 @@ Local $idmsg
 											_ad_setpassword($idrh1, $passwordtoset, 1)
 											$pwdreset = @CRLF & @CRLF & "Compte Srce: " & $idrh1 & " , reinit. mot de passe à:  " & $passwordtoset & "  (Le mot de passe devra etre modifié à l'ouverture de session !)"
 											$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  " & $pwdreset
+											GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & $pwdreset & @CRLF, 1)
 										Else
 											_ad_setpassword($idrh1, $passwordtoset, 1)
 											$pwdreset = @CRLF & @CRLF & "Compte Srce: " & $idrh1 & " , reinit. mot de passe à:  " & $passwordtoset & "  (Le mot de passe devra etre modifié à l'ouverture de session !)"
 											$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  " & $pwdreset
+											GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & $pwdreset & @CRLF, 1)
 										EndIf
 									ElseIf @error = 1 Then
 										MsgBox(64, "", "User '" & $idrh1 & "' already exists")
 										$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  " & $idrh1 & " , existe deja !"
+										GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & $idrh1 & " , existe deja !" & @CRLF, 1)
 									ElseIf @error = 2 Then
 										MsgBox(64, "", "OU '" & $sou & "' does not exist")
 										$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  " & $idrh1 & " , n'existe pas !"
+										GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & $idrh1 & " , n'existe pas !" & @CRLF, 1)
 									ElseIf @error = 3 Then
 										MsgBox(64, "", "Value for CN (e.g. Lastname Firstname) is missing")
 										$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  " & $idrh1 & " , le nom ou le prenom n'a pas été saisi !"
+										GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & $idrh1 & " , le nom ou le prenom n'a pas été saisi !" & @CRLF, 1)
 									ElseIf @error = 4 Then
 										MsgBox(64, "", "Value for $sAD_User is missing")
 										$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  " & $idrh1 & " , manque une valeur !"
+										GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & $idrh1 & " , manque une valeur !" & @CRLF, 1)
 									Else
 										MsgBox(64, "", "Return code '" & @error & "' from Active Directory")
 										$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  " & $idrh1 & " , code erreur " & @error & " !"
+										GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF &  $idrh1 & " , code erreur " & @error & " !" & @CRLF, 1)
 									EndIf
 									$userexist = _ad_objectexists($idrh1)
 									If $userexist = 0 Then
 										MsgBox(0, "Warning !", "La creation à échouée car ce  Nom/prénom  existe sous un autre 'Idrh'" & @CRLF & "...ou droits dans cette OU !", 15)
 										$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  La création à echouée car l'utilisateur existe deja sous un autre 'idrh' !"
+										GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF &  "  La création à echouée car l'utilisateur existe deja sous un autre 'idrh' !" & @CRLF, 1)
 										Global $rechercheanrc = ""
 										$rechercheanrc = InputBox("Recherche par 'ANR'", "Creation du compte échoué !" & @CRLF & "recherche par 'Nom' ... ", "")
 										Global $sou = ""
@@ -1391,6 +1523,7 @@ Local $idmsg
 										If @error Then
 											ToolTip("", 5, 5)
 											MsgBox(64, "Warning !", "No users found ! " & $rechercheanrc)
+											Guidelete($hGUI)
 											Return 0
 										EndIf
 										Global $adatatoretrieve = StringSplit($sdatatoretrieve, ",", $str_nocount)
@@ -1400,7 +1533,9 @@ Local $idmsg
 										ToolTip("", 5, 5)
 										ClipPut(_arraytostring($auserids, ";"))
 										$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & " noms trouvés par recherche ANR... " & @CRLF & _arraytostring($auserids, ";")
+										GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF &  " noms trouvés par recherche ANR... " & @CRLF & _arraytostring($auserids, ";" & @CRLF, 1)
 										__arraydisplay($auserids, "common usernames found ! for keyworld,  '" & $rechercheanrc & "'")
+										Guidelete($hGUI)
 										Return 0
 									EndIf
 								EndIf
@@ -1408,6 +1543,7 @@ Local $idmsg
 									$t = MsgBox(4, "Apply Directive ?", "Rajouter une directive après la création du compte  " & $idrh1 & "  ?")
 									If $t = 6 Then
 										$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  Rajouter une 'Directive' pour  " & $idrh1 & @CRLF & @CRLF
+										GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "  Rajouter une 'Directive' pour  " & $idrh1 & @CRLF & @CRLF, 1)
 										directives()
 									Else
 									EndIf
@@ -1416,6 +1552,8 @@ Local $idmsg
 								$defautdc = $defautdcinit
 								MsgBox(0, "warning !", " Idrh Srce [" & $idrh1 & "] already exists in AD !", 7)
 								$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  L'idrh " & $idrh1 & "  existe deja !"
+								GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "  L'idrh " & $idrh1 & "  existe deja !" & @CRLF, 1)
+								Guidelete($hGUI)
 								Return 0
 								$userexist = _ad_objectexists($idrh1)
 							Case $idcheckboxprolonge = 1 AND StringInStr(StringLeft($idrh1, 1), "x")
@@ -1426,6 +1564,7 @@ Local $idmsg
 								If $date_expire = "0000/00/00 00:00:00" OR $date_expire = "1601/01/01 00:00:00" Then
 									MsgBox(0, "warning !", "Le compte '" & $idrh1 & "' , n'expire jamais...", 7)
 									$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "warning !  , " & "Le compte '" & $idrh1 & "' , n'expire jamais..."
+									GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF &  "warning !  , " & "Le compte '" & $idrh1 & "' , n'expire jamais..." & @CRLF, 1)
 								EndIf
 								If $date_expire = "0000/00/00 00:00:00" OR $date_expire = "1601/01/01 00:00:00" Then
 									$t = MsgBox(4, "compte AD en 'x' ", "Le compte " & $idrh1 & " est un compte en 'x' , souhaitez-vous mettre une date d'expiration ? (Oui)" & @CRLF & "   ou (NON), le compte n'expire jamais")
@@ -1443,6 +1582,7 @@ Local $idmsg
 											Switch GUIGetMsg()
 												Case $gui_event_close
 													GUIDelete($hguicalendar)
+													Guidelete($hGUI)
 													Return 0
 												Case $idbtn
 													Global $dateprolonge = GUICtrlRead(($iddate))
@@ -1474,6 +1614,7 @@ Local $idmsg
 											Switch GUIGetMsg()
 												Case $gui_event_close
 													GUIDelete($hguicalendar)
+													Guidelete($hGUI)
 													Return 0
 												Case $idbtn
 													Global $dateprolonge = GUICtrlRead(($iddate))
@@ -1500,6 +1641,7 @@ Local $idmsg
 								If $isdct = 1 Then
 									$ou = InputBox("default OU ?", "ex: MILY, MITE, BPLY, GAUB ... " & @CRLF & @CRLF & "   " & $idrh1 & " , actual OU:  [ " & $ousourcedir & " ]" & @CRLF & @CRLF & "?? : scan all OUs...", "")
 									If StringLen($ou) < 2 OR StringLen($ou) > 4 AND NOT ($ou = "virtuos" OR $ou = "??") Then
+										Guidelete($hGUI)
 										Return 0
 									EndIf
 								Else
@@ -1526,6 +1668,7 @@ Local $idmsg
 								If $ivalue = 1 Then
 									MsgBox(64, "Active Directory ", $idrh1 & "' successfully moved to '" & $ou & "'")
 									$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  " & $idrh1 & " déplacé vers " & $ou
+									GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF &  $idrh1 & " déplacé vers " & $ou & @CRLF, 1)
 									ToolTip("synchronising AD", 5, 5)
 									Sleep(3000)
 									ToolTip("", 5, 5)
@@ -1538,8 +1681,10 @@ Local $idmsg
 								ElseIf @error >= 4 OR @error = -2147352567 Then
 									MsgBox(64, "Active Directory ", "You have no permissions to move user " & $idrh1)
 									$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  " & $idrh1 & "non deplacé vers " & $ou & ",  accès refusé !"
+									GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF &  $idrh1 & "non deplacé vers " & $ou & ",  accès refusé !" & @CRLF, 1)
 								Else
 									MsgBox(0, "warning !", "User Idrh Srce '" & $idrh1 & "already exists in AD !", 7)
+									Guidelete($hGUI)
 									Return 0
 								EndIf
 							Case $idcheckboxdrive = 1 AND $userexist = 1
@@ -1594,11 +1739,13 @@ Local $idmsg
 									$driveismanual = InputBox("Entrez le chemin en entier !", "ex: T;\\429940SN001.429940S.IRGP\DOCUMENT " & @CRLF & @CRLF & "Lettres de lecteurs dispo:" & @CRLF & $chaine1 & @CRLF & $chaine2 & $presencems, "")
 									If $driveismanual = "" Then
 										MsgBox(0, "Info !", "Empty drive ! aborting...", 7)
+										Guidelete($hGUI)
 										Return 0
 									EndIf
 									$manual2 = $driveismanual
 									If StringRegExp($manual2, "Mes scan;") AND $presencemesscan = 1 Then
 										MsgBox(0, "Warning !", "'Mes scan' already used ! aborting..." & @CRLF & "adding: " & $driveismanual & @CRLF & "dispo: " & $chaine3, 7)
+										Guidelete($hGUI)
 										Return 0
 									EndIf
 									For $k = 1 To StringLen($chaine5)
@@ -1606,6 +1753,7 @@ Local $idmsg
 										$chaine4 = $chaine4 & ";"
 										If StringInStr(StringUpper(StringLeft($manual2, 2)), $chaine4) Then
 											MsgBox(0, "Warning !", "Drive letter already used ! aborting..." & @CRLF & $driveismanual & @CRLF & "dispo: " & $chaine3, 7)
+											Guidelete($hGUI)
 											Return 0
 										EndIf
 									Next
@@ -1649,6 +1797,7 @@ Local $idmsg
 								Global $groupsidrh1 = _ad_getusergroups($idrh1)
 								If @error > 0 Then
 									MsgBox(0, "Info !", "user " & $idrh1 & " n'a aucun groupe ...", 7)
+									Guidelete($hGUI)
 									Return 0
 								EndIf
 								_arraysort($groupsidrh1, 0, 1)
@@ -1671,6 +1820,7 @@ Local $idmsg
 									$idcheckboxgroup = 2
 									GUIDelete($hgui2)
 									MsgBox(0, "Info !", "aborting, no Groups found in: " & $idrh1, 7)
+									Guidelete($hGUI)
 									Return 0
 								EndIf
 								Global $hbutton2 = GUICtrlCreateButton("[ Apply ]", 20, 3, 80, 25)
@@ -1717,6 +1867,7 @@ Local $idmsg
 											EndIf
 										Case $gui_event_close
 											GUIDelete($hgui2)
+											Guidelete($hGUI)
 											Return 0
 											ExitLoop
 									EndSwitch
@@ -1730,6 +1881,7 @@ Local $idmsg
 										Global $ivalue = _ad_deleteobject($idrh1, _ad_getobjectclass($idrh1))
 										If $ivalue = 1 Then
 											MsgBox(64, "Info !", "User  '" & $idrh1 & "'  successfully deleted !")
+											Guidelete($hGUI)
 											Return 0
 										ElseIf @error = 1 Then
 											MsgBox(64, "warning !", "User '" & $idrh1 & "' does not exist !")
@@ -1743,6 +1895,7 @@ Local $idmsg
 									Global $ivalue = _ad_disableobject($idrh1)
 									If $ivalue = 1 Then
 										MsgBox(64, "Info !", "User  '" & $idrh1 & "'  successfully disabled !")
+										Guidelete($hGUI)
 										Return 0
 									ElseIf @error = 1 Then
 										MsgBox(64, "warning !", "User '" & $idrh1 & "' does not exist !")
@@ -1756,17 +1909,21 @@ Local $idmsg
 								$descriptsrce = InputBox("Description " & $idrh1, " ", $descriptsrce)
 								If @error = 1 Then
 									MsgBox(0, "Info !", " ...aborting !" & @CRLF & @CRLF & $descriptsrce)
+									Guidelete($hGUI)
 									Return 0
 								EndIf
 								If $descriptsrce <> "" Then
 									_ad_modifyattribute($idrh1, "description", $descriptsrce, 2)
 									MsgBox(0, "Info !", "Source " & $idrh1 & ", Description set to:" & @CRLF & @CRLF & $descriptsrce)
+									Guidelete($hGUI)
 									Return 0
 								Else
 									_ad_modifyattribute($idrh1, "description", $descriptsrce, 2)
 									MsgBox(0, "Info !", "Source " & $idrh1 & ", Description is now cleared !")
+									Guidelete($hGUI)
 									Return 0
 								EndIf
+								Guidelete($hGUI)
 								Return 0
 							Case $idcheckboxdriveremove = 1 AND StringLen($idrh1) <> 0 AND $userexist = 1
 								$defautdc = $defautdcinit
@@ -1774,6 +1931,7 @@ Local $idmsg
 								_arraydelete($drivesidrh1, 0)
 								If UBound($drivesidrh1) = 0 Then
 									MsgBox(0, "Info !", "aborting, no Drives found for: " & $idrh1, 7)
+									Guidelete($hGUI)
 									Return 0
 								EndIf
 								$drivesidrh1 = _arraytostring($drivesidrh1, "|")
@@ -1796,6 +1954,7 @@ Local $idmsg
 								If IsArray($drivesidrh1) = 0 Then
 									GUIDelete($hgui2)
 									MsgBox(0, "Info !", "aborting, no Drives found for: " & $idrh1, 7)
+									Guidelete($hGUI)
 									Return 0
 								EndIf
 								Global $hbutton2 = GUICtrlCreateButton("[ Apply ]", 20, 3, 80, 25)
@@ -1848,6 +2007,7 @@ Local $idmsg
 											EndIf
 										Case $gui_event_close
 											GUIDelete($hgui2)
+											Guidelete($hGUI)
 											Return 0
 											ExitLoop
 									EndSwitch
@@ -1858,6 +2018,7 @@ Local $idmsg
 								$descriptsrce = InputBox("Comment " & $idrh1, " ", $descriptsrce)
 								If @error = 1 Then
 									MsgBox(0, "Info !", " ...aborting !" & @CRLF & @CRLF & $descriptsrce)
+									Guidelete($hGUI)
 									Return 0
 								Else
 									_ad_modifyattribute($idrh1, "Comment", $descriptsrce, 2)
@@ -1865,9 +2026,13 @@ Local $idmsg
 							Case $idcheckboxdirective = 1 AND StringLen($idrh1) <> 0 AND $userexist = 1
 								$defautdc = $defautdcinit
 								directives()
+								Guidelete($hGUI)
+							    Return 0
 							Case $idcheckboxlbpai = 1 AND StringLen($idrh1) <> 0 AND $userexist = 1
 								$defautdc = $defautdcinit
 								lbpai_illiade()
+								Guidelete($hGUI)
+							    Return 0
 							Case $idgroup2 <> "" AND StringInStr($idgroup2, ";") AND StringLen($idrh1) <> 0 AND $userexist = 1
 								$defautdc = $defautdcinit
 								$idgroup2 = StringSplit($idgroup2, ";")
@@ -1892,33 +2057,41 @@ Local $idmsg
 													If $ivalue = 1 AND $actiongrp = 0 Then
 														$idgroup2result = $idgroup2result & $idrh1 & " [-] OK,  '" & $idgroup2[$z] & "'" & " ;  [" & _ad_getobjectattribute($idgroup2[$z], "distinguishedName") & "]" & @CRLF
 														$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  :" & $idrh1 & "   '" & $idgroup2[$z] & "'" & "[-] OK  ;  [" & _ad_getobjectattribute($idgroup2[$z], "distinguishedName") & "]" & @CRLF
+													GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & $idrh1 & "   '" & $idgroup2[$z] & "'" & "[-] OK  ;  [" & _ad_getobjectattribute($idgroup2[$z], "distinguishedName") & "]" & @CRLF, 1)
 													ElseIf @error = 1 Then
 														$idgroup2result = $idgroup2result & "Group '" & $idgroup2[$z] & "' n'existe pas !" & @CRLF
 														$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  :	" & $idgroup2[$z] & "	groupe n'existe pas !"
+													GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & $idgroup2[$z] & "	groupe n'existe pas !" & @CRLF, 1)
 													ElseIf @error = 2 Then
 														MsgBox(64, "", "Idrh source '" & $idrh1 & "' inexistant !")
 													ElseIf @error = 3 Then
 														$idgroup2result = $idgroup2result & $idrh1 & " n'est deja pas membre de '" & $idgroup2[$z] & "'" & @CRLF
 														$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "	:  " & $idrh1 & ",  n'est deja pas membre de :  " & $idgroup2[$z]
+													GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & $idrh1 & ",  n'est deja pas membre de :  " & $idgroup2[$z] & @CRLF, 1)
 													Else
 														$idgroup2result = $idgroup2result & $idrh1 & " [X] '" & $idgroup2[$z] & "' " & "Return code '" & @error & "' from Active Directory" & @CRLF
 														$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "	:	code erreur:  " & @error & " !  (accès refusé...)"
+													GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "	:	code erreur:  " & @error & " !  (accès refusé...)" & @CRLF, 1)
 													EndIf
 												Case $actiongrp = 1
 													If $ivalue = 1 AND $actiongrp = 1 Then
 														$idgroup2result = $idgroup2result & $idrh1 & " [+] OK,   '" & $idgroup2[$z] & "'" & " ;  [" & _ad_getobjectattribute($idgroup2[$z], "distinguishedName") & "]" & @CRLF
 														$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  :" & $idrh1 & "	  '" & $idgroup2[$z] & "'" & "[+] OK  ;  [" & _ad_getobjectattribute($idgroup2[$z], "distinguishedName") & "]" & @CRLF
+													GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & $idrh1 & "	  '" & $idgroup2[$z] & "'" & "[+] OK  ;  [" & _ad_getobjectattribute($idgroup2[$z], "distinguishedName") & "]" & @CRLF, 1)
 													ElseIf @error = 1 Then
 														$idgroup2result = $idgroup2result & "Group '" & $idgroup2[$z] & "' n'existe pas !" & @CRLF
 														$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  :	" & $idgroup2[$z] & "	groupe n'existe pas !"
+													GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & $idgroup2[$z] & "	groupe n'existe pas !" & @CRLF, 1)
 													ElseIf @error = 2 Then
 														MsgBox(64, "", "Idrh source '" & $idrh1 & "' inexistant !")
 													ElseIf @error = 3 Then
 														$idgroup2result = $idgroup2result & $idrh1 & " est deja membre de :  '" & $idgroup2[$z] & "'" & @CRLF
 														$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  " & $idrh1 & ",  est deja membre de :  " & $idgroup2[$z]
+													GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF &  $idrh1 & ",  est deja membre de :  " & $idgroup2[$z] & @CRLF, 1)
 													Else
 														$idgroup2result = $idgroup2result & $idrh1 & " [X] '" & $idgroup2[$z] & "' " & "Return code '" & @error & "' from Active Directory" & @CRLF
 														$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  :  code erreur:  " & @error & " !  (accès refusé...)"
+													GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "  :  code erreur:  " & @error & " !  (accès refusé...)" & @CRLF, 1)
 													EndIf
 											EndSelect
 										EndIf
@@ -1934,11 +2107,11 @@ Local $idmsg
 								Else
 									MsgBox(0, "Info !", "aborting, no Groups to add to: " & $idrh1, 7)
 								EndIf
-							 EndSelect
+						EndSelect
 
 					#EndRegion Select Case
 
-If $idcheckboxprolonge = 1 AND NOT StringInStr(StringLeft($idrh1, 1), "x") Then
+					 If $idcheckboxprolonge = 1 AND NOT StringInStr(StringLeft($idrh1, 1), "x") Then
 						$t = MsgBox(4, "Expiration date ? ", "Le compte [" & $idrh1 & "] n'est pas un compte en 'x' , souhaitez-vous mettre une date d'expiration ?" & @CRLF & "     ex:  pour les CF -> oui !")
 						If $t = 6 Then
 							Global $date_expire = ""
@@ -1946,6 +2119,7 @@ If $idcheckboxprolonge = 1 AND NOT StringInStr(StringLeft($idrh1, 1), "x") Then
 							$date_expire = $date_expire[1][1]
 							If $date_expire = "0000/00/00 00:00:00" OR $date_expire = "1601/01/01 00:00:00" Then
 								$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "warning !  , " & "Le compte '" & $idrh1 & "' , n'expire jamais..."
+								GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "warning !  , " & "Le compte '" & $idrh1 & "' , n'expire jamais..." & @CRLF, 1)
 							EndIf
 							$date_expire = _dateadd("d", -1, $date_expire)
 							$hguicalendar = GUICreate("compte " & $idrh1, 300, 100, 350, 120)
@@ -1956,6 +2130,7 @@ If $idcheckboxprolonge = 1 AND NOT StringInStr(StringLeft($idrh1, 1), "x") Then
 								Switch GUIGetMsg()
 									Case $gui_event_close
 										GUIDelete($hguicalendar)
+										Guidelete($hGUI)
 										Return 0
 									Case $idbtn
 										Global $dateprolonge = GUICtrlRead(($iddate))
@@ -1977,7 +2152,7 @@ If $idcheckboxprolonge = 1 AND NOT StringInStr(StringLeft($idrh1, 1), "x") Then
 							$ivalue = _ad_setaccountexpire($idrh1, $date_expire)
 						EndIf
 					EndIf
-					If StringLen($idrh1) <> 0 Then
+					 If StringLen($idrh1) <> 0 Then
 						Global $drivesidrh1 = _ad_getobjectproperties($idrh1, "LaPoste00-NetworkDrive")
 						_arraydelete($drivesidrh1, 0)
 						Global $cpydrives1 = $drivesidrh1
@@ -2005,6 +2180,7 @@ If $idcheckboxprolonge = 1 AND NOT StringInStr(StringLeft($idrh1, 1), "x") Then
 								$mail = InputBox("setting e-Mail ...", " ", $mail)
 								If @error = 1 Then
 									MsgBox(0, "Info !", "Airwatch ...aborting !" & @CRLF & @CRLF & $mail)
+									Guidelete($hGUI)
 									Return 0
 								EndIf
 								_ad_modifyattribute($idrh1, "mail", $mail, 2)
@@ -2022,11 +2198,13 @@ If $idcheckboxprolonge = 1 AND NOT StringInStr(StringLeft($idrh1, 1), "x") Then
 									EndIf
 									If @error = 1 Then
 										MsgBox(0, "Info !", "Airwatch ...aborting !" & @CRLF & @CRLF & $mail)
+										Guidelete($hGUI)
 										Return 0
 									EndIf
 									If $bpe = 0 Then
 										_ad_addusertogroup("RG-" & $bpnn & "_AW Commun Manager", $idrh1)
 										$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  rajout @mail et groupe Airwatch, pour: " & $idrh1 & "  " & "RG-" & $bpnn & "_AW Commun Manager"
+									GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "  rajout @mail et groupe Airwatch, pour: " & $idrh1 & "  " & "RG-" & $bpnn & "_AW Commun Manager" & @CRLF, 1)
 									EndIf
 									If $bpe = 1 Then
 										Dim $arrayaw[0]
@@ -2055,6 +2233,7 @@ If $idcheckboxprolonge = 1 AND NOT StringInStr(StringLeft($idrh1, 1), "x") Then
 										MsgBox(0, "info AW !", " Choix AW: " & @CRLF & @CRLF & "> " & $scomboreadaw)
 										_ad_addusertogroup($scomboreadaw, $idrh1)
 										$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  rajout @mail et groupe Airwatch, pour: " & $idrh1 & "  " & $scomboreadaw
+										GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "  rajout @mail et groupe Airwatch, pour: " & $idrh1 & "  " & $scomboreadaw & @CRLF, 1)
 										GUIDelete($hguiaw)
 									EndIf
 								EndIf
@@ -2097,6 +2276,7 @@ If $idcheckboxprolonge = 1 AND NOT StringInStr(StringLeft($idrh1, 1), "x") Then
 							$filez = FileOpen(@ScriptDir & "\Groups-AD_OU-" & $unite & ".txt", 2)
 							If @error > 0 Then
 								MsgBox(64, $adroot, "No Groups found ! ")
+								Guidelete($hGUI)
 								Return 0
 							Else
 								$filterou = InputBox("filtering groups ?", "empty = all groups , or type: cbk, dpi ... ", "")
@@ -2138,6 +2318,7 @@ If $idcheckboxprolonge = 1 AND NOT StringInStr(StringLeft($idrh1, 1), "x") Then
 								$idcheckboxgroup = 2
 								GUIDelete($hgui2)
 								MsgBox(0, "Info !", "aborting, no groups found in: " & $unite, 7)
+								Guidelete($hGUI)
 								Return 0
 							EndIf
 							Global $hbutton = GUICtrlCreateButton("[ Apply ]", 20, 3, 80, 25)
@@ -2195,6 +2376,7 @@ If $idcheckboxprolonge = 1 AND NOT StringInStr(StringLeft($idrh1, 1), "x") Then
 						If $idcheckboxrole = 1 AND $idcheckboxgroup = 0 Then
 							If $isdct = 0 Then
 								MsgBox(0, "Warning !", "Roles only available in domain: DCT.Adt.Local", 7)
+								Guidelete($hGUI)
 								Return 0
 							EndIf
 							$unite = InputBox("default OU ? ", "ex: MILY, MITE, BPLY, GAUB, ... " & @CRLF & "?? : scan all OUs...", "GAUB")
@@ -2227,6 +2409,7 @@ If $idcheckboxprolonge = 1 AND NOT StringInStr(StringLeft($idrh1, 1), "x") Then
 							$filez = FileOpen(@ScriptDir & "\Roles-AD_OU-" & $unite & ".txt", 2)
 							If @error > 0 Then
 								MsgBox(64, $adroot, "No Roles found ! ")
+								Guidelete($hGUI)
 								Return 0
 							Else
 								$filterou = InputBox("filtering Roles ?", "empty = all Roles , or type: Bancaire ... ", "")
@@ -2268,6 +2451,7 @@ If $idcheckboxprolonge = 1 AND NOT StringInStr(StringLeft($idrh1, 1), "x") Then
 								$idcheckboxgroup = 2
 								GUIDelete($hgui2)
 								MsgBox(0, "Info !", "aborting, no Roles found in: " & $unite, 7)
+								Guidelete($hGUI)
 								Return 0
 							EndIf
 							Global $hbutton = GUICtrlCreateButton("[ Apply ]", 20, 3, 80, 25)
@@ -2309,6 +2493,7 @@ If $idcheckboxprolonge = 1 AND NOT StringInStr(StringLeft($idrh1, 1), "x") Then
 													Next
 													$actiongroups = "  Role [+]: " & $actiongroups
 													$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  roles rajoutés à " & $idrh1 & " :" & @CRLF & $actiongroups
+													GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "  roles rajoutés à " & $idrh1 & " :" & @CRLF & $actiongroups & @CRLF, 1)
 													GUIDelete($hgui2)
 													ExitLoop
 												Else
@@ -2362,6 +2547,7 @@ If $idcheckboxprolonge = 1 AND NOT StringInStr(StringLeft($idrh1, 1), "x") Then
 											Switch GUIGetMsg()
 												Case $gui_event_close
 													GUIDelete($hguicalendar)
+													Guidelete($hGUI)
 													Return 0
 												Case $idbtn
 													Global $dateprolonge = GUICtrlRead(($iddate))
@@ -2394,6 +2580,7 @@ If $idcheckboxprolonge = 1 AND NOT StringInStr(StringLeft($idrh1, 1), "x") Then
 								$password = InputBox("password reset", "mot de passe par defaut: W!nd0ws10" & @CRLF & "Vous pouvez modifier le mdp par defaut", "W!nd0ws10")
 								If @error = 1 Then
 									MsgBox(0, "", "Aborting reset pwd !", 3)
+									Guidelete($hGUI)
 									Return 0
 								EndIf
 								Local $achanger = 1
@@ -2408,13 +2595,17 @@ If $idcheckboxprolonge = 1 AND NOT StringInStr(StringLeft($idrh1, 1), "x") Then
 									If $achanger = 1 Then
 										$pwdreset = @CRLF & @CRLF & "  Compte Srce: " & $idrh1 & @CRLF & "     -> reinit. mdp à:  " & $password & "   (Le mot de passe devra etre modifié à l'ouverture de session !)"
 										$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  " & $pwdreset
+									GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & $pwdreset & @CRLF, 1)
 									Else
 										$pwdreset = @CRLF & @CRLF & "  Compte Srce: " & $idrh1 & @CRLF & "     -> reinit. mdp à:  " & $password & "   (Le mot de passe ne devra pas etre changé à l'ouverture de session !)"
 										$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  " & $pwdreset
+									GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & $pwdreset & @CRLF, 1)
 									EndIf
 								Else
 									MsgBox(0, "warning !", "Reseting password : Access denied , for user:  " & $idrh1)
 									$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "" & "warning !, " & "Reset mot de passe windows, access refusé pour:  " & $idrh1
+									GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "warning !, " & "Reset mot de passe windows, access refusé pour:  " & $idrh1 & @CRLF, 1)
+									Guidelete($hGUI)
 									Return 0
 								EndIf
 							Else
@@ -2468,9 +2659,11 @@ If $idcheckboxprolonge = 1 AND NOT StringInStr(StringLeft($idrh1, 1), "x") Then
 								If $dirapplied = 1 Then
 									$outputidrh1 = "	   Directive applied:   " & $scomboreaddirectives & "	,  OU d'origine= " & $ousourcedir & @CRLF
 									$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & $outputidrh1
+									GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & $outputidrh1 & @CRLF, 1)
 								Else
 									$outputidrh1 = "	   Directive Not applied !   " & $scomboreaddirectives & "	,  OU d'origine= " & $ousourcedir & @CRLF
 									$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & $outputidrh1
+									GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & $outputidrh1 & @CRLF, 1)
 								EndIf
 							Else
 								$outputidrh1 = ""
@@ -2714,51 +2907,63 @@ If $idcheckboxprolonge = 1 AND NOT StringInStr(StringLeft($idrh1, 1), "x") Then
 										If StringInStr($groupidrh1_add[$k], "_AW Commun Manager") AND $mail = "" Then
 											_ad_removeuserfromgroup($groupidrh1_add[$k], $idrh2)
 											$historik = $historik & @CRLF & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & ":  " & $groupidrh1_add[$k] & "  =>  " & $idrh2 & ", removed :  no email Description is set !" & @CRLF
+										GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & $groupidrh1_add[$k] & "  =>  " & $idrh2 & ", removed :  no email Description is set !"  & @CRLF, 1)
 										EndIf
 										If StringInStr($groupidrh1_add[$k], "_AW BPE") AND $mail = "" Then
 											_ad_removeuserfromgroup($groupidrh1_add[$k], $idrh2)
 											$historik = $historik & @CRLF & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & ":  " & $groupidrh1_add[$k] & "  =>  " & $idrh2 & ", removed :  no email Description is set !" & @CRLF
+										GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & $groupidrh1_add[$k] & "  =>  " & $idrh2 & ", removed :  no email Description is set !" & @CRLF, 1)
 										EndIf
 										If StringInStr($groupidrh1_add[$k], "_AW BPE Restreint") AND $mail = "" Then
 											_ad_removeuserfromgroup($groupidrh1_add[$k], $idrh2)
 											$historik = $historik & @CRLF & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & ":  " & $groupidrh1_add[$k] & "  =>  " & $idrh2 & ", removed :  no email Description is set !" & @CRLF
+										GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & $groupidrh1_add[$k] & "  =>  " & $idrh2 & ", removed :  no email Description is set !" & @CRLF, 1)
 										EndIf
 									Next
 								Else
 								EndIf
 							EndIf
 							ToolTip("", 5, 5, "")
+
+							Guidelete($hGUI)
 							Return 0
 						Else
 							MsgBox(0, "Warning !", "userID:  '" & $idrh1 & "'  does not exist !", 5)
 							GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "userID:  '" & $idrh1 & "'  does not exist !", 1)
 							$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & ":  utilisateur,  " & $idrh1 & ", n'existe pas !"
+
+							Guidelete($hGUI)
 							Return 0
 						EndIf
 					EndIf
-				Case $gui_event_close
-					_terminate()
-					Return 0
-				Case $idabout
-					about()
-					$t = MsgBox(0, "About AD Tools", "AD Tools - Nicolas RISTOVSKI" & @CRLF & @CRLF & $lastdatecompile)
-					_Exit()
-			EndSwitch
-		WEnd
-	EndFunc
 
-#EndRegion
+					 Guidelete($hGUI)
+					 Return 0
+
+			    Case $gui_event_close
+					;_terminate()
+
+					Guidelete($hGUI)
+					Return 0
+
+			EndSwitch
+
+		WEnd
+
+EndFunc
 
 #Region Localgroups
 
 	Func readlocalgroup2()
+	   Local $aPos = WinGetPos($hguiP)
+GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "Local Groups;" & @CRLF, 1)
 		FileInstall("addusers.exe", ".\")
 		FileSetAttrib("addusers.exe", "+h")
 		Global $cpname
 		Global $readcombo
 		Global $listmembers
 		Global $userexist
-		Global $hguilg = GUICreate("AD Tools [Add / Remove Members]-[Local Group]", 669, 433, 196, 128)
+		Global $hguilg = GUICreate("AD Tools [Add / Remove Members]-[Local Group]", 669, 433, $aPos[0]+38, $aPos[1]+28 )
 		GUISetBkColor(16777215)
 		Global $group1 = GUICtrlCreateGroup("", 8, 8, 324, 185)
 		GUICtrlSetFont(-1, 10, 800, 0, "Arial")
@@ -3584,7 +3789,11 @@ $result=""
 	$filez = FileOpen(@ScriptDir & "\computers-AD_OU" & ".txt", 2)
 	If @error > 0 Then
 		MsgBox(64, $adroot, "No computers found ! ")
-		GUICtrlSetData($aff, @CRLF & "SCCM PITR /DCT ! No computers found in this OU: " & $sout, 1)
+		 if $isDCT=1 Then
+GUICtrlSetData($aff, @CRLF & "DCT: SCCM group in PITR ! No computers found in this OU: " & $sout, 1)
+Else
+GUICtrlSetData($aff, @CRLF & " No computers found in this OU: " & $sout, 1)
+   EndIf
 		ToolTip("", 5, 5)
 		Return 0
 	 EndIf
@@ -3635,6 +3844,11 @@ $result=""
 		GUIDelete($hgui2)
 		ToolTip("", 5, 5)
 		MsgBox(0, "Info !", "aborting, no computers found !", 7)
+				  if $isDCT=1 Then
+				  GUICtrlSetData($aff, @CRLF & "DCT: SCCM group in PITR ! No computers found in this OU: " & $sout & @crlf , 1)
+				  Else
+				  GUICtrlSetData($aff, @CRLF & " No computers found in this OU: " & $sout& @CRLF , 1)
+				  EndIf
 		Return 0
 	EndIf
 	Global $hbutton = GUICtrlCreateButton("[ Apply ]", 20, 3, 80, 25)
@@ -3667,6 +3881,7 @@ $result=""
 	WEnd
 	If IsArray($sitems) = 0 Then
 		MsgBox(4160, "warning !", "no computer(s) selected !... abort !")
+		GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  Pas d' Ordinateur(s) selectionnés...  Abandon !" & @CRLF, 1)
 		Return 0
 	 EndIf
 
@@ -3843,8 +4058,9 @@ EndIf
 		EndSwitch
 	 WEnd
 
-	 ; boucle for $i (computers[$i])
+	 ; boucle for $i (computers[$i]=$sitems[$i] )
 	 GUIDelete($hgui2)
+	 if IsArray($sitemss) then ;=> on a selectionné des groupes on continue sinon on passe à la fin => abandon !
 					For $i = 1 To $sitems[0]
 						$computers = $sitems[$i]
 						   if $computers<>"" then
@@ -3852,7 +4068,7 @@ EndIf
 						   EndIf
 						$userexist = _ad_objectexists($computers)
 						If $userexist = 1 Then
-							For $z = 1 To $sitemss[0]
+							For $z = 1 To $sitemss[0] ;( $sitemss[$z] = liste des groupes selectionnés )
 								If StringLen($sitemss[$z]) <> 0 Then
 									$multipleidrh = $sitems
 									If $test = 0 Then
@@ -3905,6 +4121,11 @@ EndIf
 					ClipPut($result)
 					GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  " & $result & @CRLF & "			=====	=====	=====	=====	=====			" & @CRLF, 1)
 					$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  " & $result
+				 Else ; Abandon car aucun groupe n'a été selectionné...
+					MsgBox(0,"Information !","  Pas de Groupe(s) selectionné(s) pour Ordinateur(s) !" & @crlf & @crlf & " Abandon !")
+	 		GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  Pas de groupe(s) selectionné(s) => Ordinateur(s)...  Abandon !" & @CRLF, 1)
+			;$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  " & $result
+	 EndIf
 
 	 ; fin boucle for $i (computers[$i])
 
@@ -3922,8 +4143,10 @@ Func directives() ;routine principale des Directives Metiers
 	#Region IHM Directives
 		If $isdct = 0 Then
 			MsgBox(0, "warning !", "'Directives' only working for domain: DCT.Adt.Local", 7)
+			GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "'Directives' only working for domain: DCT.Adt.Local (Directives Metiers: Dir-nnn)" & @CRLF, 1)
 			Return 0
-		EndIf
+		 EndIf
+
 		Global $ousourcedir = _ad_getobjectattribute($idrh1, "distinguishedName")
 		$ousourcedir = StringSplit($ousourcedir, ",")
 		$ousourcedir = $ousourcedir[3]
@@ -3934,6 +4157,7 @@ Func directives() ;routine principale des Directives Metiers
 	#Region Liste des Directives
 		If $directives = "" Then
 			liste_directives()
+			GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "Database Directives Metiers active" & @CRLF, 1)
 		EndIf
 	#EndRegion Liste des Directives
 
@@ -3948,6 +4172,7 @@ Func directives() ;routine principale des Directives Metiers
 				Else
 					Global $dirapplied = 0
 					MsgBox(0, "Warning !", "inexistant Directive... aborting !", 7)
+					GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "inexistant Directive... aborting !" & @CRLF, 1)
 					GUIDelete($hguidir)
 					ExitLoop
 				EndIf
@@ -3962,6 +4187,7 @@ Func directives() ;routine principale des Directives Metiers
 					Sleep(1200)
 					SplashOff()
 					$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  Valider une 'Directive'"
+					GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "  Valider une 'Directive': " & $scomboreaddirectives & @CRLF, 1)
 					Global $dirapplied = 0
 
 			#Region traitement des Directives
@@ -5107,12 +5333,42 @@ Func directives() ;routine principale des Directives Metiers
 
 					 EndIf
 
+						Global $groupsidrh1 = _ad_getusergroups($idrh1)
+						If @error > 0 Then
+						Else
+							_arraysort($groupsidrh1, 0, 1)
+							_arraydelete($groupsidrh1, 0)
+							Global $groupidrh_final = ""
+							Global $groupidrh1_add = $groupsidrh1
+							For $k = 0 To UBound($groupsidrh1) - 1
+								$groupidrh = $groupsidrh1[$k]
+								$groupidrh = StringSplit($groupidrh, ",")
+								$groupidrh_int = $groupidrh[1]
+								$groupidrh_int = StringReplace($groupidrh_int, "CN=", "")
+								$groupidrh_final = $groupidrh_final & $groupidrh_int & @CRLF
+							Next
+							$groupsidrh1 = _arraytostring($groupsidrh1)
+						EndIf
+
+				  if $dirapplied=1 then
+				  GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "Directive apliquée: " & $scomboreaddirectives & "   >" & $idrh1 & @crlf & $actiongroups & @CRLF, 1)
+				  GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  >Groups user:  " & $idrh1 & @CRLF & $groupidrh_final & @CRLF, 1)
+				  Else
+				  GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "Directive non apliquée: " & $scomboreaddirectives & "   >" & $idrh1 & @crlf & $restoredirectives & @CRLF, 1)
+				  GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  >Groups user:  " & $idrh1 & @CRLF & $groupidrh_final & @CRLF, 1)
+				  endif
+
+				  if $actiongroupsar<>"" Then
+				  GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  > manually removed 'selected groups' , after Directive applied for:  " & $idrh1 & @CRLF & $actiongroupsar & @CRLF, 1)
+				  EndIf
+
 				ElseIf $t = 7 Then
 					SplashTextOn("", "Aborting " & $scomboreaddirectives & " !", 1100, 100, -1, -1, 1, -1, 13, 600)
 					Sleep(1000)
 					SplashOff()
 					$scomboreaddirectives = ""
 					$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  Annulé la validation 'Directive'"
+					GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "  Annulé la validation 'Directive'" & @CRLF, 1)
 				EndIf
 				GUIDelete($hguidir)
 				ExitLoop
@@ -6407,19 +6663,25 @@ Func move_user()
 
 	If $ivalue = 1 Then
 		MsgBox(64, "Active Directory ", $idrh1 & "' successfully moved to '" & $ou & "'")
+		GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "Active Directory: " & $idrh1 & "' successfully moved to '" & $ou & "'" & @CRLF, 1)
 		ToolTip("synchronising AD", 5, 5)
 		Sleep(3000)
 		ToolTip("", 5, 5)
 	ElseIf @error = 1 Then
 		MsgBox(64, "Active Directory ", "Target OU '" & $ou & "' does not exist")
+		GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "Active Directory: " & "Target OU '" & $ou & "' does not exist" & @CRLF, 1)
 	ElseIf @error = 2 Then
 		MsgBox(64, "Active Directory ", "Object '" & $idrh1 & "' does not exist")
+		GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "Active Directory: " & "Object '" & $idrh1 & "' does not exist" & @CRLF, 1)
 	ElseIf @error = 3 Then
 		MsgBox(64, "Active Directory ", "Object '" & $idrh1 & "' already in OU '" & $ou & "'")
+		GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "Active Directory: " & "Object '" & $idrh1 & "' already in OU '" & $ou & "'" & @CRLF, 1)
 	ElseIf @error >= 4 OR @error = -2147352567 Then
 		MsgBox(64, "Active Directory ", "You have no permissions to move user " & $idrh1)
+		GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "Active Directory: " & "You have no permissions to move user " & $idrh1 & @CRLF, 1)
 	Else
-		MsgBox(0, "warning !", "User Idrh Srce '" & $idrh1 & "already exists in AD !", 7)
+		MsgBox(0, "warning !", "User Idrh Srce '" & $idrh1 & "' already exists in AD !", 7)
+		GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "User Idrh Srce '" & $idrh1 & "' already exists in AD !" & @CRLF, 1)
 	 EndIf
 
 EndFunc
@@ -6519,6 +6781,7 @@ EndFunc
 		$defautdc = $defautdcinit
 		If $isdct = 0 Then
 			MsgBox(0, "warning !", "'LBPAI / Illiade' only working for domain: DCT.Adt.Local", 7)
+			GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "'LBPAI / Illiade' only working for domain: DCT.Adt.Local" & @CRLF, 1)
 			Return 0
 		EndIf
 		Local $remove = 0
@@ -6558,6 +6821,7 @@ EndFunc
 		If $ivalue = 1 Then
 			MsgBox(64, "Active Directory ", $idrh1 & "' successfully moved to '" & $ou & "'")
 			$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  " & $idrh1 & " déplacé vers " & $ou
+			GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF &  $idrh1 & " déplacé vers " & $ou & @CRLF, 1)
 			ToolTip("synchronising AD", 5, 5)
 			Sleep(3000)
 			ToolTip("", 5, 5)
@@ -6572,6 +6836,7 @@ EndFunc
 		ElseIf @error >= 4 OR @error = -2147352567 Then
 			MsgBox(64, "Active Directory ", "You have no permissions to move user " & $idrh1)
 			$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  " & $idrh1 & "non deplacé vers " & $ou & ",  accès refusé !"
+			GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF &  $idrh1 & "non deplacé vers " & $ou & ",  accès refusé !" & @CRLF, 1)
 			Return 0
 		Else
 			MsgBox(0, "warning !", "User Idrh Srce '" & $idrh1 & "already exists in AD !", 7)
@@ -6761,11 +7026,33 @@ EndFunc
 									EndSelect
 									$actiongroups = $actiongroups & " [ " & $sitems[$z] & " ] " & " ; " & $groupscategory & @CRLF
 								EndIf
+							 Next
+
+						    Global $groupsidrh1 = _ad_getusergroups($idrh1)
+						If @error > 0 Then
+						Else
+							_arraysort($groupsidrh1, 0, 1)
+							_arraydelete($groupsidrh1, 0)
+							Global $groupidrh_final = ""
+							Global $groupidrh1_add = $groupsidrh1
+							For $k = 0 To UBound($groupsidrh1) - 1
+								$groupidrh = $groupsidrh1[$k]
+								$groupidrh = StringSplit($groupidrh, ",")
+								$groupidrh_int = $groupidrh[1]
+								$groupidrh_int = StringReplace($groupidrh_int, "CN=", "")
+								$groupidrh_final = $groupidrh_final & $groupidrh_int & @CRLF
 							Next
+							$groupsidrh1 = _arraytostring($groupsidrh1)
+						 EndIf
+
 							If $remove = 0 Then
-								$actiongroups = " [ Category groups LBPAI/Iliade ] :  [+]  " & @CRLF & $actiongroups
+								$actiongroups = " [ Category groups LBPAI/Iliade ] :  [+]  > " & $idrh1 & @CRLF & $actiongroups
+								GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF &  $actiongroups & @CRLF, 1)
+								GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  >Groups user:  " & $idrh1 & @CRLF & $groupidrh_final & @CRLF, 1)
 							Else
-								$actiongroups = " [ Category groups LBPAI/Iliade ] :  [-]  " & @CRLF & $actiongroups
+								$actiongroups = " [ Category groups LBPAI/Iliade ] :  [-]  > " & $idrh1 & @CRLF & $actiongroups
+								GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF &  $actiongroups & @CRLF, 1)
+								GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  >Groups user:  " & $idrh1 & @CRLF & $groupidrh_final & @CRLF, 1)
 							EndIf
 							GUIDelete($hgui2)
 							ToolTip("Synchronizing with AD...", 5, 5)
@@ -6787,6 +7074,7 @@ EndFunc
 	Func massive_move()
 		If $isdct = 0 Then
 			MsgBox(0, "Info !", "massive move only available for domain DCT !", 14)
+			GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "massive move only available for domain DCT !" & @CRLF, 1)
 			Return 0
 		EndIf
 		Global $dcdomain = "DC=dct,DC=adt,DC=local"
@@ -6797,10 +7085,12 @@ EndFunc
 		Local $sfileopendialog = FileOpenDialog($smessage, @ScriptDir & "\", "Txt (*.txt)", $fd_filemustexist, "*" & ".txt")
 		If @error Then
 			MsgBox(0, "", "Aucun fichier choisi !")
+			GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "Aucun fichier choisi !" & @CRLF, 1)
 			Return 0
 		Else
 			$sfileopendialog = StringReplace($sfileopendialog, "|", @CRLF)
 			MsgBox(0, "", "fichier choisi : " & $sfileopendialog)
+			GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "fichier choisi : " & $sfileopendialog & @CRLF, 1)
 		EndIf
 		$f = $sfileopendialog
 		$f = StringSplit($f, "\")
@@ -6809,12 +7099,14 @@ EndFunc
 		Global $groupfile = $f[$i]
 		If $file = -1 Then
 			MsgBox(0, "Error", "Unable to open file." & $f[$i])
+			GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "Unable to open file." & $f[$i] & @CRLF, 1)
 			Return 0
 		EndIf
 		$file = "" & $f[$i]
 		$sizeof = FileGetSize($file)
 		If $sizeof = 0 Then
 			MsgBox(0, $group & ".txt", "no users to move in file: " & $group & @CRLF & "aborting !")
+			GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "no users to move in file: " & $group & @CRLF & "aborting !" & @CRLF, 1)
 			Return 0
 		EndIf
 		_filereadtoarray($file, $table, 1)
@@ -7028,6 +7320,7 @@ EndFunc
 		FileClose($file)
 		FileClose($out)
 		MsgBox(0, "Info !", "Consultez fichier log" & @CRLF & "Log_Users_déplacés.txt")
+		GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "Consultez fichier log:  " & "Log_Users_déplacés.txt" & @CRLF, 1)
 		Return 0
 	EndFunc
 
@@ -7038,10 +7331,12 @@ EndFunc
 		Local $sfileopendialog = FileOpenDialog($smessage, @ScriptDir & "\", "Txt (*.txt)", $fd_filemustexist, "*" & ".txt")
 		If @error Then
 			MsgBox(0, "", "Aucun fichier choisi !")
+			GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "Aucun fichier choisi !" & @CRLF, 1)
 			Return 0
 		Else
 			$sfileopendialog = StringReplace($sfileopendialog, "|", @CRLF)
 			MsgBox(0, "", "fichier choisi : " & $sfileopendialog)
+			GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "fichier choisi : " & $sfileopendialog & @CRLF, 1)
 		EndIf
 		$f = $sfileopendialog
 		$f = StringSplit($f, "\")
@@ -7050,12 +7345,14 @@ EndFunc
 		Global $groupfile = $f[$i]
 		If $file = -1 Then
 			MsgBox(0, "Error", "Unable to open file." & $f[$i])
+			GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "Unable to open file." & $f[$i] & @CRLF, 1)
 			Return 0
 		EndIf
 		$file = "" & $f[$i]
 		$sizeof = FileGetSize($file)
 		If $sizeof = 0 Then
 			MsgBox(0, $group & ".txt", "no users to extend Date in file: " & $group & @CRLF & "aborting !")
+			GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "no users to move in file: " & $group & @CRLF & "aborting !" & @CRLF, 1)
 			Return 0
 		EndIf
 		_filereadtoarray($file, $table, 1)
@@ -7071,6 +7368,7 @@ EndFunc
 			If NOT StringInStr($ligne, "|") Then
 				MsgBox(0, "Warning !", "Bad separator in txt file... missing separator: | line: " & $i + 1)
 				FileWriteLine($out, "Warning !  " & ",  Bad separator in txt file... missing separator: '|'  in line: " & $i + 1 & @CRLF)
+				GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "Warning !  " & ",  Bad separator in txt file... missing separator: '|'  in line: " & $i + 1  & @CRLF, 1)
 				Return 0
 			EndIf
 			$ligne = StringSplit($ligne, "|")
@@ -7084,10 +7382,12 @@ EndFunc
 				If NOT StringRegExp($dateprolonge, "(\d{2})/(\d{2})/(\d{4})") Then
 					MsgBox(0, "Warning !", "Bad format Date in txt file... line: " & $i + 1)
 					FileWriteLine($out, "Warning !  " & ",  Bad format Date in txt file... line: " & $i + 1 & @CRLF)
+					GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "Warning !  " & ",  Bad format Date in txt file... line: " & $i + 1  & @CRLF, 1)
 					Return 0
 				EndIf
 			Else
 				MsgBox(0, "warning !", "bad format txt file..." & @CRLF & "abort...")
+				GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "warning !", "bad format txt file..." & @CRLF & "abort..." & @CRLF, 1)
 				Return 0
 			EndIf
 			$userexist = _ad_objectexists($idrh1)
@@ -7131,6 +7431,7 @@ EndFunc
 		FileClose($file)
 		FileClose($out)
 		MsgBox(0, "Info !", "Consultez fichier log" & @CRLF & "Log_Users_date prolongée.txt")
+		GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "Consultez fichier log:  " & "Log_Users_date prolongée.txt" & @CRLF, 1)
 		Return 0
 	EndFunc
 
@@ -7138,6 +7439,7 @@ EndFunc
 		$defautdc = $defautdcinit
 		If $isdct = 0 Then
 			MsgBox(0, "Warning !", "Only available for domain DCT !", 14)
+			GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "Only available for domain DCT !" & @CRLF, 1)
 			Return 0
 		EndIf
 		Global $outdrive = ""
@@ -7171,8 +7473,10 @@ EndFunc
 				EndIf
 			Next
 			$historik = $historik & @CRLF & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "pasted in clipboard..." & @CRLF & @CRLF
+			GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF &  "Massive drives; export: pasted in clipboard..." & @CRLF, 1)
+		   ;GUICtrlSetData($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & $outdrive & @CRLF, 1)
 			ClipPut($outdrive)
-			GUICtrlSetData($aff, $historik, 1)
+			;GUICtrlSetData($aff, $historik, 1)
 		Else
 		EndIf
 		Return 0
