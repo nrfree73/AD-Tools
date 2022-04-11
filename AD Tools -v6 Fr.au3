@@ -27,7 +27,6 @@ Global $ADTVersion="v6.0"
 #include <WindowsConstants.au3>
 #include <MsgBoxConstants.au3>
 #include <GUIConstantsEx.au3>
-;#include "FModMem.au3"
 #include <GuiEdit.au3>
 #include <GuiRichEdit.au3>
    #EndRegion Include
@@ -89,6 +88,7 @@ Opt("TrayMenuMode", 3)
     Global $auserids ;ANR
     Global $numdirmetier =""
     Global $isDomainOK=0
+    Global $ouDirmetier="" ;check dir-metier OU
 
 	Func _terminate()
 	   $t = MsgBox(4, "Quitter ?", "[Oui]: Terminer AD Tools !" & @CRLF & @CRLF & "[Non]: ne fait rien")
@@ -102,16 +102,7 @@ Opt("TrayMenuMode", 3)
 	Global $hguilg
 
 	Func about()
-;	     FSOUNDMEM_Init()
-;Global $tMem
-;Global $bChipSound = _Inferno()
-;Global $iLen = BinaryLen($bChipSound)
-;Global $tMem = DllStructCreate("byte[" & $iLen & "]")
-;DllStructSetData($tMem, 1, $bChipSound)
-;$bChipSound = 0
-;Global $hFMod = FMUSICMEM_LoadSongEx($tMem, 0, $iLen)
-;FMUSICMEM_SetMasterVolume($hFMod, 192)
-;FMUSICMEM_PlaySong($hFMod)
+;
 	EndFunc
 
 	_ad_open()
@@ -379,7 +370,7 @@ EndFunc
 Func _Func_Idrh()
 ;$historik=""
 $cyclesIDRG=$cyclesIDRG+1
-if $cyclesIDRG>10 Then
+if $cyclesIDRG>15 Then
    $cyclesIDRG=0
    _GUICtrlRichEdit_SetText($aff, "" ) 														; _GUICtrlRichEdit_AppendText($aff, "" )
    ;_GUICtrlRichEdit_AppendText($aff, "Erase history: Ready !" & @crlf & @CRLF);, 1)
@@ -2742,8 +2733,12 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 								EndIf
 							Else
 								$outputidrh1 = ""
-							EndIf
-							$outputidrh1 = $outputidrh1 & "  Object:  " & _ad_getobjectattribute($idrh1, "distinguishedName") & "  | Expiration ?:  " & $accountexpire & @CRLF & "									Proprietaire:     " & $proprietaire & @CRLF & "									compte crée  le:  " & $createdsrce & @CRLF & "									mdp  changé  le:  " & $lastchanged & @CRLF & @CRLF & "  email :     " & $mail & $pwdreset & @CRLF & $pwdinfo & @CRLF & $description & @CRLF & "  Drives of user: " & $idrh1 & @CRLF & $drivesidrh1 & @CRLF & @CRLF & "  Comment 'Mes scan' of user: " & $idrh1 & @CRLF & $commentidrh1 & @CRLF & @CRLF & "  Printers for user: " & $idrh1 & @CRLF & $printersidrh1 & @CRLF & @CRLF & "  Groups for user: " & $idrh1 & @CRLF & $groupidrh_final
+							 EndIf
+							   if $isDCT=1 then ;domaine DCT=1 (Drives, comment, printers, groups)
+							   $outputidrh1 = $outputidrh1 & "  Object:  " & _ad_getobjectattribute($idrh1, "distinguishedName") & "  | Expiration ?:  " & $accountexpire & @CRLF & "									Proprietaire:     " & $proprietaire & @CRLF & "									compte crée  le:  " & $createdsrce & @CRLF & "									mdp  changé  le:  " & $lastchanged & @CRLF & @CRLF & "  email :     " & $mail & $pwdreset & @CRLF & $pwdinfo & @CRLF & $description & @CRLF & "  Drives of user: " & $idrh1 & @CRLF & $drivesidrh1 & @CRLF & @CRLF & "  Comment 'Mes scan' of user: " & $idrh1 & @CRLF & $commentidrh1 & @CRLF & @CRLF & "  Printers for user: " & $idrh1 & @CRLF & $printersidrh1 & @CRLF & @CRLF & "  Groups for user: " & $idrh1 & @CRLF & $groupidrh_final
+							   Else ; (Groups)
+						       $outputidrh1 = $outputidrh1 & "  Object:  " & _ad_getobjectattribute($idrh1, "distinguishedName") & "  | Expiration ?:  " & $accountexpire & @CRLF & "									Proprietaire:     " & $proprietaire & @CRLF & "									compte crée  le:  " & $createdsrce & @CRLF & "									mdp  changé  le:  " & $lastchanged & @CRLF & @CRLF & "  email :     " & $mail & $pwdreset & @CRLF & $pwdinfo & @CRLF & $description & @CRLF & @CRLF & "  Groups for user: " & $idrh1 & @CRLF & $groupidrh_final
+							   EndIf
 							$stateidrh1 = _ad_isobjectdisabled($idrh1)
 							If $stateidrh1 = 1 Then
 								$stateidrh1 = $idrh1 & " , le compte est desactivé !"
@@ -2805,14 +2800,24 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 								ElseIf $t = 7 Then
 								EndIf
 							EndIf
-							$userexist2 = _ad_objectexists($idrh2)
-							If StringUpper($idrh2) = "" OR StringLen($idrh2) = 0 OR $userexist2 = 0 Then
-								Sleep(2500)
+							  $userexist2 = _ad_objectexists($idrh2)
+						    	$checkbuttondrives = BitAND(GUICtrlRead($idcheckboxdrives), $gui_checked)
+								$checkbuttongroups = BitAND(GUICtrlRead($idcheckboxgroups), $gui_checked)
+
+							If StringUpper($idrh2) = "" OR StringLen($idrh2) = 0 Then
+							   $checkbuttondrives=0
+							   $idcheckscancpy=0
+							   $checkbuttongroups=0
+							   EndIf
+
+							If  $userexist2 = 0 and StringUpper($idrh2) <> "" And $checkbuttondrives=1 Then ;StringUpper($idrh2) = "" OR StringLen($idrh2) = 0 OR
+								;Sleep(2500)
+								MsgBox(0,"","user 'Dest' [ " & $idrh2 & " ] n'existe pas !",15)
 								ToolTip("", 5, 5, "")
 							Else
-								$checkbuttondrives = BitAND(GUICtrlRead($idcheckboxdrives), $gui_checked)
-								$checkbuttongroups = BitAND(GUICtrlRead($idcheckboxgroups), $gui_checked)
-								If $checkbuttondrives = 1 Then
+							;	$checkbuttondrives = BitAND(GUICtrlRead($idcheckboxdrives), $gui_checked)
+							;	$checkbuttongroups = BitAND(GUICtrlRead($idcheckboxgroups), $gui_checked)
+								If $checkbuttondrives = 1 And $isDCT=1 and $userexist2=1 Then
 									$cpydrives1 = _arraytostring($cpydrives1, "|")
 									$cpydrives1 = StringReplace($cpydrives1, $idrh1, $idrh2)
 									$cpydrives1 = StringReplace($cpydrives1, "LaPoste00-NetworkDrive|", "")
@@ -2928,9 +2933,12 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 											_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "[Return code " & @error & "] from Active Directory for user " & $idrh2 & "  Access denied ..." & @CRLF & @CRLF);, 1)
 										EndIf
 									EndIf
-								Else
+								 Else
+									if StringUpper($idrh2) <> "" and $checkbuttondrives=1 Then
+									MsgBox(0,"Warning !","'cpy Drives' works only with domain DCT !",15)
+									EndIf
 								EndIf
-								If $idcheckscancpy = 1 Then
+								If $idcheckscancpy = 1 And $isDCT=1 and $userexist2=1 Then
 									$commentidrh2 = $commentidrh1
 									If $commentidrh2 = "" Then
 										MsgBox(0, "Warning !", "user 'Srce': " & $idrh1 & ", comment 'Mes scan' undefined !" & @CRLF & "Aborting copy Comment 'Me scan' from 'Srce' to user 'Dest': " & $idrh2 & " !", 15)
@@ -2950,9 +2958,12 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 											_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "[Return code " & @error & "]  from Active Directory for  " & $idrh2 & @CRLF & "Access denied ?..." & @CRLF & @CRLF);, 1)
 										EndIf
 									EndIf
-								Else
+								 Else
+									if StringUpper($idrh2) <> "" and $idcheckscancpy=1 Then
+									MsgBox(0,"Warning !","'cpy Mes Scan' works only with domain DCT !",15)
+									endif
 								EndIf
-								If $checkbuttongroups = 1 Then
+								If $checkbuttongroups = 1 and $userexist2=1 Then ;cpy Groups
 									_arraydisplay($groupidrh1_add, "list of groups selected for adding to user " & $idrh2)
 									$idrh2 = _ad_samaccountnametofqdn($idrh2)
 									$mail = _ad_getobjectattribute($idrh2, "mail")
@@ -2995,7 +3006,7 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 										_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & $groupidrh1_add[$k] & "  =>  " & $idrh2 & ", removed :  no email Description is set !" & @CRLF);, 1)
 										EndIf
 									Next
-								Else
+								 Else
 								EndIf
 							EndIf
 							ToolTip("", 5, 5, "")
@@ -4257,15 +4268,15 @@ Func directives() ;routine principale des Directives Metiers
 				EndIf
 				GUIDelete($hguidir)
 				If $scomboreaddirectives = "[ Zero Directives ]" Then
-					$t = MsgBox(4, "Remove Directive ?", "Do you want to remove any Directive found for: " & $idrh1 & " ...?")
+					$t = MsgBox(4, "Zero Directives ?", "Souhaitez-vous retirer les Directives pour : " & $idrh1 & " ...?")
 				Else
-					$t = MsgBox(4, "Apply Directive ?", "Do you want to lauch process for: " & @CRLF & $scomboreaddirectives)
+					$t = MsgBox(4, "Appliquer Directive ?", "Souhaitez-vous appliquer la Directive ? " & @CRLF & $scomboreaddirectives)
 					 $numdirmetier=StringLeft($scomboreaddirectives,3) ; exemple: 733
 					; MsgBox(0,"",$numdirmetier)
 					; Exit
 				EndIf
 				If $t = 6 Then
-					SplashTextOn("", "Applying Directive:  " & $scomboreaddirectives & " !", 1100, 100, -1, -1, 1, -1, 13, 600)
+					SplashTextOn("", "Valide la Directive:  " & $scomboreaddirectives & " !", 1100, 100, -1, -1, 1, -1, 13, 600)
 					Sleep(1200)
 					SplashOff()
 					$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  Valider une 'Directive'"
@@ -4290,8 +4301,8 @@ Func directives() ;routine principale des Directives Metiers
 									auto_remove()
 									Global $restoredirectives = $actiongroups
 									$restoredirectives = StringReplace($restoredirectives, " ; ", "|")
-									$actiongroups = " Obsolete Directives groups: " & $actiongroups
-									$scomboreaddirectives = " [ Zero Directives ] = Enleve toutes les Directives connues !"
+									$actiongroups = " Groupes Obsoletes Directive : " & $actiongroups
+									$scomboreaddirectives = " [ Zero Directives ] = Retirer la Directive !"
 									$dirapplied = 1
 								EndIf
 								If $scomboreaddirectives = "_SM_Sites Tertiaires RLP" OR $scomboreaddirectives = "_SM_Site_Tertiaire_Enseigne" Then ; _SM_Sites Tertiaires RLP
@@ -4303,7 +4314,7 @@ Func directives() ;routine principale des Directives Metiers
 									auto_remove()
 									Global $restoredirectives = $actiongroups
 									$restoredirectives = StringReplace($restoredirectives, " ; ", "|")
-									$actiongroups = " Obsolete Directives groups: " & $actiongroups
+									$actiongroups = " Groupes Obsoletes Directive : " & $actiongroups
 									$ou = InputBox("default OU ?", "ex: BPLY, BPRE, CFLY ... " & @CRLF & "_SM_Sites Tertiaires RLP", $ousourcedir)
 									move_user()
 									Global $ivalue = _ad_addusertogroup("RG-" & $ou & "_SM_Sites Tertiaires RLP", $idrh1)
@@ -4339,7 +4350,7 @@ Func directives() ;routine principale des Directives Metiers
 												_ad_addusertogroup($groupsidrh1[$z], $idrh1)
 											Next
 										EndIf
-										$actiongroups = StringReplace($actiongroups, " Obsolete Directives groups: ", " Replaced original Directives groups: ")
+										$actiongroups = StringReplace($actiongroups, " Groupes Obsoletes Directive : ", " Rollback de la Directive Initiale ")
 									EndIf
 									If $dirapplied = 1 Then
 										Global $groupsidrh1 = _ad_getusergroups($idrh1)
@@ -4356,7 +4367,7 @@ Func directives() ;routine principale des Directives Metiers
 									auto_remove()
 									Global $restoredirectives = $actiongroups
 									$restoredirectives = StringReplace($restoredirectives, " ; ", "|")
-									$actiongroups = " Obsolete Directives groups: " & $actiongroups
+									$actiongroups = " Groupes Obsoletes Directive : " & $actiongroups
 									$ou = InputBox("default OU ?", "ex: BPLY, BPRE ... " & @CRLF & "_SM_GUICHET" & @crlf & " on ne met plus: RG-GAUB_SM_GUICHET...", "GAUB")
 									move_user()
 									;Global $ivalue = _ad_addusertogroup("RG-" & $ou & "_SM_GUICHET", $idrh1)
@@ -4393,7 +4404,7 @@ Func directives() ;routine principale des Directives Metiers
 												_ad_addusertogroup($groupsidrh1[$z], $idrh1)
 											Next
 										EndIf
-										$actiongroups = StringReplace($actiongroups, " Obsolete Directives groups: ", " Replaced original Directives groups: ")
+										$actiongroups = StringReplace($actiongroups, " Groupes Obsoletes Directive : ", " Rollback de la Directive Initiale ")
 									EndIf
 									If $dirapplied = 1 Then
 										_ad_addusertogroup("SG-GAUB_ACCES_EVS", $idrh1)
@@ -4415,7 +4426,7 @@ Func directives() ;routine principale des Directives Metiers
 									auto_remove()
 									Global $restoredirectives = $actiongroups
 									$restoredirectives = StringReplace($restoredirectives, " ; ", "|")
-									$actiongroups = " Obsolete Directives groups: " & $actiongroups
+									$actiongroups = " Groupes Obsoletes Directive : " & $actiongroups
 									$ou = InputBox("default OU ?", "ex: BPLY, BPRE ... " & @CRLF & "_Vendeur Formateur LPM" & @crlf & " Vendeur Formateur LPM... idem Guichetier en plus:" & @crlf & "RG-PITR_VIR_COM1_IE11_NOREDIRECTFOLDER", "GAUB")
 									move_user()
 									;Global $ivalue = _ad_addusertogroup("RG-" & $ou & "_SM_GUICHET", $idrh1)
@@ -4452,7 +4463,7 @@ Func directives() ;routine principale des Directives Metiers
 												_ad_addusertogroup($groupsidrh1[$z], $idrh1)
 											Next
 										EndIf
-										$actiongroups = StringReplace($actiongroups, " Obsolete Directives groups: ", " Replaced original Directives groups: ")
+										$actiongroups = StringReplace($actiongroups, " Groupes Obsoletes Directive : ", " Rollback de la Directive Initiale ")
 									EndIf
 									If $dirapplied = 1 Then
 										_ad_addusertogroup("SG-GAUB_ACCES_EVS", $idrh1)
@@ -4465,6 +4476,9 @@ Func directives() ;routine principale des Directives Metiers
 										affiche_remove_groupes()
 									EndIf
 								 EndIf
+
+;COBA inhibés avec #cs/#ce...
+#cs
 							    If $scomboreaddirectives = "19 _SM_Conseil Bancaire" Then
 								   ;RG-[EAID]_SM_Conseil Bancaire; SG-GAUB_ACCES_EVS; USR_BP_GUICHET_GENE
 									Global $groupsidrh1 = _ad_getusergroups($idrh1)
@@ -4475,7 +4489,7 @@ Func directives() ;routine principale des Directives Metiers
 									auto_remove()
 									Global $restoredirectives = $actiongroups
 									$restoredirectives = StringReplace($restoredirectives, " ; ", "|")
-									$actiongroups = " Obsolete Directives groups: " & $actiongroups
+									$actiongroups = " Groupes Obsoletes Directive : " & $actiongroups
 									Global $groupsidrh1 = _ad_getusergroups($idrh1)
 									If @error > 0 Then
 										MsgBox(0, "Info !", "user " & $idrh1 & "has no groups...", 7)
@@ -4517,7 +4531,7 @@ Func directives() ;routine principale des Directives Metiers
 												_ad_addusertogroup($groupsidrh1[$z], $idrh1)
 											Next
 										EndIf
-										$actiongroups = StringReplace($actiongroups, " Obsolete Directives groups: ", " Replaced original Directives groups: ")
+										$actiongroups = StringReplace($actiongroups, " Groupes Obsoletes Directive : ", " Rollback de la Directive Initiale ")
 									EndIf
 									If $dirapplied = 1 Then
 										_ad_addusertogroup("SG-GAUB_ACCES_EVS", $idrh1)
@@ -4537,7 +4551,7 @@ Func directives() ;routine principale des Directives Metiers
 									auto_remove()
 									Global $restoredirectives = $actiongroups
 									$restoredirectives = StringReplace($restoredirectives, " ; ", "|")
-									$actiongroups = " Obsolete Directives groups: " & $actiongroups
+									$actiongroups = " Groupes Obsoletes Directive : " & $actiongroups
 									Global $groupsidrh1 = _ad_getusergroups($idrh1)
 									If @error > 0 Then
 										MsgBox(0, "Info !", "user " & $idrh1 & "has no groups...", 7)
@@ -4579,7 +4593,7 @@ Func directives() ;routine principale des Directives Metiers
 												_ad_addusertogroup($groupsidrh1[$z], $idrh1)
 											Next
 										EndIf
-										$actiongroups = StringReplace($actiongroups, " Obsolete Directives groups: ", " Replaced original Directives groups: ")
+										$actiongroups = StringReplace($actiongroups, " Groupes Obsoletes Directive : ", " Rollback de la Directive Initiale ")
 									EndIf
 									If $dirapplied = 1 Then
 										; _ad_addusertogroup("RG-PITR_CM_COBA_Agent", $idrh1)
@@ -4591,7 +4605,9 @@ Func directives() ;routine principale des Directives Metiers
 										affiche_remove_groupes()
 									EndIf
 								EndIf
-								If $scomboreaddirectives = "_SM_Conseil Bancaire" Then
+#ce
+
+							    If $scomboreaddirectives = "_SM_Conseil Bancaire" Then ; $t = 6 == win 10 (_SM_DET)   //    $t = 7 == win 7  (_SM_Conseil Bancaire)
 								   ;RG-[EAID]_SM_Conseil Bancaire; SG-GAUB_ACCES_EVS; USR_BP_GUICHET_GENE
 									Global $groupsidrh1 = _ad_getusergroups($idrh1)
 									If @error > 0 Then
@@ -4601,7 +4617,7 @@ Func directives() ;routine principale des Directives Metiers
 									auto_remove()
 									Global $restoredirectives = $actiongroups
 									$restoredirectives = StringReplace($restoredirectives, " ; ", "|")
-									$actiongroups = " Obsolete Directives groups: " & $actiongroups
+									$actiongroups = " Groupes Obsoletes Directive : " & $actiongroups
 									Global $groupsidrh1 = _ad_getusergroups($idrh1)
 									If @error > 0 Then
 										MsgBox(0, "Info !", "user " & $idrh1 & "has no groups...", 7)
@@ -4610,11 +4626,12 @@ Func directives() ;routine principale des Directives Metiers
 									_arraysort($groupsidrh1, 0, 1)
 									$ou = InputBox("default OU ?", "ex: BPLY, BPRE ... " & @CRLF & "_SM_Conseil Bancaire (sur BPnn)", $ousourcedir)
 									move_user()
-									$t = MsgBox(4, "choix W10/W7", "_SM_Conseil Bancaire , poste W10=(Oui) (_SM_DET)?" & @CRLF & "sinon poste W7=(Non) (_SM_Conseil Bancaire)")
-									If $t = 6 Then
-										Global $ivalue = _ad_addusertogroup("RG-" & $ou & "_SM_DET", $idrh1)
-									ElseIf $t = 7 Then
-										Global $ivalue = _ad_addusertogroup("RG-" & $ou & "_SM_Conseil Bancaire", $idrh1)
+									$t=7 ; on inhibe le choix w7/w10 ci-dessous !
+									;$t = MsgBox(4, "choix W10/W7", "_SM_Conseil Bancaire" & @crlf & @CRLF & "  poste W10: (Oui) => (_SM_DET)?" & @CRLF & "  poste W7: (Non) => (_SM_Conseil Bancaire)")
+									If $t = 6 Then 		;_DET
+										Global $ivalue = _ad_addusertogroup("RG-" & $ou & "_SM_DET", $idrh1) ;_DET
+									ElseIf $t = 7 Then  ;_Conseil bancaire + role COBA
+										Global $ivalue = _ad_addusertogroup("RG-" & $ou & "_SM_Conseil Bancaire", $idrh1) ;_Conseil bancaire + role COBA
 									EndIf
 									If $ivalue = 1 Then
 										$dirapplied = 1
@@ -4625,11 +4642,24 @@ Func directives() ;routine principale des Directives Metiers
 											MsgBox(64, "", "User '" & $idrh1 & "' successfully assigned to group '" & "RG-" & $ou & "_SM_Conseil Bancaire" & "'")
 										EndIf
 									ElseIf @error = 1 Then
-										MsgBox(64, "", "Group '" & "RG-" & $ou & "_SM_DET" & "' does not exist")
+										; " does not exist"
+										If $t = 6 Then
+											MsgBox(64, "", "Group '" & "RG-" & $ou & "_SM_DET" & "' does not exist")
+										EndIf
+										If $t = 7 Then
+											MsgBox(64, "", "Group '" & "RG-" & $ou & "_SM_Conseil Bancaire" & "' does not exist")
+										EndIf
 									ElseIf @error = 2 Then
 										MsgBox(64, "", "User '" & $idrh1 & "' does not exist")
 									ElseIf @error = 3 Then
-										MsgBox(64, "", "User '" & $idrh1 & "' is already a member of group '" & "RG-" & $ou & "_SM_DET" & "'")
+										; " User $idrh1 is already a member of group "
+										If $t = 6 Then
+											MsgBox(64, "", "User '" & $idrh1 & "' is already a member of group '" & "RG-" & $ou & "_SM_DET" & "'")
+										EndIf
+										If $t = 7 Then
+											MsgBox(64, "", "User '" & $idrh1 & "' is already a member of group '" & "RG-" & $ou & "_SM_Conseil Bancaire" & "'")
+										 EndIf
+
 										$dirapplied = 1
 									Else
 										MsgBox(64, "", "Return code '" & @error & "' from Active Directory")
@@ -4653,21 +4683,24 @@ Func directives() ;routine principale des Directives Metiers
 												_ad_addusertogroup($groupsidrh1[$z], $idrh1)
 											Next
 										EndIf
-										$actiongroups = StringReplace($actiongroups, " Obsolete Directives groups: ", " Replaced original Directives groups: ")
+										$actiongroups = StringReplace($actiongroups, " Groupes Obsoletes Directive : ", " Rollback de la Directive Initiale ")
 									EndIf
 									If $dirapplied = 1 Then
-										If $t = 6 Then
-										;	_ad_addusertogroup("RG-PITR_CM_COBA_Agent", $idrh1)
-										EndIf
+										 If $t = 6 Then ;win 10 (_SM_det)
+											_ad_addusertogroup("RG-PITR_CM_COBA_Agent", $idrh1)
+										 EndIf
+										 If $t = 7 Then ;win 7 (_SM_Conseil Bancaire)
 										_ad_addusertogroup("SG-GAUB_ACCES_EVS", $idrh1)
 										_ad_addusertogroup("USR_BP_GUICHET_GENE", $idrh1)
+										_ad_addusertogroup("RG-PITR_CM_COBA_Agent", $idrh1) ;rectif vu avec Estelle...
+										EndIf
 									EndIf
 									If $dirapplied = 1 Then
 										Global $groupsidrh1 = _ad_getusergroups($idrh1)
 										affiche_remove_groupes()
 									EndIf
 								EndIf
-								If $scomboreaddirectives = "_SM_Siege_Enseigne" Then
+								If $scomboreaddirectives = "_SM_Siege_Enseigne" Then ; n'existe plus renommé en RG-[EAID]_SM_Siege Banque (ne sera pas pris en compte)
 									Global $groupsidrh1 = _ad_getusergroups($idrh1)
 									If @error > 0 Then
 										MsgBox(0, "Info !", "user " & $idrh1 & "has no groups...", 7)
@@ -4676,7 +4709,7 @@ Func directives() ;routine principale des Directives Metiers
 									auto_remove()
 									Global $restoredirectives = $actiongroups
 									$restoredirectives = StringReplace($restoredirectives, " ; ", "|")
-									$actiongroups = " Obsolete Directives groups: " & $actiongroups
+									$actiongroups = " Groupes Obsoletes Directive : " & $actiongroups
 									$ou = InputBox("default OU ?", "ex: BPLY, BPRE, CFLY ... " & @CRLF & "_SM_Siege_Enseigne", $ousourcedir)
 									move_user()
 									Global $ivalue = _ad_addusertogroup("RG-" & $ou & "_SM_Siege_Enseigne", $idrh1)
@@ -4712,7 +4745,7 @@ Func directives() ;routine principale des Directives Metiers
 												_ad_addusertogroup($groupsidrh1[$z], $idrh1)
 											Next
 										EndIf
-										$actiongroups = StringReplace($actiongroups, " Obsolete Directives groups: ", " Replaced original Directives groups: ")
+										$actiongroups = StringReplace($actiongroups, " Groupes Obsoletes Directive : ", " Rollback de la Directive Initiale ")
 									EndIf
 									If $dirapplied = 1 Then
 										Global $groupsidrh1 = _ad_getusergroups($idrh1)
@@ -4728,7 +4761,7 @@ Func directives() ;routine principale des Directives Metiers
 									auto_remove()
 									Global $restoredirectives = $actiongroups
 									$restoredirectives = StringReplace($restoredirectives, " ; ", "|")
-									$actiongroups = " Obsolete Directives groups: " & $actiongroups
+									$actiongroups = " Groupes Obsoletes Directive : " & $actiongroups
 									$ou = InputBox("default OU ?", "ex: BPLY, BPRE, CFLY ... " & @CRLF & "_SM_Siege Banque", $ousourcedir)
 									move_user()
 									Global $ivalue = _ad_addusertogroup("RG-" & $ou & "_SM_Siege Banque", $idrh1)
@@ -4764,7 +4797,7 @@ Func directives() ;routine principale des Directives Metiers
 												_ad_addusertogroup($groupsidrh1[$z], $idrh1)
 											Next
 										EndIf
-										$actiongroups = StringReplace($actiongroups, " Obsolete Directives groups: ", " Replaced original Directives groups: ")
+										$actiongroups = StringReplace($actiongroups, " Groupes Obsoletes Directive : ", " Rollback de la Directive Initiale ")
 									EndIf
 									If $dirapplied = 1 Then
 										Global $groupsidrh1 = _ad_getusergroups($idrh1)
@@ -4780,7 +4813,7 @@ Func directives() ;routine principale des Directives Metiers
 									auto_remove()
 									Global $restoredirectives = $actiongroups
 									$restoredirectives = StringReplace($restoredirectives, " ; ", "|")
-									$actiongroups = " Obsolete Directives groups: " & $actiongroups
+									$actiongroups = " Groupes Obsoletes Directive : " & $actiongroups
 									$ou = InputBox("default OU ?", "ex: BPLY, BPRE, CFLY ... " & @CRLF & "_SM_Siege Banque_LBPGP", $ousourcedir)
 									move_user()
 									Global $ivalue = _ad_addusertogroup("RG-" & $ou & "_SM_Siege Banque_LBPGP", $idrh1)
@@ -4816,7 +4849,7 @@ Func directives() ;routine principale des Directives Metiers
 												_ad_addusertogroup($groupsidrh1[$z], $idrh1)
 											Next
 										EndIf
-										$actiongroups = StringReplace($actiongroups, " Obsolete Directives groups: ", " Replaced original Directives groups: ")
+										$actiongroups = StringReplace($actiongroups, " Groupes Obsoletes Directive : ", " Rollback de la Directive Initiale ")
 									EndIf
 									If $dirapplied = 1 Then
 										Global $groupsidrh1 = _ad_getusergroups($idrh1)
@@ -4832,7 +4865,7 @@ Func directives() ;routine principale des Directives Metiers
 									auto_remove()
 									Global $restoredirectives = $actiongroups
 									$restoredirectives = StringReplace($restoredirectives, " ; ", "|")
-									$actiongroups = " Obsolete Directives groups: " & $actiongroups
+									$actiongroups = " Groupes Obsoletes Directive : " & $actiongroups
 									$ou = InputBox("default OU ?", "ex: BPLY, BPRE, CFLY ... " & @CRLF & "_SM_Siege Banque_LBPAI", $ousourcedir)
 									move_user()
 									Global $ivalue = _ad_addusertogroup("RG-" & $ou & "_SM_Siege Banque_LBPAI", $idrh1)
@@ -4868,7 +4901,7 @@ Func directives() ;routine principale des Directives Metiers
 												_ad_addusertogroup($groupsidrh1[$z], $idrh1)
 											Next
 										EndIf
-										$actiongroups = StringReplace($actiongroups, " Obsolete Directives groups: ", " Replaced original Directives groups: ")
+										$actiongroups = StringReplace($actiongroups, " Groupes Obsoletes Directive : ", " Rollback de la Directive Initiale ")
 									EndIf
 									If $dirapplied = 1 Then
 										Global $groupsidrh1 = _ad_getusergroups($idrh1)
@@ -4884,7 +4917,7 @@ Func directives() ;routine principale des Directives Metiers
 									auto_remove()
 									Global $restoredirectives = $actiongroups
 									$restoredirectives = StringReplace($restoredirectives, " ; ", "|")
-									$actiongroups = " Obsolete Directives groups: " & $actiongroups
+									$actiongroups = " Groupes Obsoletes Directive : " & $actiongroups
 									$ou = InputBox("default OU ?", "ex: BPLY, BPRE, CFLY ... " & @CRLF & "_SM_Siege Banque_FondEcranFixe", $ousourcedir)
 									move_user()
 									Global $ivalue = _ad_addusertogroup("RG-" & $ou & "_SM_Siege Banque_FondEcranFixe", $idrh1)
@@ -4920,7 +4953,7 @@ Func directives() ;routine principale des Directives Metiers
 												_ad_addusertogroup($groupsidrh1[$z], $idrh1)
 											Next
 										EndIf
-										$actiongroups = StringReplace($actiongroups, " Obsolete Directives groups: ", " Replaced original Directives groups: ")
+										$actiongroups = StringReplace($actiongroups, " Groupes Obsoletes Directive : ", " Rollback de la Directive Initiale ")
 									EndIf
 									If $dirapplied = 1 Then
 										_ad_addusertogroup("SG-GAUB_ACCES_EVS", $idrh1)
@@ -4938,7 +4971,7 @@ Func directives() ;routine principale des Directives Metiers
 									auto_remove()
 									Global $restoredirectives = $actiongroups
 									$restoredirectives = StringReplace($restoredirectives, " ; ", "|")
-									$actiongroups = " Obsolete Directives groups: " & $actiongroups
+									$actiongroups = " Groupes Obsoletes Directive : " & $actiongroups
 									$ou = InputBox("default OU ?", "ex: BPLY, BPRE, MITO ... " & @CRLF & "_SM_DISFE", $ousourcedir)
 									move_user()
 									Global $ivalue = _ad_addusertogroup("RG-" & $ou & "_SM_DISFE", $idrh1)
@@ -4974,7 +5007,7 @@ Func directives() ;routine principale des Directives Metiers
 												_ad_addusertogroup($groupsidrh1[$z], $idrh1)
 											Next
 										EndIf
-										$actiongroups = StringReplace($actiongroups, " Obsolete Directives groups: ", " Replaced original Directives groups: ")
+										$actiongroups = StringReplace($actiongroups, " Groupes Obsoletes Directive : ", " Rollback de la Directive Initiale ")
 									EndIf
 									If $dirapplied = 1 Then
 										Global $groupsidrh1 = _ad_getusergroups($idrh1)
@@ -4990,7 +5023,7 @@ Func directives() ;routine principale des Directives Metiers
 									auto_remove()
 									Global $restoredirectives = $actiongroups
 									$restoredirectives = StringReplace($restoredirectives, " ; ", "|")
-									$actiongroups = " Obsolete Directives groups: " & $actiongroups
+									$actiongroups = " Groupes Obsoletes Directive : " & $actiongroups
 									$ou = InputBox("default OU ?", "ex: BPLY, BPRE, CFLY ... " & @CRLF & "_SM_Siege Banque_LBPF", $ousourcedir)
 									move_user()
 									Global $ivalue = _ad_addusertogroup("RG-" & $ou & "_SM_Siege Banque_LBPF", $idrh1)
@@ -5026,7 +5059,7 @@ Func directives() ;routine principale des Directives Metiers
 												_ad_addusertogroup($groupsidrh1[$z], $idrh1)
 											Next
 										EndIf
-										$actiongroups = StringReplace($actiongroups, " Obsolete Directives groups: ", " Replaced original Directives groups: ")
+										$actiongroups = StringReplace($actiongroups, " Groupes Obsoletes Directive : ", " Rollback de la Directive Initiale ")
 									EndIf
 									If $dirapplied = 1 Then
 										Global $groupsidrh1 = _ad_getusergroups($idrh1)
@@ -5042,7 +5075,7 @@ Func directives() ;routine principale des Directives Metiers
 									auto_remove()
 									Global $restoredirectives = $actiongroups
 									$restoredirectives = StringReplace($restoredirectives, " ; ", "|")
-									$actiongroups = " Obsolete Directives groups: " & $actiongroups
+									$actiongroups = " Groupes Obsoletes Directive : " & $actiongroups
 									Global $groupsidrh1 = _ad_getusergroups($idrh1)
 									$ou = InputBox("default OU ?", "ex: BPLY, BPRE, CFLY ... " & @CRLF & "_SM_DET", "GAUB")
 									move_user()
@@ -5079,7 +5112,7 @@ Func directives() ;routine principale des Directives Metiers
 												_ad_addusertogroup($groupsidrh1[$z], $idrh1)
 											Next
 										EndIf
-										$actiongroups = StringReplace($actiongroups, " Obsolete Directives groups: ", " Replaced original Directives groups: ")
+										$actiongroups = StringReplace($actiongroups, " Groupes Obsoletes Directive : ", " Rollback de la Directive Initiale ")
 									EndIf
 									If $dirapplied = 1 Then
 										_ad_addusertogroup("RG-PITR_CM_DIR-BP_DS_REC_RE_RC", $idrh1)
@@ -5112,7 +5145,7 @@ Func directives() ;routine principale des Directives Metiers
 									auto_remove()
 									Global $restoredirectives = $actiongroups
 									$restoredirectives = StringReplace($restoredirectives, " ; ", "|")
-									$actiongroups = " Obsolete Directives groups: " & $actiongroups
+									$actiongroups = " Groupes Obsoletes Directive : " & $actiongroups
 									$ou = InputBox("default OU ?", "ex: BPLY, BPRE, CFLY ... " & @CRLF & "SM_Centres Financiers et Centres Nationaux", $ousourcedir)
 									move_user()
 									Global $ivalue = _ad_addusertogroup("RG-" & $ou & "_SM_Centres Financiers et Centres Nationaux", $idrh1)
@@ -5148,7 +5181,7 @@ Func directives() ;routine principale des Directives Metiers
 												_ad_addusertogroup($groupsidrh1[$z], $idrh1)
 											Next
 										EndIf
-										$actiongroups = StringReplace($actiongroups, " Obsolete Directives groups: ", " Replaced original Directives groups: ")
+										$actiongroups = StringReplace($actiongroups, " Groupes Obsoletes Directive : ", " Rollback de la Directive Initiale ")
 									EndIf
 									If $dirapplied = 1 Then
 										Global $groupsidrh1 = _ad_getusergroups($idrh1)
@@ -5164,7 +5197,7 @@ Func directives() ;routine principale des Directives Metiers
 									auto_remove()
 									Global $restoredirectives = $actiongroups
 									$restoredirectives = StringReplace($restoredirectives, " ; ", "|")
-									$actiongroups = " Obsolete Directives groups: " & $actiongroups
+									$actiongroups = " Groupes Obsoletes Directive : " & $actiongroups
 									$ou = InputBox("default OU ?", "ex: BPLY, BPRE, CFLY ... " & @CRLF & "SM_Utilisateurs_Postes_SIA", $ousourcedir)
 									move_user()
 									Global $ivalue = _ad_addusertogroup("RG-" & $ou & "_SM_Utilisateurs_Postes_SIA", $idrh1)
@@ -5200,7 +5233,7 @@ Func directives() ;routine principale des Directives Metiers
 												_ad_addusertogroup($groupsidrh1[$z], $idrh1)
 											Next
 										EndIf
-										$actiongroups = StringReplace($actiongroups, " Obsolete Directives groups: ", " Replaced original Directives groups: ")
+										$actiongroups = StringReplace($actiongroups, " Groupes Obsoletes Directive : ", " Rollback de la Directive Initiale ")
 									EndIf
 									If $dirapplied = 1 Then
 										Global $groupsidrh1 = _ad_getusergroups($idrh1)
@@ -5216,7 +5249,7 @@ Func directives() ;routine principale des Directives Metiers
 									auto_remove()
 									Global $restoredirectives = $actiongroups
 									$restoredirectives = StringReplace($restoredirectives, " ; ", "|")
-									$actiongroups = " Obsolete Directives groups: " & $actiongroups
+									$actiongroups = " Groupes Obsoletes Directive : " & $actiongroups
 									$ou = InputBox("default OU ?", "ex: BPLY, BPRE, CFLY ... " & @CRLF & "SM_RF_INDET", $ousourcedir)
 									move_user()
 									Global $ivalue = _ad_addusertogroup("RG-" & $ou & "_SM_RF_INDET", $idrh1)
@@ -5252,7 +5285,7 @@ Func directives() ;routine principale des Directives Metiers
 												_ad_addusertogroup($groupsidrh1[$z], $idrh1)
 											Next
 										EndIf
-										$actiongroups = StringReplace($actiongroups, " Obsolete Directives groups: ", " Replaced original Directives groups: ")
+										$actiongroups = StringReplace($actiongroups, " Groupes Obsoletes Directive : ", " Rollback de la Directive Initiale ")
 									EndIf
 									If $dirapplied = 1 Then
 										Global $groupsidrh1 = _ad_getusergroups($idrh1)
@@ -5268,7 +5301,7 @@ Func directives() ;routine principale des Directives Metiers
 									auto_remove()
 									Global $restoredirectives = $actiongroups
 									$restoredirectives = StringReplace($restoredirectives, " ; ", "|")
-									$actiongroups = " Obsolete Directives groups: " & $actiongroups
+									$actiongroups = " Groupes Obsoletes Directive : " & $actiongroups
 									$ou = InputBox("default OU ?", "ex: BPLY, BPRE, CFLY ... " & @CRLF & "SM_Management Commercial Unique", $ousourcedir)
 									move_user()
 									Global $ivalue = _ad_addusertogroup("RG-" & $ou & "_SM_Management Commercial Unique", $idrh1)
@@ -5304,7 +5337,7 @@ Func directives() ;routine principale des Directives Metiers
 												_ad_addusertogroup($groupsidrh1[$z], $idrh1)
 											Next
 										EndIf
-										$actiongroups = StringReplace($actiongroups, " Obsolete Directives groups: ", " Replaced original Directives groups: ")
+										$actiongroups = StringReplace($actiongroups, " Groupes Obsoletes Directive : ", " Rollback de la Directive Initiale ")
 									EndIf
 									If $dirapplied = 1 Then
 										Global $groupsidrh1 = _ad_getusergroups($idrh1)
@@ -5326,14 +5359,45 @@ Func directives() ;routine principale des Directives Metiers
 									auto_remove()
 									Global $restoredirectives = $actiongroups
 									$restoredirectives = StringReplace($restoredirectives, " ; ", "|")
-									$actiongroups = " Obsolete Directives groups: " & $actiongroups
+									$actiongroups = " groupes Obsoletes Directive : " & $actiongroups
 									If StringInStr($scomboreaddirectives, ";") Then
 										$dira = StringSplit($scomboreaddirectives, ";")
 										$direaid = _stringexplode($dira[1], "]", -2)
 										$dirid = $direaid[1]
 										$dirpitr = $dira[2]
-									EndIf
-									$ou = InputBox("default OU ?", "ex: BPLY, BPRE, CFLY ... " & @CRLF & $dirid, $ousourcedir)
+									 EndIf
+
+									 Global $ouDirmetier=""
+									 if StringInStr($numdirmetier,"790") Then ;GAUB
+										$ouDirmetier="DIR-" & $numdirmetier & "   =>  " & "[ GAUB ]"
+
+									 ElseIf StringInStr($numdirmetier,"733") Then
+										$ouDirmetier="DIR-" & $numdirmetier & "   =>  " & "[ GAUB ]"
+
+									 ElseIf StringInStr($numdirmetier,"789") Then
+										$ouDirmetier="DIR-" & $numdirmetier & "   =>  " & "[ BPXX ]"
+
+									 ElseIf StringInStr($numdirmetier,"731") Then
+										$ouDirmetier="DIR-" & $numdirmetier & "   =>  " & "[ BPXX ]"
+
+									 ElseIf StringInStr($numdirmetier,"774") Then
+									    $ouDirmetier="DIR-" & $numdirmetier & "   =>  " & "[ BPXX ]"
+
+									 ElseIf StringInStr($numdirmetier,"788") Then
+										$ouDirmetier="DIR-" & $numdirmetier & "   =>  " & "[ GAUB ]"
+
+									 ElseIf StringInStr($numdirmetier,"732") Then
+										$ouDirmetier="DIR-" & $numdirmetier & "   =>  " & "[ GAUB ]"
+
+									 ElseIf StringInStr($numdirmetier,"319") Then
+										$ouDirmetier="DIR-" & $numdirmetier & "   =>  " & "[ BPXX ]"
+
+									 Else
+										$ouDirmetier=""
+								     EndIf ;cas normal
+
+									$ou = InputBox("default OU ?", "ex: BPLY, BPRE, CFLY ... " & @CRLF & $ouDirmetier & @crlf & @CRLF & $dirid, $ousourcedir)
+
 									move_user()
 								#EndRegion mask
 
@@ -5342,7 +5406,7 @@ Func directives() ;routine principale des Directives Metiers
 									$dirapplied = 1
 									MsgBox(64, "", "User '" & $idrh1 & "' successfully assigned to group '" & "RG-" & $ou & $dirid & "'")
 								ElseIf @error = 1 Then
-									MsgBox(64, "", "Group '" & "RG-" & $ou & $dirid & "' does not exist")
+									MsgBox(64, "", "Group '" & "RG-" & $ou & $dirid & "' does not exist")  ; ex: RG-[EAID]_SM_Siege_Enseigne n'existe pas/plus.. => rollback
 								ElseIf @error = 2 Then
 									MsgBox(64, "", "User '" & $idrh1 & "' does not exist")
 								ElseIf @error = 3 Then
@@ -5359,7 +5423,7 @@ Func directives() ;routine principale des Directives Metiers
 									$souinitial = "OU=Utilisateurs,OU=" & $ousourcedir & ",OU=" & StringUpper(StringMid($ousourcedir, 1, 2)) & $defautdc
 									$ivalue = _ad_moveobject($souinitial, $sobject)
 									If $ivalue = 1 Then
-										MsgBox(64, "Active Directory ", $idrh1 & "' successfully replaced to '" & $ousourcedir & "'" & @CRLF & @CRLF & "Directive Not Applied...")
+										MsgBox(64, "Active Directory ", $idrh1 & "' successfully replaced to '" & $ousourcedir & "'" & @CRLF & @CRLF & "Directive Not Applied... rollback !")
 										ToolTip("synchronising AD", 5, 5)
 										Sleep(3000)
 										ToolTip("", 5, 5)
@@ -5371,7 +5435,7 @@ Func directives() ;routine principale des Directives Metiers
 											_ad_addusertogroup($groupsidrh1[$z], $idrh1)
 										Next
 									EndIf
-									$actiongroups = StringReplace($actiongroups, " Obsolete Directives groups: ", " Replaced original Directives groups: ")
+									$actiongroups = StringReplace($actiongroups, " Groupes Obsoletes Directive : ", " Rollback de la Directive Initiale ")
 								EndIf
 
 							    If $dirapplied = 1 Then
@@ -5423,11 +5487,14 @@ Func directives() ;routine principale des Directives Metiers
 												_ad_addusertogroup("USR_BP_GUICHET_GENE", $idrh1)
 
 
-										    Case StringInStr($dirpitr, "_SM_Conseil Bancaire") ;Dir-19
+										    Case StringInStr($dirid, "_SM_Conseil Bancaire") ;Dir-19
 											 ;RG-[EAID]_SM_Conseil Bancaire; SG-GAUB_ACCES_EVS; USR_BP_GUICHET_GENE
 												_ad_addusertogroup("SG-GAUB_ACCES_EVS", $idrh1)
 												_ad_addusertogroup("USR_BP_GUICHET_GENE", $idrh1)
-EndSelect
+												_ad_addusertogroup("RG-PITR_CM_COBA_Agent", $idrh1)
+
+
+									EndSelect
 
 									#EndRegion Cas Particuliers
 
@@ -5459,14 +5526,14 @@ EndSelect
 
 				  if $dirapplied=1 then
 				  _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "Directive appliquée: " & $scomboreaddirectives & "   >" & $idrh1 & @crlf & $actiongroups & @CRLF);, 1)
-				  _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  >Groups user:  " & $idrh1 & @CRLF & $groupidrh_final & @CRLF);, 1)
+				  _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  >Groupes user:  " & $idrh1 & @CRLF & $groupidrh_final & @CRLF);, 1)
 				  Else
-				  _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "Directive non appliquée: " & $scomboreaddirectives & "   >" & $idrh1 & @crlf & $restoredirectives & @CRLF);, 1)
-				  _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  >Groups user:  " & $idrh1 & @CRLF & $groupidrh_final & @CRLF);, 1)
+				  _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "Directive non appliquée: " & $scomboreaddirectives & "   >" & $idrh1 & @crlf & $actiongroups & @CRLF);, 1) ; $restoredirectives
+				  _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  >Groupes user:  " & $idrh1 & @CRLF & $groupidrh_final & @CRLF);, 1)
 				  endif
 
 				  if $actiongroupsar<>"" Then
-				  _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  > manually removed 'selected groups' , after Directive applied for:  " & $idrh1 & @CRLF & $actiongroupsar & @CRLF);, 1)
+				  _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  > Groupes retirés manuellement, après application de la Directive [ " & $scomboreaddirectives & " ] , pour:  " & $idrh1 & @CRLF & $actiongroupsar & @CRLF);, 1)
 				  EndIf
 
 				ElseIf $t = 7 Then
@@ -5903,7 +5970,7 @@ Func liste_directives() ;Liste globale des Directives sous forme Matricielle
 		_arrayadd($array2, "19 RG-[EAID]_SM_Conseil Bancaire")
 		_arrayadd($array2, "20 RG-[EAID]_SM_Conseil Bancaire")
 		_arrayadd($array2, "21 RG-[EAID]_SM_Conseil Bancaire")
-		_arrayadd($array2, "22 RG-[EAID]_SM_Siege_Enseigne")
+		_arrayadd($array2, "22 RG-[EAID]_SM_Siege Banque")
 		_arrayadd($array2, "23")
 		_arrayadd($array2, "24 RG-[EAID]_SM_Siege Banque")
 		_arrayadd($array2, "25 RG-[EAID]_SM_Siege Banque")
@@ -5930,7 +5997,7 @@ Func liste_directives() ;Liste globale des Directives sous forme Matricielle
 		_arrayadd($array2, "46")
 		_arrayadd($array2, "47")
 		_arrayadd($array2, "48")
-		_arrayadd($array2, "49 RG-[EAID]_SM_Siege_Enseigne")
+		_arrayadd($array2, "49 RG-[EAID]_SM_Siege Banque")
 		_arrayadd($array2, "50")
 		_arrayadd($array2, "51")
 		_arrayadd($array2, "52")
@@ -5949,7 +6016,7 @@ Func liste_directives() ;Liste globale des Directives sous forme Matricielle
 		_arrayadd($array2, "65")
 		_arrayadd($array2, "66")
 		_arrayadd($array2, "67")
-		_arrayadd($array2, "68 RG-[EAID]_SM_Siege_Enseigne")
+		_arrayadd($array2, "68 RG-[EAID]_SM_Siege Banque")
 		_arrayadd($array2, "69")
 		_arrayadd($array2, "70")
 		_arrayadd($array2, "71")
@@ -6026,25 +6093,25 @@ Func liste_directives() ;Liste globale des Directives sous forme Matricielle
 		_arrayadd($array2, "142")
 		_arrayadd($array2, "143")
 		_arrayadd($array2, "144")
-		_arrayadd($array2, "145 RG-[EAID]_SM_Siege_Enseigne")
+		_arrayadd($array2, "145 RG-[EAID]_SM_Siege Banque")
 		_arrayadd($array2, "146")
 		_arrayadd($array2, "147")
 		_arrayadd($array2, "148")
 		_arrayadd($array2, "149")
 		_arrayadd($array2, "150")
 		_arrayadd($array2, "151")
-		_arrayadd($array2, "152 RG-[EAID]_SM_Siege_Enseigne")
+		_arrayadd($array2, "152 RG-[EAID]_SM_Siege Banque")
 		_arrayadd($array2, "153")
 		_arrayadd($array2, "154")
-		_arrayadd($array2, "155 RG-[EAID]_SM_Siege_Enseigne")
+		_arrayadd($array2, "155 RG-[EAID]_SM_Siege Banque")
 		_arrayadd($array2, "156")
-		_arrayadd($array2, "157 RG-[EAID]_SM_Siege_Enseigne")
+		_arrayadd($array2, "157 RG-[EAID]_SM_Siege Banque")
 		_arrayadd($array2, "158")
 		_arrayadd($array2, "159")
 		_arrayadd($array2, "160")
 		_arrayadd($array2, "161")
 		_arrayadd($array2, "162")
-		_arrayadd($array2, "163 RG-[EAID]_SM_Siege_Enseigne")
+		_arrayadd($array2, "163 RG-[EAID]_SM_Siege Banque")
 		_arrayadd($array2, "164")
 		_arrayadd($array2, "165")
 		_arrayadd($array2, "166")
@@ -6067,7 +6134,7 @@ Func liste_directives() ;Liste globale des Directives sous forme Matricielle
 		_arrayadd($array2, "183")
 		_arrayadd($array2, "184 RG-[EAID]_SM_Sites Tertiaires RLP")
 		_arrayadd($array2, "185 RG-[EAID]_SM_Sites Tertiaires RLP")
-		_arrayadd($array2, "186 RG-[EAID]_SM_Siege_Enseigne")
+		_arrayadd($array2, "186 RG-[EAID]_SM_Siege Banque")
 		_arrayadd($array2, "187 RG-[EAID]_SM_Siege Banque")
 		_arrayadd($array2, "188")
 		_arrayadd($array2, "189")
@@ -6243,8 +6310,8 @@ Func liste_directives() ;Liste globale des Directives sous forme Matricielle
 		_arrayadd($array2, "359 RG-[EAID]_SM_Siege Banque")
 		_arrayadd($array2, "360 RG-[EAID]_SM_Siege Banque")
 		_arrayadd($array2, "361 RG-[EAID]_SM_Siege Banque")
-		_arrayadd($array2, "362 RG-[EAID]_SM_Siege_Enseigne")
-		_arrayadd($array2, "363 RG-[EAID]_SM_Siege_Enseigne")
+		_arrayadd($array2, "362 RG-[EAID]_SM_Siege Banque")
+		_arrayadd($array2, "363 RG-[EAID]_SM_Siege Banque")
 		_arrayadd($array2, "364 RG-[EAID]_SM_Sites Tertiaires RLP")
 		_arrayadd($array2, "365")
 		_arrayadd($array2, "366 RG-[EAID]_SM_Siege Banque_FondEcranFixe")
@@ -6289,7 +6356,7 @@ Func liste_directives() ;Liste globale des Directives sous forme Matricielle
 		_arrayadd($array2, "405 RG-[EAID]_SM_Centres Financiers et Centres Nationaux")
 		_arrayadd($array2, "406 RG-[EAID]_SM_Sites Tertiaires RLP")
 		_arrayadd($array2, "407 RG-[EAID]_SM_Siege Banque")
-		_arrayadd($array2, "408 RG-[EAID]_SM_Siege_Enseigne")
+		_arrayadd($array2, "408 RG-[EAID]_SM_Siege Banque")
 		_arrayadd($array2, "409 RG-[EAID]_SM_Centres Financiers et Centres Nationaux")
 		_arrayadd($array2, "410 RG-[EAID]_SM_Centres Financiers et Centres Nationaux")
 		_arrayadd($array2, "411 RG-[EAID]_SM_Centres Financiers et Centres Nationaux")
@@ -6620,17 +6687,17 @@ Func liste_directives() ;Liste globale des Directives sous forme Matricielle
 		_arrayadd($array2, "736 RG-[EAID]_SM_DISFE;RG-PITR_CM_DIR-STD-W10")
 		_arrayadd($array2, "737 RG-[EAID]_SM_DISFE;RG-PITR_CM_DIR-DEV-W10")
 		_arrayadd($array2, "738 RG-[EAID]_SM_DISFE;RG-PITR_CM_DIR-BEL-DEV-MEDIAS-W10")
-		_arrayadd($array2, "739 RG-[EAID]_SM_Siege_Enseigne")
-		_arrayadd($array2, "740 RG-[EAID]_SM_Siege_Enseigne")
-		_arrayadd($array2, "741 RG-[EAID]_SM_Siege_Enseigne")
-		_arrayadd($array2, "742 RG-[EAID]_SM_Siege_Enseigne")
-		_arrayadd($array2, "743 RG-[EAID]_SM_Siege_Enseigne")
-		_arrayadd($array2, "744 RG-[EAID]_SM_Siege_Enseigne")
-		_arrayadd($array2, "745 RG-[EAID]_SM_Siege_Enseigne")
-		_arrayadd($array2, "746 RG-[EAID]_SM_Siege_Enseigne")
-		_arrayadd($array2, "747 RG-[EAID]_SM_Siege_Enseigne")
-		_arrayadd($array2, "748 RG-[EAID]_SM_Siege_Enseigne")
-		_arrayadd($array2, "749 RG-[EAID]_SM_Siege_Enseigne")
+		_arrayadd($array2, "739 RG-[EAID]_SM_Siege Banque")
+		_arrayadd($array2, "740 RG-[EAID]_SM_Siege Banque")
+		_arrayadd($array2, "741 RG-[EAID]_SM_Siege Banque")
+		_arrayadd($array2, "742 RG-[EAID]_SM_Siege Banque")
+		_arrayadd($array2, "743 RG-[EAID]_SM_Siege Banque")
+		_arrayadd($array2, "744 RG-[EAID]_SM_Siege Banque")
+		_arrayadd($array2, "745 RG-[EAID]_SM_Siege Banque")
+		_arrayadd($array2, "746 RG-[EAID]_SM_Siege Banque")
+		_arrayadd($array2, "747 RG-[EAID]_SM_Siege Banque")
+		_arrayadd($array2, "748 RG-[EAID]_SM_Siege Banque")
+		_arrayadd($array2, "749 RG-[EAID]_SM_Siege Banque")
 		_arrayadd($array2, "750 RG-[EAID]_SM_Sites Tertiaires RLP;RG-PITR_CM_DIR-TERTIAIRE_DIRECTEURS_ASS_DIR")
 		_arrayadd($array2, "751 RG-[EAID]_SM_Sites Tertiaires RLP;RG-PITR_CM_DIR-TERTIAIRE_FILIERE RH_PSST")
 		_arrayadd($array2, "752 RG-[EAID]_SM_Sites Tertiaires RLP;RG-PITR_CM_DIR-TERTIAIRE_STANDARD_STD")
@@ -6638,7 +6705,7 @@ Func liste_directives() ;Liste globale des Directives sous forme Matricielle
 		_arrayadd($array2, "754 RG-[EAID]_SM_Sites Tertiaires RLP;RG-PITR_CM_DIR-TERTIAIRE_3631_EXP_CLIENT")
 		_arrayadd($array2, "755")
 		_arrayadd($array2, "756 RG-[EAID]_SM_Sites Tertiaires RLP;RG-PITR_CM_DIR-TERTIAIRE_STANDARD_BANCAIRE")
-		_arrayadd($array2, "757 RG-[EAID]_SM_Siege_Enseigne;RG-PITR_CM_DIR-TERTIAIRE_FIDUCIAIRE_TRANSPORT")
+		_arrayadd($array2, "757 RG-[EAID]_SM_Siege Banque;RG-PITR_CM_DIR-TERTIAIRE_FIDUCIAIRE_TRANSPORT")
 		_arrayadd($array2, "758 RG-[EAID]_SM_Sites Tertiaires RLP;RG-PITR_CM_DIR-TERTIAIRE_EBR_SUPPORT-FORMATEUR")
 		_arrayadd($array2, "759")
 		_arrayadd($array2, "760 RG-[EAID]_SM_Sites Tertiaires RLP;RG-PITR_CM_DIR-TERTIAIRE_EBR_INGE_FORMATEUR")
@@ -6651,10 +6718,10 @@ Func liste_directives() ;Liste globale des Directives sous forme Matricielle
 		_arrayadd($array2, "767 RG-[EAID]_SM_Siege Banque;RG-PITR_CM_DIR-SIEGE_BANQUE_DFI_DFIS")
 		_arrayadd($array2, "768 RG-[EAID]_SM_Siege Banque;RG-PITR_CM_DIR-SIEGE_BANQUE_DFI_DDC")
 		_arrayadd($array2, "769 RG-[EAID]_SM_Siege Banque;RG-PITR_CM_DIR-SIEGE_BANQUE_DPC")
-		_arrayadd($array2, "770 RG-[EAID]_SM_Siege_Enseigne;RG-PITR_CM_DIR-TERTIAIRE_EXPERT_FINANCE_COMPTA")
-		_arrayadd($array2, "771 RG-[EAID]_SM_Siege_Enseigne;RG-PITR_CM_DIR-SIEGE_BANQUE_SG")
-		_arrayadd($array2, "772 RG-[EAID]_SM_Siege_Enseigne;RG-PITR_CM_DIR-POLE_ASSURANCE_CNAH")
-		_arrayadd($array2, "773 RG-[EAID]_SM_Siege_Enseigne;RG-PITR_CM_DIR-SIEGE_BANQUE_DEDT_STD")
+		_arrayadd($array2, "770 RG-[EAID]_SM_Siege Banque;RG-PITR_CM_DIR-TERTIAIRE_EXPERT_FINANCE_COMPTA")
+		_arrayadd($array2, "771 RG-[EAID]_SM_Siege Banque;RG-PITR_CM_DIR-SIEGE_BANQUE_SG")
+		_arrayadd($array2, "772 RG-[EAID]_SM_Siege Banque;RG-PITR_CM_DIR-POLE_ASSURANCE_CNAH")
+		_arrayadd($array2, "773 RG-[EAID]_SM_Siege Banque;RG-PITR_CM_DIR-SIEGE_BANQUE_DEDT_STD")
 		_arrayadd($array2, "774 RG-[EAID]_SM_Sites Tertiaires RLP;RG-PITR_CM_DIR-TERTIAIRE_MAISON_HABITAT")
 		_arrayadd($array2, "775 RG-[EAID]_SM_Sites Tertiaires RLP;RG-PITR_CM_DIR-TERTIAIRE_CONTROLE_GESTION")
 		_arrayadd($array2, "776 RG-[EAID]_SM_Sites Tertiaires RLP;RG-PITR_CM_DIR-TERTIAIRE_GEOMARKETING")
@@ -6720,9 +6787,9 @@ Func liste_directives() ;Liste globale des Directives sous forme Matricielle
 		_arrayinsert($array, 0, "_SM_Siege Banque_LBPGP")
 		_arrayinsert($array, 0, "_SM_Siege Banque")
 		_arrayinsert($array, 0, "_SM_DET")
-		_arrayinsert($array, 0, "_SM_Siege_Enseigne")
-		_arrayinsert($array, 0, "_SM_Conseil Bancaire W10")
-	    _arrayinsert($array, 0, "19 _SM_Conseil Bancaire")
+	;	_arrayinsert($array, 0, "_SM_Siege_Enseigne") n'existe plus renommé en RG-[EAID]_SM_Siege Banque
+	;	_arrayinsert($array, 0, "_SM_Conseil Bancaire W10")
+	;    _arrayinsert($array, 0, "19 _SM_Conseil Bancaire")
 		_arrayinsert($array, 0, "_SM_GUICHET (VirtuOS)")
 		_arrayinsert($array, 0, "_Vendeur Formateur LPM")
 		_arrayinsert($array, 0, "_SM_Management Commercial Unique")
@@ -6817,7 +6884,7 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 									auto_remove()
 									Global $restoredirectives = $actiongroups
 									$restoredirectives = StringReplace($restoredirectives, " ; ", "|")
-									$actiongroups = " Obsolete Directives groups: " & $actiongroups
+									$actiongroups = " Groupes Obsoletes Directive : " & $actiongroups
 									$scomboreaddirectives = " [ Zero Directives ] = Enleve toutes les Directives connues !"
 									$dirapplied = 1
 								EndIf
@@ -6831,7 +6898,7 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 									auto_remove()
 									Global $restoredirectives = $actiongroups
 									$restoredirectives = StringReplace($restoredirectives, " ; ", "|")
-									$actiongroups = " Obsolete Directives groups: " & $actiongroups
+									$actiongroups = " Groupes Obsoletes Directive : " & $actiongroups
 									$ou = InputBox("default OU ?", "ex: BPLY, BPRE, CFLY ... " & @CRLF & "736 RG-[EAID]_SM_DISFE;RG-PITR_CM_DIR-STD-W10", $ousourcedir)
 									move_user()
 									Global $ivalue = _ad_addusertogroup("RG-" & $ou & "_SM_DISFE", $idrh1)
@@ -6868,7 +6935,7 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 												_ad_addusertogroup($groupsidrh1[$z], $idrh1)
 											Next
 										EndIf
-										$actiongroups = StringReplace($actiongroups, " Obsolete Directives groups: ", " Replaced original Directives groups: ")
+										$actiongroups = StringReplace($actiongroups, " Groupes Obsoletes Directive : ", " Rollback de la Directive Initiale ")
 									EndIf
 									If $dirapplied = 1 Then
 										Global $groupsidrh1 = _ad_getusergroups($idrh1)
@@ -6885,7 +6952,7 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 									auto_remove()
 									Global $restoredirectives = $actiongroups
 									$restoredirectives = StringReplace($restoredirectives, " ; ", "|")
-									$actiongroups = " Obsolete Directives groups: " & $actiongroups
+									$actiongroups = " Groupes Obsoletes Directive : " & $actiongroups
 									$ou = InputBox("default OU ?", "ex: BPLY, BPRE, CFLY ... " & @CRLF & "737 RG-[EAID]_SM_DISFE;RG-PITR_CM_DIR-DEV-W10", $ousourcedir)
 									move_user()
 									Global $ivalue = _ad_addusertogroup("RG-" & $ou & "_SM_DISFE", $idrh1)
@@ -6922,7 +6989,7 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 												_ad_addusertogroup($groupsidrh1[$z], $idrh1)
 											Next
 										EndIf
-										$actiongroups = StringReplace($actiongroups, " Obsolete Directives groups: ", " Replaced original Directives groups: ")
+										$actiongroups = StringReplace($actiongroups, " Groupes Obsoletes Directive : ", " Rollback de la Directive Initiale ")
 									EndIf
 									If $dirapplied = 1 Then
 										Global $groupsidrh1 = _ad_getusergroups($idrh1)
@@ -6939,7 +7006,7 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 									auto_remove()
 									Global $restoredirectives = $actiongroups
 									$restoredirectives = StringReplace($restoredirectives, " ; ", "|")
-									$actiongroups = " Obsolete Directives groups: " & $actiongroups
+									$actiongroups = " Groupes Obsoletes Directive : " & $actiongroups
 									$ou = InputBox("default OU ?", "ex: BPLY, BPRE, CFLY ... " & @CRLF & "738 RG-[EAID]_SM_DISFE;RG-PITR_CM_DIR-BEL-DEV-MEDIAS-W10", $ousourcedir)
 									move_user()
 									Global $ivalue = _ad_addusertogroup("RG-" & $ou & "_SM_DISFE", $idrh1)
@@ -6976,7 +7043,7 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 												_ad_addusertogroup($groupsidrh1[$z], $idrh1)
 											Next
 										EndIf
-										$actiongroups = StringReplace($actiongroups, " Obsolete Directives groups: ", " Replaced original Directives groups: ")
+										$actiongroups = StringReplace($actiongroups, " Groupes Obsoletes Directive : ", " Rollback de la Directive Initiale ")
 									EndIf
 									If $dirapplied = 1 Then
 										Global $groupsidrh1 = _ad_getusergroups($idrh1)
@@ -7009,23 +7076,23 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 
 				  if $dirapplied=1 then
 				  _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "Directive appliquée: " & $scomboreaddirectives & "   >" & $idrh1 & @crlf & $actiongroups & @CRLF);, 1)
-				  _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  >Groups user:  " & $idrh1 & @CRLF & $groupidrh_final & @CRLF);, 1)
+				  _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  >Groupes user:  " & $idrh1 & @CRLF & $groupidrh_final & @CRLF);, 1)
 				  Else
 				  _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "Directive non appliquée: " & $scomboreaddirectives & "   >" & $idrh1 & @crlf & $restoredirectives & @CRLF);, 1)
-				  _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  >Groups user:  " & $idrh1 & @CRLF & $groupidrh_final & @CRLF);, 1)
+				  _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  >Groupes user:  " & $idrh1 & @CRLF & $groupidrh_final & @CRLF);, 1)
 				  endif
 
 				  if $actiongroupsar<>"" Then
-				  _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  > manually removed 'selected groups' , after Directive applied for:  " & $idrh1 & @CRLF & $actiongroupsar & @CRLF);, 1)
+				  _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  > Groupes retirés manuallement, après avoir appliqué la Directive [ " & $scomboreaddirectives & " ]  pour:  " & $idrh1 & @CRLF & $actiongroupsar & @CRLF);, 1)
 				  EndIf
 
 				ElseIf $t = 7 Then
-					SplashTextOn("", "Aborting " & $scomboreaddirectives & " !", 1100, 100, -1, -1, 1, -1, 13, 600)
+					SplashTextOn("", "Annulation Directive " & $scomboreaddirectives & " !", 1100, 100, -1, -1, 1, -1, 13, 600)
 					Sleep(1000)
 					SplashOff()
+					$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  Annulation de la validation 'Directive'"
+					_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "  Annulation 'Directive' :  " & $scomboreaddirectives & @CRLF);, 1)
 					$scomboreaddirectives = ""
-					$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  Annulé la validation 'Directive'"
-					_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "  Annulé la validation 'Directive'" & @CRLF);, 1)
 				EndIf
 				GUIDelete($hguidir)
 				ExitLoop
@@ -8044,9 +8111,7 @@ EndFunc
 	EndFunc
 
 Func _Exit()
-;	FMUSICMEM_StopSong($hFMod)
-;	FMUSICMEM_FreeSong($hFMod)
-;	FSOUNDMEM_Close()
+;
 EndFunc
 
 #EndRegion n2
