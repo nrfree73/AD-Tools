@@ -2876,8 +2876,18 @@ $defautdc = $defautdcinit
 									$result = _ad_enableobject($idrh1)
 									If $result = 1 Then
 										ToolTip("Compte " & $idrh1 & " réactivé !", 5, 5, "")
-										_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "Compte " & $idrh1 & " réactivé !");, 1)
-										$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  " & $idrh1 & ", compte réactivé !"
+										_GUICtrlRichEdit_SetCharColor($aff, 0x00ff0000)      ;   set color blue (BBGGRR format)
+										_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "Compte  [ " & $idrh1 & " ]  réactivé !");, 1)
+										_GUICtrlRichEdit_SetCharColor($aff, 0x00000000)      ;   set color black (BBGGRR format)
+										$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  " & $idrh1 & " ,  compte réactivé !"
+										Sleep(2500)
+										ToolTip("", 5, 5, "")
+									Else
+										ToolTip("Compte " & $idrh1 & "  est resté désactivé  !", 5, 5, "Accès refusé !")
+										_GUICtrlRichEdit_SetCharColor($aff, 0x000000ff)      ;   set color red (BBGGRR format)
+										_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "Compte  [ " & $idrh1 & " ]  est resté désactivé !  =>  Accès refusé !");, 1)
+										_GUICtrlRichEdit_SetCharColor($aff, 0x00000000)      ;   set color black (BBGGRR format)
+										$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  " & $idrh1 & " , compte resté désactivé ! => Accès refusé !"
 										Sleep(2500)
 										ToolTip("", 5, 5, "")
 									EndIf
