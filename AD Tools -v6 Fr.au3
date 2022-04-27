@@ -2,11 +2,11 @@
 #pragma compile(ProductVersion, 6.0)
 #pragma compile(FileDescription, [AD Tools v6.0])
 #pragma compile(ProductName, [AD Tools v6.0])
-#pragma compile(LegalCopyright, (30/03/2022) - Nicolas RISTOVSKI)
+#pragma compile(LegalCopyright, (21/04/2022) - Nicolas RISTOVSKI)
 #pragma compile(CompanyName, Nicolas RISTOVSKI / EAPI69)
 
 Global $lastdatecompile = "	(c) 2018~2022 " ;about box
-Global $lastdateupdate = " 30-03-2022 " ;main routine information
+Global $lastdateupdate = " 21-04-2022 " ;main routine information
 Global $ADTVersion="v6.0"
 
 #Region n1
@@ -29,6 +29,7 @@ Global $ADTVersion="v6.0"
 #include <GUIConstantsEx.au3>
 #include <GuiEdit.au3>
 #include <GuiRichEdit.au3>
+#include "resources.au3"
    #EndRegion Include
 
 	#Region Obfuscator Script autoit
@@ -255,7 +256,7 @@ Opt("TrayMenuMode", 3)
 		Next
 		If $iwidth < 250 Then $iwidth = 230
 		$iwidth += 40
-		If $iwidth > @DesktopWidth Then $iwidth = @DesktopWidth - 100
+		If $iwidth > @DesktopWidth Then $iwidth = @DesktopWidth - 50 ;100
 		WinMove($hguiv3, "", (@DesktopWidth - $iwidth) / 2, Default, $iwidth)
 		GUISetState(@SW_SHOW, $hguiv3)
 		While 1
@@ -304,14 +305,24 @@ Opt("TrayMenuMode", 3)
 		  #Region GUI
 			Global $hguiP = GUICreate("    [ AD Tools " & $ADTVersion & " ]---[ La POSTE/DSEM/EAPI69/NR ]---[ màj. " & $lastdateupdate & " ]         domaine: [   " & $isdct2 & "   ]" , 1240, 595, 50, 50, $ws_sysmenu)
 			GUISetBkColor(14745599)
+			$pic1 = GUICtrlCreatePic("",15,80,320,400)
+			Global Const $Bmp_Logo = _GDIPlus_BitmapCreateFromMemory(_image(), True)
+			_WinAPI_DeleteObject(GUICtrlSendMsg($pic1, $STM_SETIMAGE, $IMAGE_BITMAP, $Bmp_Logo))
 			;Global $aff = GUICtrlCreateEdit("", 350, 5, 880, 555,$ES_READONLY , 512)
-			Global $aff = _GUICtrlRichEdit_Create($hGuiP, "", 350, 5, 880, 555, BitOR($ES_MULTILINE, $WS_VSCROLL, $ES_AUTOVSCROLL, $ES_READONLY ) )
+			Global $aff = _GUICtrlRichEdit_Create($hGuiP, "", 350, 5, 880, 562, BitOR($ES_MULTILINE, $WS_VSCROLL, $ES_AUTOVSCROLL, $ES_READONLY ) )
 				_ad_open()
 
 			If $isDomainOK=1 Then
-			_GUICtrlRichEdit_AppendText($aff, "> ready !" & @CRLF)
-			Else
-			_GUICtrlRichEdit_AppendText($aff, "> not found any domain controller !" & @CRLF)
+			_GUICtrlRichEdit_SetCharColor($aff, 0x00ff0000)      ;   set color blue (BBGGRR format)
+			;_GUICtrlRichEdit_SetCharColor($aff, 0x00000000)      ;   set color black (BBGGRR format)
+            _GUICtrlRichEdit_SetFont($aff, 10)                   ;   set size
+            _GUICtrlRichEdit_SetCharAttributes($aff, '+bo')      ;   set bold
+			_GUICtrlRichEdit_AppendText($aff, "> link ready !  ( connecté au Domaine:  "  & $isdct2 & "  )" & @CRLF)
+		 Else
+			_GUICtrlRichEdit_SetCharColor($aff, 0x000000ff)      ;   set color red (BBGGRR format)
+            _GUICtrlRichEdit_SetFont($aff, 10)                   ;   set size
+            _GUICtrlRichEdit_SetCharAttributes($aff, '+bo')      ;   set bold
+			_GUICtrlRichEdit_AppendText($aff, "> link not ready !  ( Etablissez une liaison reseau puis relancez AD Tools )" & @CRLF)
 			EndIf
 
 			Global $idabout = GUICtrlCreateButton(" ? ", 1, 1, 35, 20)
@@ -346,7 +357,7 @@ Local $idmsg
 						bitlocker()
 					EndIf
 				Case $buttoncomputer
-					$t = MsgBox(4, "Computer ?", "[Oui]: Ajoute/enlève 'Groupe' => Computer" & @CRLF & @CRLF & "[Non]: ne fait rien")
+					$t = MsgBox(4, "Computer ?", "[Oui]: [+/-]  'Groupe(s)' => Computer(s)" & @CRLF & @CRLF & "[Non]: ne fait rien")
 					If $t = 6 Then
 						computergroup()
 					 EndIf
@@ -357,7 +368,7 @@ Local $idmsg
 
 				Case $idabout
 					about()
-					$t = MsgBox(0, "About AD Tools", "AD Tools - Nicolas RISTOVSKI" & @CRLF & @CRLF & $lastdatecompile)
+					$t = MsgBox(0, "A propos d' 'AD Tools'", "AD Tools v6 - Nicolas RISTOVSKI" & @CRLF & @CRLF & $lastdatecompile)
 					_Exit()
 			EndSwitch
 		WEnd
@@ -391,7 +402,7 @@ $defautdc = $defautdcinit
 			$buttonidrh1 = GUICtrlCreateInput("", 50, 50, 85, 35)
 			GUICtrlSetFont(-1, 14, 400, 0, "MS Sans Serif")
 			GUICtrlSetBkColor(-1, 6908265)
-			GUICtrlSetTip($buttonidrh1, "Idrh Source.", "", 0, 1)
+			GUICtrlSetTip($buttonidrh1, "Idrh Source", "", 0, 1)
 			$labelidrh1 = GUICtrlCreateLabel("Srce", 10, 50, 40, 15)
 			$idcheckboxcommonname = GUICtrlCreateCheckbox("", 25, 16, 14, 14)
 			$idcheckboxcommonnamelabel = GUICtrlCreateLabel("[ANR] cherche 'Srce' par Nom", 15, 30, 170, 15)
@@ -431,7 +442,7 @@ $defautdc = $defautdcinit
 			Else
 				GUICtrlSetState(-1, $gui_unchecked)
 			EndIf
-			$labelgroups = GUICtrlCreateLabel("cpy Groups ?", 190, 80, 90, 12)
+			$labelgroups = GUICtrlCreateLabel("cpy Groupes ?", 190, 80, 90, 12)
 			$idcheckboxgroups = GUICtrlCreateCheckbox("", 174, 80, 14, 14)
 			GUICtrlSetTip($idcheckboxgroups, "copier tous les groupes depuis Idrh 'Srce' vers Idrh 'Dest'", "", 0, 1)
 			If $isdct = 1 Then
@@ -451,11 +462,11 @@ $defautdc = $defautdcinit
 			$idcheckboxbpe = GUICtrlCreateCheckbox("", 280, 140, 14, 14)
 			GUICtrlSetTip($idcheckboxbpe, "AW ? = selectionne un autre groupe Airwatch (ex: BPE, Ma French Banque...)", "", 0, 1)
 			GUICtrlSetState(-1, $gui_unchecked)
-			$labelairgroup = GUICtrlCreateLabel("[+] group 'Srce' ?", 190, 170, 90, 12)
+			$labelairgroup = GUICtrlCreateLabel("[+] groupe 'Srce' ?", 190, 170, 110, 12)
 			$idcheckboxgroup = GUICtrlCreateRadio("", 174, 170, 14, 14)
 			GUICtrlSetTip($idcheckboxgroup, "Rajoute un ou plusieurs groupes à l'Idrh 'Srce'", "", 0, 1)
 			GUICtrlSetState(-1, $gui_unchecked)
-			$labelmultiplesrce = GUICtrlCreateLabel("[ ; ]", 153, 153, 18, 16)
+			$labelmultiplesrce = GUICtrlCreateLabel("[a;b]", 148, 155, 38, 16)
 			$multiplesrce = GUICtrlCreateRadio("", 154, 170, 14, 14)
 			GUICtrlSetTip($multiplesrce, "multiple Idrh 'Source' pour [+] groupes   -  separateur [;]" & @CRLF & @CRLF & "[Shift] key pressée avec [OK ] => Pour retirer les groupes..." & @CRLF & @CRLF & "(Idrh, name, SID key)", "", 0, 1)
 			GUICtrlSetState(-1, $gui_unchecked)
@@ -466,19 +477,19 @@ $defautdc = $defautdcinit
 			$labellbpai = GUICtrlCreateLabel("LBPAI/Iliade ?", 40, 200, 90, 12)
 			$idcheckboxlbpai = GUICtrlCreateRadio("", 24, 200, 14, 14)
 			If $isdct = 1 Then
-				GUICtrlSetTip($idcheckboxlbpai, "[+] [Categories groupes] pour: LBPAI/Iliade -  [SHIFT] key pour [-] retirer" & @CRLF & "serveur: 752474SN-FI01\_Iliade$", "", 0, 1)
+				GUICtrlSetTip($idcheckboxlbpai, "[+] [Categories groupes] pour: LBPAI/Iliade -  [SHIFT] key pour retirer [-] " & @CRLF & "serveur: 752474SN-FI01\_Iliade$", "", 0, 1)
 			Else
-				GUICtrlSetTip($idcheckboxlbpai, "[+] [Categories groupes] pour: LBPAI/Iliade -  [SHIFT] key pour [-] retirer", "", 0, 1)
+				GUICtrlSetTip($idcheckboxlbpai, "[+] [Categories groupes] pour: LBPAI/Iliade -  [SHIFT] key pour retirer [-] ", "", 0, 1)
 			EndIf
 			GUICtrlSetState(-1, $gui_unchecked)
 			$labeldirective = GUICtrlCreateLabel("Directive 'Srce' ?", 40, 230, 90, 12)
 			$idcheckboxdirective = GUICtrlCreateRadio("", 24, 230, 14, 14)
-			GUICtrlSetTip($idcheckboxdirective, "Appliquer une Directive Metier à l'Idrh 'Srce', l'ancienne Directive est automatiquement retirée si la nouvelle est appliquée, sinon un retour en arriere est effectué" & @crlf & " note: la liste des groupes de l'ancienne Directive retirée est listée sous la ligne : Obsolete Directive", "", 0, 1)
+			GUICtrlSetTip($idcheckboxdirective, "Appliquer une Directive Metier à l'Idrh 'Srce', l'ancienne Directive est automatiquement retirée si la nouvelle est appliquée. Si Directive non appliquée, un retour en arriere est effectué (rollback)" & @crlf & " note: la liste des groupes de l'ancienne Directive retirée est listée sous la ligne : Groupes Directive Obsolete ", "", 0, 1)
 			GUICtrlSetState(-1, $gui_unchecked)
 
 			$labeldsiba = GUICtrlCreateLabel("DSIBA 'Srce' ?", 40, 255, 90, 12)
 			$idcheckboxdirectiveDSIBA = GUICtrlCreateRadio("", 24, 255, 14, 14)
-			GUICtrlSetTip($idcheckboxdirectiveDSIBA, "Appliquer une Directive Metier DSIBA à l'Idrh 'Srce', l'ancienne Directive est automatiquement retirée si la nouvelle est appliquée, sinon un retour en arriere est effectué" & @crlf & " note: la liste des groupes de l'ancienne Directive retirée est listée sous la ligne : Obsolete Directive", "", 0, 1)
+			GUICtrlSetTip($idcheckboxdirectiveDSIBA, "Appliquer une Directive Metier DSIBA à l'Idrh 'Srce', l'ancienne Directive est automatiquement retirée si la nouvelle est appliquée, sinon un retour en arriere est effectué" & @crlf & " note: la liste des groupes de l'ancienne Directive retirée est listée sous la ligne : Groupes Directive Obsolete ", "", 0, 1)
 			GUICtrlSetState(-1, $gui_unchecked)
 
 			$labelairgroupremove = GUICtrlCreateLabel("[-] groupe 'Srce' ?", 40, 170, 110, 12)
@@ -491,34 +502,34 @@ $defautdc = $defautdcinit
 			GUICtrlSetState(-1, $gui_unchecked)
 			$labelcreate = GUICtrlCreateLabel("Creer 'Srce' ?", 190, 260, 90, 12)
 			$idcheckboxcreate = GUICtrlCreateRadio("", 174, 260, 14, 14)
-			GUICtrlSetTip($idcheckboxcreate, "Creer nouveau compte utilisateur 'Srce'" & @CRLF & @CRLF & "[SHIFT] key pressée avec [OK]:  Permet de renommer le compte Source uniquement !", "", 0, 1)
+			GUICtrlSetTip($idcheckboxcreate, "Creer nouveau compte utilisateur 'Srce' " & @CRLF & @CRLF & "[SHIFT] key pressée avec [OK]:  Permet de renommer le compte Source uniquement !", "", 0, 1)
 			GUICtrlSetState(-1, $gui_unchecked)
-			$labelmove = GUICtrlCreateLabel("Deplacer 'Srce' ?", 190, 290, 90, 12)
+			$labelmove = GUICtrlCreateLabel("Deplace 'Srce' ?", 190, 290, 110, 12)
 			$idcheckboxmove = GUICtrlCreateRadio("", 174, 290, 14, 14)
-			GUICtrlSetTip($idcheckboxmove, "Deplacer un compte 'Srce' dans une autre OU" & @CRLF & @CRLF & "Si pas d'Idrh 'Srce' renseigné alors cherche un fichier texte à importer pour deplacer en masse" & @CRLF & " ex fichier: pabc123|BPLY" & @CRLF & @CRLF & "traiter en Masse LBPAI/Iliade" & @CRLF & " ex fichier LBPAI: pabc123|MIPS|Standard;commun full users;Chargé de Développement" & @CRLF & "	lbpai? or iliade? à saisir dans Idrh 'Srce' et cocher la case [ANR] pour voir liste des categories LBPAI", "", 0, 1)
+			GUICtrlSetTip($idcheckboxmove, "Deplacer un compte 'Srce' dans une autre OU " & @CRLF & @CRLF & "Si pas d'Idrh 'Srce' renseigné alors cherche un fichier texte à importer pour deplacer en masse" & @CRLF & " ex fichier: pabc123|BPLY" & @CRLF & @CRLF & "traiter en Masse LBPAI/Iliade" & @CRLF & " ex fichier LBPAI: pabc123|MIPS|Standard;commun full users;Chargé de Développement" & @CRLF & "	lbpai? or iliade? à saisir dans Idrh 'Srce' et cocher la case [ANR] pour voir liste des categories LBPAI", "", 0, 1)
 			GUICtrlSetState(-1, $gui_unchecked)
 			$labeldrive = GUICtrlCreateLabel("[+] Drive 'Srce' ?", 190, 320, 90, 12)
 			$idcheckboxdrive = GUICtrlCreateRadio("", 174, 320, 14, 14)
-			GUICtrlSetTip($idcheckboxdrive, "Rajoute un ou plusieurs lecteurs à l'Idrh 'Srce'" & @CRLF & @CRLF & "multiple idrh 'Srce', separateur [;] : lister tous les comptes 'srce' avec leurs lecteurs DCT", "", 0, 1)
+			GUICtrlSetTip($idcheckboxdrive, "Rajoute un ou plusieurs lecteurs à l'Idrh 'Srce' " & @CRLF & @CRLF & "multiple idrh 'Srce', separateur [;] : lister tous les comptes 'srce' avec leurs lecteurs DCT", "", 0, 1)
 			GUICtrlSetState(-1, $gui_unchecked)
 			$labeldriveremove = GUICtrlCreateLabel("[-] Drive 'Srce' ?", 190, 350, 110, 12)
 			$idcheckboxdriveremove = GUICtrlCreateRadio("", 174, 350, 14, 14)
-			GUICtrlSetTip($idcheckboxdriveremove, "Retirer un lecteur à l'Idrh 'Srce'", "", 0, 1)
+			GUICtrlSetTip($idcheckboxdriveremove, "Retirer un lecteur à l'Idrh 'Srce' ", "", 0, 1)
 			GUICtrlSetState(-1, $gui_unchecked)
-			$labeldesactivesrce = GUICtrlCreateLabel("Desactive 'Srce' ?", 190, 380, 90, 12)
+			$labeldesactivesrce = GUICtrlCreateLabel("Desactive 'Srce' ?", 190, 380, 110, 12)
 			$idcheckboxdesactivesrce = GUICtrlCreateRadio("", 174, 380, 14, 14)
-			GUICtrlSetTip($idcheckboxdesactivesrce, "Desactive l'Idrh 'Srce'" & @CRLF & @CRLF & "[SHIFT] pressée avec [OK]:  Pour supprimer le compte Idrh 'Srce'", "", 0, 1)
+			GUICtrlSetTip($idcheckboxdesactivesrce, "Desactiver l'Idrh 'Srce'" & @CRLF & @CRLF & "[SHIFT] pressée avec [OK]:  Pour supprimer le compte Idrh 'Srce'", "", 0, 1)
 			GUICtrlSetState(-1, $gui_unchecked)
-			$labeldescription = GUICtrlCreateLabel("Description 'Srce' ?", 190, 410, 90, 12)
+			$labeldescription = GUICtrlCreateLabel("Description 'Srce' ?", 190, 410, 110, 12)
 			$idcheckboxdescription = GUICtrlCreateRadio("", 174, 410, 14, 14)
-			GUICtrlSetTip($idcheckboxdescription, "change la description Idrh 'Srce'", "", 0, 1)
+			GUICtrlSetTip($idcheckboxdescription, "Changer la description Idrh 'Srce' ", "", 0, 1)
 			GUICtrlSetState(-1, $gui_unchecked)
-			$labelscan = GUICtrlCreateLabel("Comment 'Srce' ?", 190, 440, 75, 12)
+			$labelscan = GUICtrlCreateLabel("Comment 'Srce' ?", 190, 440, 110, 12)
 			$idcheckboxscan = GUICtrlCreateRadio("", 174, 440, 14, 14)
 			GUICtrlSetTip($idcheckboxscan, "change le 'Comment' champ Mes scan pour l'Idrh 'Srce'", "", 0, 1)
 			GUICtrlSetState(-1, $gui_unchecked)
 			Global $idok2 = GUICtrlCreateButton("OK", 55, 480, 225, 65)
-			GUICtrlSetTip($idok2, "Presser OK pour valider (certaines options fonctionnent avec touche [Shift]", "", 0, 1)
+			GUICtrlSetTip($idok2, "Presser OK pour valider (certaines options fonctionnent avec la touche [Shift] ", "", 0, 1)
 			GUISetState(@SW_SHOW, $hgui)
 			GUICtrlSetData($buttonidrh1, "")
 			GUICtrlSetBkColor($buttonidrh1, 6908265)
@@ -586,25 +597,37 @@ $defautdc = $defautdcinit
 					;_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "IDRH: [OK]" & @CRLF);, 1)
 					If $idcheckboxmove = 1 AND $isdct = 1 AND StringLen($idrh1) = 0 Then
 						massive_move()
-						_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "Massive Move;" & @CRLF);, 1)
+						_GUICtrlRichEdit_SetCharColor($aff, 0x00ff0000)      ;   set color blue (BBGGRR format)
+						_GUICtrlRichEdit_SetFont($aff, 10)                   ;   set size
+						_GUICtrlRichEdit_SetCharAttributes($aff, '+bo')      ;   set bold
+						_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "Massive Move Users - (deplacer users)" & @CRLF);, 1)
 						Guidelete($hGUI)
 						Return 0
 					EndIf
 					If $idcheckboxprolonge = 1 AND StringLen($idrh1) = 0 Then
 						massive_date()
-						_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "Massive Extend Date; (Prolongation comptes)" & @CRLF);, 1)
+						_GUICtrlRichEdit_SetCharColor($aff, 0x00ff0000)      ;   set color blue (BBGGRR format)
+						_GUICtrlRichEdit_SetFont($aff, 10)                   ;   set size
+						_GUICtrlRichEdit_SetCharAttributes($aff, '+bo')      ;   set bold
+						_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "Massive Extend Date Users - (Prolongation comptes)" & @CRLF);, 1)
 						Guidelete($hGUI)
 						Return 0
 					EndIf
 					If $idcheckboxdrive = 1 AND $isdct = 1 AND StringInStr($idrh1, ";") Then
 						massive_drive()
-						_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "Massive Drive Export;" & @CRLF);, 1)
+						_GUICtrlRichEdit_SetCharColor($aff, 0x00ff0000)      ;   set color blue (BBGGRR format)
+						_GUICtrlRichEdit_SetFont($aff, 10)                   ;   set size
+						_GUICtrlRichEdit_SetCharAttributes($aff, '+bo')      ;   set bold
+						_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "Massive Users Drives Export - (Exporter la liste des lecteurs reseux de chaque user)" & @CRLF);, 1)
 						Guidelete($hGUI)
 						Return 0
 					EndIf
 					If StringCompare($idrh1, $idrh2) = 0 AND $idrh1 <> "" Then
-						MsgBox(0, "Info !", "User 'Srce' is same as User 'Dest' !" & @CRLF & "Aborting...", 7)
-						_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "User 'Srce' is same as User 'Dest' ! : Abortting..."  & @CRLF);, 1)
+						MsgBox(0, "Info !", "User 'Srce' et  User 'Dest' sont identiques !" & @CRLF & "Abandon !", 7)
+						_GUICtrlRichEdit_SetCharColor($aff, 0x000000ff)      ;   set color red (BBGGRR format)
+						_GUICtrlRichEdit_SetFont($aff, 10)                   ;   set size
+						_GUICtrlRichEdit_SetCharAttributes($aff, '+bo')      ;   set bold
+						_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "User 'Srce' et User 'Dest' sont identiques : Abandon ! "  & @CRLF);, 1)
 						Guidelete($hGUI)
 						Return 0
 					 EndIf
@@ -619,9 +642,12 @@ $defautdc = $defautdcinit
 									If $idgroup2 <> "" AND NOT StringInStr($idgroup2, ";") Then
 										If StringLen($idgroup2) < 7 Then
 											ToolTip("", 5, 5)
-											MsgBox(0, "Warning !", $idgroup2 & " , lenth<7" & @CRLF & "aborting...", 7)
-											_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "Group name must be > or equal to 7 chr$" & @CRLF);, 1)
-											Guidelete($hGUI)
+											MsgBox(0, "Warning !", $idgroup2 & " , longeur <7 !" & @CRLF & "Abandon ...", 7)
+											 _GUICtrlRichEdit_SetCharColor($aff, 0x000000ff)      ;   set color red (BBGGRR format)
+											 _GUICtrlRichEdit_SetFont($aff, 10)                   ;   set size
+											 _GUICtrlRichEdit_SetCharAttributes($aff, '+bo')      ;   set bold
+											 _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "Nom du groupe doit etre > ou egal à 7 chr$" & @CRLF);, 1)
+											 Guidelete($hGUI)
 											Return 0
 										Else
 										EndIf
@@ -662,18 +688,18 @@ $defautdc = $defautdcinit
 										EndIf
 										Global $ivalue = _ad_creategroup($sou, $idgroup2)
 										If $ivalue = 1 Then
-											Global $groupdesc = InputBox("Set 'Description' group !", $idgroup2 & @CRLF & "Please describe it, if necessary...", "")
+											Global $groupdesc = InputBox("Definir 'Description' groupe !", $idgroup2 & @CRLF & "Si necessaire, facultatif...", "")
 											$ivalue = _ad_modifyattribute($idgroup2, "description", $groupdesc, 2)
-											MsgBox(64, "Info !", "Group '" & $idgroup2 & "' successfully created" & @CRLF & $sou & @CRLF & @CRLF & "description is set to:" & @CRLF & "'" & $groupdesc & "'")
-											_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "Group '" & $idgroup2 & "' successfully created to: " & "  " & $sou & "    -   " & "description is set to:" & "  " & "'" & $groupdesc & "'" & @CRLF);, 1)
-											$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "Group '" & $idgroup2 & "' successfully created to: " & "  " & $sou & "    -   " & "description is set to:" & "  " & "'" & $groupdesc & "'" & @CRLF
-										_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "Group '" & $idgroup2 & "' successfully created to: " & "  " & $sou & "    -   " & "description is set to:" & "  " & "'" & $groupdesc & "'" & @CRLF);, 1)
+											MsgBox(64, "Info !", "Groupe '" & $idgroup2 & "' crée" & @CRLF & $sou & @CRLF & @CRLF & "description est:" & @CRLF & "'" & $groupdesc & "'")
+											_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "Groupe '" & $idgroup2 & "' crée dans l'OU: " & "  " & $sou & "    -   " & "description:" & "  " & "'" & $groupdesc & "'" & @CRLF);, 1)
+											$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "Group '" & $idgroup2 & "' crée dans l'OU: " & "  " & $sou & "    -   " & "description:" & "  " & "'" & $groupdesc & "'" & @CRLF
+										_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "Groupe '" & $idgroup2 & "' crée dans l'OU: " & "  " & $sou & "    -   " & "description:" & "  " & "'" & $groupdesc & "'" & @CRLF);, 1)
 										ElseIf @error = 1 Then
-											MsgBox(64, "Info !", "Group '" & $idgroup2 & "' already exists in AD !")
+											MsgBox(64, "Info !", "Groupe '" & $idgroup2 & "' existe déjà dans l'AD !")
 										ElseIf @error = 2 Then
-											MsgBox(64, "Warning !", "this OU= '" & $sou & "' does not exist in AD !")
+											MsgBox(64, "Warning !", "Cette OU= '" & $sou & "' n'existe pas dans l'AD !")
 										Else
-											MsgBox(64, "Warning !", "Return code '" & @error & "' from AD..." & @CRLF & " (access denied ? or groupname lenth is too long !) for creating group")
+											MsgBox(64, "Warning !", "Return code '" & @error & "' de l'AD..." & @CRLF & " (acces refusé ? ou nom de groupe trop long ! (>64chr$) pour creer le groupe")
 										EndIf
 										ToolTip("", 5, 5)
 										Guidelete($hGUI)
@@ -721,7 +747,7 @@ $defautdc = $defautdcinit
 											If StringLen($idgroup2[$z]) < 7 Then
 												ToolTip("", 5, 5)
 
-												MsgBox(0, "Warning !", $idgroup[$z] & " , lenth<7" & @CRLF & "nothing done... aborting !", 7)
+												MsgBox(0, "Warning !", $idgroup[$z] & " , lenth<7" & @CRLF & "rien effectué... abandon !", 7)
 												Guidelete($hGUI)
 												Return 0
 											Else
@@ -733,25 +759,29 @@ $defautdc = $defautdcinit
 												$result2 = $result2 & $idgroup2[$z] & ";"
 												$groupdesc = "" & $idgroup2[$z]
 												$ivalue = _ad_modifyattribute($idgroup2[$z], "description", $groupdesc, 2)
-												$result = $result & "Group '" & $idgroup2[$z] & "' successfully created	" & $sou & "	/ description is set to:	" & "'" & $idgroup2 & "'" & @CRLF
+												$result = $result & "Groupe '" & $idgroup2[$z] & "' cree dans l'OU:  " & $sou & "	/ description:	" & "'" & $idgroup2 & "'" & @CRLF
 											ElseIf @error = 1 Then
-												$result = $result & "Group '" & $idgroup2[$z] & "' already exists in AD !" & @CRLF
+												$result = $result & "Groupe '" & $idgroup2[$z] & "' existe déjà dans l'AD !" & @CRLF
 											ElseIf @error = 2 Then
-												$result = $result & "Warning !  " & "this OU= '" & $sou & "' does not exist in AD !" & @CRLF
+												$result = $result & "Warning !  " & "Cette OU= '" & $sou & "' n'existe pas dans l'AD !" & @CRLF
 											Else
-												$result = $result & "Warning !  " & "Return code '" & @error & "' from AD... " & " (access denied ? or groupname lenth is too long !) for creating group: '" & $idgroup2[$z] & "'" & @CRLF
+												$result = $result & "Warning !  " & "Return code '" & @error & "' de l'AD... " & " (acces refusé ? ou nom de groupe trop long ! (>64chr$) pour creer le groupe: '" & $idgroup2[$z] & "'" & @CRLF
 											EndIf
 										Next
 										ToolTip("", 5, 5)
-										$result = "		Creation des nouveaux groupes en masse dans:  " & $sou & @CRLF & @CRLF & $result
+										$result = "		Creation des nouveaux groupes en masse dans l'OU:  " & $sou & @CRLF & @CRLF & $result
 										$result2 = StringTrimRight($result2, 1)
 										$result = $result & @CRLF & @CRLF & $result2
-										_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & $result & @CRLF);, 1)
+										  _GUICtrlRichEdit_SetCharColor($aff, 0x00ff0000)      ;   set color blue (BBGGRR format)
+										  _GUICtrlRichEdit_SetFont($aff, 10)                   ;   set size
+										  _GUICtrlRichEdit_SetCharAttributes($aff, '+bo')      ;   set bold
+										_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF)
+										_GUICtrlRichEdit_AppendText($aff, $result & @CRLF);, 1)
 										$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & $result & @CRLF
 										Guidelete($hGUI)
 										Return 0
 									Else
-										MsgBox(0, "Warning !", "new group to create is Not Empty !", 7)
+										MsgBox(0, "Warning !", "Le nom du groupe à creer ne peut etre <vide> !", 7)
 										ToolTip("", 5, 5)
 										Guidelete($hGUI)
 										Return 0
@@ -783,7 +813,7 @@ $defautdc = $defautdcinit
 								Return 0
 						    Case $idcheckboxcommonname = 1
 	  if $domainname="" Then
-		   MsgBox(0,"Info !","no Active Directory found ! unable to scan..." & @crlf & $domainname,15)
+		   MsgBox(0,"Info !","Pas d'Active Directory trouvé ! impossible de scanner...  Etablissez une liaison reseau et relancez  'AD Tools' ..." & @crlf & $domainname,15)
 		   ToolTip("",5,5,"")
 
 		   Guidelete($hGUI)
@@ -798,9 +828,9 @@ $defautdc = $defautdcinit
 									$filtreperso = 0
 								EndIf
 								If $idrh1 = "" AND $idgroup = "" AND NOT (StringRegExp($idgroup, "^S-\d-\d+-(\d+-){1,14}\d+$") OR StringRegExp($idgroup, "^S-\d-(\d+-){1,14}\d+$") OR StringInStr($idgroup, ";")) Then
-									MsgBox(64, "Info !", "If user 'Srce' is set to 'disabled' or 'locked', then it will search for thoses users in AD..." & @CRLF & @CRLF & "And Also... 'SID' will search for all category (group,person)," & @CRLF & "'SIDh' will search for all SID history for all category (group,person...)" & @CRLF & "'lbpai?' or 'iliade?' to see all groups categorys for massive import...with section 'move user' and no idrh 'srce' !")
+									MsgBox(64, "Info !", "Si user Srce = 'disabled' ou 'locked', recherche des comptes 'désactivés' ou 'vérouillés' dans l'AD..." & @CRLF & @CRLF & "Et aussi... 'SID' (groupes,personnes)," & @CRLF & "'SIDh' cherche tous les SIDh (history) pour les categories (groupes,personnes...)" & @CRLF & "'lbpai?' ou 'iliade?' pour afficher les 'categories de groupes' pour exploiter via import fichier...  A utiliser avec 'Deplacer Srce' sans preciser d'idrh 'srce' ! (import fichier texte)")
 									ToolTip("", 5, 5)
-_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "If user 'Srce' is set to 'disabled' or 'locked', then it will search for thoses users in AD..." & @CRLF & @CRLF & "And Also... 'SID' will search for all category (group,person)," & @CRLF & "'SIDh' will search for all SID history for all category (group,person...)" & @CRLF & "'lbpai?' or 'iliade?' to see all groups categorys for massive import...with section 'move user' and no idrh 'srce' !" & @CRLF);, 1)
+									_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "Si 'Srce' = 'disabled' ou 'locked', rechercher des comptes 'désactivés' ou 'vérouillés' dans l'AD..." & @CRLF & @CRLF & "Et aussi... 'SID' (groupes,personnes)," & @CRLF & "'SIDh' recherche des SIDh (SID history) groupes,personnes..." & @CRLF & "'lbpai?' ou 'iliade?' : pour afficher les 'categories de groupes' pour exploiter via import fichier...  A utiliser avec 'Deplacer Srce' sans preciser d'idrh 'srce' ! (import fichier texte)" & @CRLF);, 1)
 									   Guidelete($hGUI)
 									   Return 0
 								ElseIf $idgroup <> "" AND $idrh1 = "" AND NOT StringInStr($idgroup, ";") Then
@@ -832,10 +862,10 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 										$sidkeyg1 = StringSplit($sidkeyg1, "|")
 										$sidkeyg1 = $sidkeyg1[3]
 										If $testbinaryh = "" Then
-											InputBox("SID key !", "SID key for: " & $displayname & @CRLF & $idgroup & @CRLF & $testbinaryh, $sidkeyg1)
+											InputBox("SID key !", "SID key pour: " & $displayname & @CRLF & $idgroup & @CRLF & $testbinaryh, $sidkeyg1)
 											ClipPut($sidkeyg1)
 										Else
-											$result2 = "SID key for: " & $displayname & "  " & $idgroup & "     " & $sidkeyg1 & @CRLF & "SIDhistory : " & $testbinaryh & @CRLF
+											$result2 = "SID key pour: " & $displayname & "  " & $idgroup & "     " & $sidkeyg1 & @CRLF & "SIDhistory : " & $testbinaryh & @CRLF
 											ClipPut($result2)
 											_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & $result2 & @CRLF & @CRLF & "-- SID keys:" & @CRLF & $sidkeyg1 & @CRLF & "--" & @CRLF & @CRLF & "			=====	=====	=====	=====	=====			" & @CRLF & @CRLF);, 1)
 											$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & $result2 & @CRLF & @CRLF & "-- SID keys:" & @CRLF & $sidkeyg1 & @CRLF & "--" & @CRLF
@@ -847,8 +877,8 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 									ElseIf StringInStr($idgroup, "-") AND StringLen($idgroup) >= 20 AND $idrh1 = "" Then
 										$sidkeymatch = _ad_getobjectsinou("", "(&(objectSID=" & $idgroup & "))", 2, "sAMAccountName")
 										If @error > 0 AND NOT IsArray($idgroup) Then
-											MsgBox(64, "Info !", "SID key not found, err: " & @error & @CRLF & "  search for SID key:  " & $idgroup)
-											$historik = $historik & "SID key not found, err: " & @error & @CRLF & "  search for SID key:  " & $idgroup
+											MsgBox(64, "Info !", "SID key non trouvé, err: " & @error & @CRLF & "  recherche pour SID key:  " & $idgroup)
+											$historik = $historik & "SID key non trouvé, err: " & @error & @CRLF & "  recherche pour SID key:  " & $idgroup
 											ToolTip("", 5, 5)
 
 									   Guidelete($hGUI)
@@ -870,7 +900,7 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 								If StringInStr($idgroup, ";") AND $idgroup <> "" AND $idrh1 = "" Then
 									$idgroup = StringSplit($idgroup, ";")
 									If NOT IsArray($idgroup) Then
-										MsgBox(0, "Warning ! '7841'", "no SIDkeys or Objects in this Matrix !", 7)
+										MsgBox(0, "Warning ! '0873' ", "no SIDkeys or Objects in array !", 7)
 										ToolTip("", 5, 5)
 										Guidelete($hGUI)
 										Return 0
@@ -914,22 +944,22 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 													If $test = 1 Then
 														$result2 = $result2 & "|" & $sidkeyg1 & "|" & $idgroup[$z] & @CRLF
 													Else
-														$result2 = $result2 & "SIDkey found:  " & $sidkeyg1 & "  for userID:  " & $idgroup[$z] & "  " & $displayname & $testbinaryh & @CRLF
+														$result2 = $result2 & "SIDkey trouvé:  " & $sidkeyg1 & "  pour objectID:  " & $idgroup[$z] & "  " & $displayname & $testbinaryh & @CRLF
 													EndIf
 													ToolTip("", 5, 5)
 												ElseIf NOT IsArray($sidkeyg) Then
-													$result2 = $result2 & "SIDkey not found for UserID:  " & $idgroup[$z] & @CRLF
+													$result2 = $result2 & "SIDkey non trouvé pour objectID:  " & $idgroup[$z] & @CRLF
 												EndIf
 											EndIf
 										EndIf
 										If $idgroup[$z] <> "" AND $idrh1 = "" AND (StringRegExp($idgroup[$z], "^S-\d-\d+-(\d+-){1,14}\d+$") OR StringRegExp($idgroup[$z], "^S-\d-(\d+-){1,14}\d+$")) Then
 											$sidkeymatch = _ad_getobjectsinou("", "(&(objectSID=" & $idgroup[$z] & "))", 2, "sAMAccountName")
 											If @error > 0 Then
-												$result2 = $result2 & "Account  'Idrh' not found for SIDkey :  " & $idgroup[$z] & @CRLF
+												$result2 = $result2 & "Compte  'Idrh' non trouvé pour SIDkey :  " & $idgroup[$z] & @CRLF
 												ToolTip("", 5, 5)
 											Else
 												ToolTip("", 5, 5)
-												$result2 = $result2 & "Account  'Idrh' found for SIDkey :  " & $sidkeymatch[1] & "  " & $idgroup[$z] & @CRLF
+												$result2 = $result2 & "Compte  'Idrh' non trouvé pour SIDkey :  " & $sidkeymatch[1] & "  " & $idgroup[$z] & @CRLF
 												ToolTip("", 5, 5)
 											EndIf
 											ToolTip("", 5, 5)
@@ -948,44 +978,44 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 								EndIf
 								$idrh1 = GUICtrlRead($buttonidrh1)
 								If StringInStr($idrh1, "locked") Then
-									ToolTip("Searching for locked users in AD...", 5, 5)
+									ToolTip("Cherche les comptes vérouillés dans l' AD...", 5, 5)
 									$alocked = _ad_getobjectslocked()
 									If @error > 0 Then
-										MsgBox(64, "Info !", "No locked user accounts have been found, err: " & @error)
+										MsgBox(64, "Info !", "Aucun compte vérouillé n'a été trouvé !, err: " & @error)
 									Else
 										ToolTip("", 5, 5)
-										__arraydisplay($alocked, "Locked Users Accounts")
+										__arraydisplay($alocked, "Comptes utilisateurs 'Locked' / 'verouillés'")
 									EndIf
 									ToolTip("", 5, 5)
-									$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  searching for locked users accounts"
+									$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  recherche des comptes vérouillés"
 									Guidelete($hGUI)
 									Return 0
 								EndIf
 								$idrh1 = GUICtrlRead($buttonidrh1)
 								If StringInStr($idrh1, "disabled") Then
-									ToolTip("Searching for disabled users in AD...", 5, 5)
+									ToolTip("Recherche des comptes désactivés 'disabled' ...", 5, 5)
 									$adisabled = _ad_getobjectsdisabled()
 									If @error > 0 Then
-										MsgBox(64, "Info !", "No disabled user accounts have been found, err: " & @error)
+										MsgBox(64, "Info !", "Aucun compte désactivé n'a été trouvé !, err: " & @error)
 									Else
 										ToolTip("", 5, 5)
-										__arraydisplay($adisabled, "Disabled Users Accounts")
+										__arraydisplay($adisabled, "Comptes users 'désactivés'")
 									EndIf
 									ToolTip("", 5, 5)
-									$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  searching for disabled users accounts"
+									$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  recherche des comptes désactivés 'disabled'"
 									Guidelete($hGUI)
 									Return 0
 								EndIf
 								$idrh1 = GUICtrlRead($buttonidrh1)
 								If StringInStr(($idrh1), "SID") AND NOT StringInStr($idrh1, "SIDh") AND StringLen($idrh1) = 3 Then
-									ToolTip("Searching for SID in AD... (all category: group,person etc...)", 5, 5)
+									ToolTip("Recherche des SID dans l'AD... (all category: group,person etc...)", 5, 5)
 									$sid = _ad_getobjectsinou("", "(&(objectSID=*))", 2, "sAMAccountName,cn,displayName,objectSid,sidhistory")
 									If @error > 0 Then
-										MsgBox(64, "Info !", "No SID have been found, err: " & @error)
+										MsgBox(64, "Info !", "Aucun SID n'a été trouvé !, err: " & @error)
 									Else
 										ToolTip("", 5, 5)
 										ClipPut(_arraytostring($sid, ";"))
-										__arraydisplay($sid, "SID Accounts")
+										__arraydisplay($sid, "comptes SID")
 									EndIf
 									ToolTip("", 5, 5)
 									Guidelete($hGUI)
@@ -993,10 +1023,10 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 								EndIf
 								$idrh1 = GUICtrlRead($buttonidrh1)
 								If StringInStr(($idrh1), "SIDh") AND StringLen($idrh1) = 4 Then
-									ToolTip("Searching for SID history in AD...(all category: group,person etc...)", 5, 5)
+									ToolTip("Recherche des SID history dans l'AD...(all category: group,person etc...)", 5, 5)
 									$sidh = _ad_getobjectsinou("", "(&(SIDhistory=*))", 2, "sAMAccountName,cn,displayName,objectSid,sidhistory")
 									If @error > 0 Then
-										MsgBox(64, "Info !", "No SID history have been found, err: " & @error)
+										MsgBox(64, "Info !", "Aucun SID history n'a été trouvé !, err: " & @error)
 									Else
 										ToolTip("", 5, 5)
 										ClipPut(_arraytostring($sidh, ";"))
@@ -1014,15 +1044,15 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 									Guidelete($hGUI)
 									Return 0
 								EndIf
-								ToolTip("searching by common name : " & $idrh1 & " please wait... 'Ambiguous Name Resolution'", 5, 5)
+								ToolTip("Recherche par nom commun ambigu (ANR) : " & $idrh1 & " patience... 'Ambiguous Name Resolution'", 5, 5)
 								Global $sou = ""
 								Global $sldapfilter = "(&(objectCategory=Person)(ANR=" & $idrh1 & " ))"
 								If $filtreperso = 1 Then
 									$sdatatoretrieve = InputBox("data to retrieve", "Ex: cn,sAMAccountName, initials,mail..", "Displayname,cn,SAMaccountName")
-									_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "ANR: modified filter= " & $sdatatoretrieve & @CRLF);, 1)
+									_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "ANR: filtre modifié = " & $sdatatoretrieve & @CRLF);, 1)
 								Else
 									Global $sdatatoretrieve = "sAMAccountName,cn,DisplayName,initials,title,mail,telephoneNumber,Mobile,physicalDeliveryOfficeName,comment,Laposte00-NetworkDrive"
-									_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "ANR: normal filter= " & $sdatatoretrieve & @CRLF);, 1)
+									_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "ANR: filtre par defaut = " & $sdatatoretrieve & @CRLF);, 1)
 								EndIf
 								Global $auserids = _ad_getobjectsinou($sou, $sldapfilter, 2, $sdatatoretrieve, "displayName")
 								If IsArray($auserids) Then
@@ -1037,10 +1067,10 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 									Global $sldapfilter = "(&(objectCategory=Person)(ANR=" & $readtexbox & "))"
 									If $filtreperso = 1 Then
 										$sdatatoretrieve = InputBox("data to retrieve", "Ex: cn,sAMAccountName, initials,mail..", "Displayname,cn,SAMaccountName")
-										_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "ANR: modified filter= " & $sdatatoretrieve & @CRLF);, 1)
+										_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "ANR: filtre modifié = " & $sdatatoretrieve & @CRLF);, 1)
 									Else
 										Global $sdatatoretrieve = "sAMAccountName,cn,DisplayName,initials,title,mail,telephoneNumber,Mobile,physicalDeliveryOfficeName,comment"
-										_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "ANR: normal filter= " & $sdatatoretrieve & @CRLF);, 1)
+										_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "ANR: filtre par defaut = " & $sdatatoretrieve & @CRLF);, 1)
 									EndIf
 									Global $auserids = _ad_getobjectsinou($sou, $sldapfilter, 2, $sdatatoretrieve, "displayName")
 									If IsArray($auserids) Then
@@ -1051,10 +1081,10 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 								EndIf
 								If IsArray($auserids) = 0 Then
 									ToolTip("", 5, 5)
-									MsgBox(64, "Warning !", "No users found with filter= " & $idrh1 & @CRLF & @CRLF & "  ... Now trying in ObjectClass= Groups  !", 20)
+									MsgBox(64, "Warning !", "Aucun user trouvé avec filtre = " & $idrh1 & @CRLF & @CRLF & "  ... recherche dans les groupes :  ObjectClass= Groups  !", 20)
 									Local $vargroup = _ad_getobjectsinou("", "(&(objectClass=group)(name=*" & $idrh1 & "*))", 2, "samaccountname")
 									If IsArray($vargroup) Then
-										$hwnd = GUICreate("List of groups matching filter= " & $idrh1, 1000, 60)
+										$hwnd = GUICreate("Liste des groupes avec filtre = " & $idrh1, 1000, 60)
 										$combo = GUICtrlCreateCombo("", 10, 10, 980, 60)
 										For $d = 1 To UBound($vargroup) - 1
 											GUICtrlSetData($combo, $vargroup[$d] & "  ==>  " & "[" & _ad_getobjectattribute($vargroup[$d], "distinguishedName") & "]", $vargroup[1] & "  ==>  " & "[" & _ad_getobjectattribute($vargroup[$d], "distinguishedName") & "]")
@@ -1064,14 +1094,14 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 										Until GUIGetMsg() = $gui_event_close
 										GUIDelete()
 										ClipPut(_arraytostring($vargroup))
-										$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & " searching for common name 'ANR'" & @CRLF & _arraytostring($vargroup)
-										_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & " searching for common name 'ANR'" & @CRLF & _arraytostring($vargroup) & @CRLF);, 1)
+										$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & " recherche des noms communs 'ANR'" & @CRLF & _arraytostring($vargroup)
+										_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & " recherche des noms communs 'ANR'" & @CRLF & _arraytostring($vargroup) & @CRLF);, 1)
 										ToolTip("", 5, 5)
 										Guidelete($hGUI)
 										Return 0
 									 Else
 										ToolTip("", 5, 5,"")
-										MsgBox(64, "Warning !", "No group found with filter= " & $idrh1)
+										MsgBox(64, "Warning !", "Aucun groupe avec le filtre = " & $idrh1)
 									 EndIf
 									 ToolTip("", 5, 5,"")
 									Guidelete($hGUI)
@@ -1088,15 +1118,15 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 								$defautdc = $defautdcinit
 								If _ispressed("10", $hdll) Then
 									$test = 1
-									ToolTip("multiple Idrh selection and removing selected groups...", 5, 5)
+									ToolTip("selection multiple Idrh  et [-] groupes...", 5, 5)
 								Else
 									$test = 0
-									ToolTip("multiple Idrh selection and adding selected groups...", 5, 5)
+									ToolTip("selection multiple Idrh  et [+] groupes...", 5, 5)
 								EndIf
 								$multipleidrh = GUICtrlRead($buttonidrh1)
 								If $multipleidrh = "" Then
 									ToolTip("", 5, 5)
-									MsgBox(0, "Info !", "aborting ! no users defined by ';' in 'Source' ... " & $multipleidrh, 7)
+									MsgBox(0, "Info !", "abandon ! pas de user defini avec séparateur ';' dans 'Source' ... " & $multipleidrh, 7)
 									Guidelete($hGUI)
 									Return 0
 								EndIf
@@ -1104,7 +1134,7 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 									$unite = InputBox("default OU ? 2 or 4 chr$", "ex: MILY, MITE, BPLY, GAUB, MI ... virtuos" & @CRLF & "?? : scan all OUs...", "MI")
 									If StringLen($unite) < 2 OR StringLen($unite) > 4 AND NOT ($unite = "virtuos" OR $unite = "??") Then
 										ToolTip("", 5, 5)
-										MsgBox(0, "Info !", "aborting ! no default OU defined... " & $unite, 7)
+										MsgBox(0, "Info !", "abandon ! pas d'OU cible definie... " & $unite, 7)
 										Guidelete($hGUI)
 										Return 0
 									EndIf
@@ -1136,17 +1166,17 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 								$sout = ""
 								$filez = FileOpen(@ScriptDir & "\Groups-AD_OU-" & $unite & ".txt", 2)
 								If @error > 0 Then
-									MsgBox(64, $adroot, "No Groups found ! ")
+									MsgBox(64, $adroot, "Pas de groupes trouvés ! ")
 									ToolTip("", 5, 5)
 									Guidelete($hGUI)
 									Return 0
 								Else
-									$filterou = InputBox("filtering groups ?", "empty = all groups , or type: cbk, dpi ... ", "")
+									$filterou = InputBox("filtrer groupes ?", "vide = tous les groupes , ou filtre: _cbk, _dpi ... ", "")
 									Global $aselected[1]
 									If $test = 1 Then
-										Global $hgui2 = GUICreate("Select groups to remove  and [ Apply ] !  (" & $filterou & ")", 1000, 500)
+										Global $hgui2 = GUICreate("Selection groupes [-]  et [ Apply ] !  (" & $filterou & ")", 1000, 500)
 									Else
-										Global $hgui2 = GUICreate("Select groups for adding and [ Apply ] !  (" & $filterou & ")", 1000, 500)
+										Global $hgui2 = GUICreate("Selection groupes [+]  et [ Apply ] !  (" & $filterou & ")", 1000, 500)
 									EndIf
 									Global $hlistbox = _guictrllistbox_create($hgui2, "String upon creation", 10, 30, 980, 470, BitOR($ws_border, $lbs_hasstrings, $ws_vscroll, $lbs_multiplesel))
 									_guictrllistbox_beginupdate($hlistbox)
@@ -1184,7 +1214,7 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 									$idcheckboxgroup = 2
 									GUIDelete($hgui2)
 									ToolTip("", 5, 5)
-									MsgBox(0, "Info !", "aborting, no groups found in: " & $unite, 7)
+									MsgBox(0, "Info !", "abandon, pas de groupes dans l'OU cible: " & $unite, 7)
 									Guidelete($hGUI)
 									Return 0
 								EndIf
@@ -1209,9 +1239,9 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 												Global $multipleidrhbis = ""
 												$multipleidrh = StringSplit($multipleidrh, ";")
 												If $test = 0 Then
-													$result = "		Adding   multiple users to selected groups ...	" & @CRLF
+													$result = "		[+]   multiple users groupes selectionnés...	" & @CRLF
 												Else
-													$result = "		removing multiple users to selected groups ...	" & @CRLF
+													$result = "		[-]	  multiple users groupes selectionnés...	" & @CRLF
 												EndIf
 												For $z = 1 To $sitems[0]
 													If StringLen($sitems[$z]) <> 0 Then
@@ -1249,7 +1279,7 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 																If $ivalue = 1 Then
 																	$result = $result & $multipleidrhbis & "   " & $displayname & "  [+] ok !"
 																ElseIf @error = 2 Then
-																	$result = $result & "Target OU not found !"
+																	$result = $result & "l'OU cible n'a pas été trouvée !"
 																ElseIf @error = 3 Then
 																	$result = $result & $multipleidrhbis & "   " & $displayname & "  deja membre !"
 																ElseIf @error = 3 Then
@@ -1267,7 +1297,7 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 																If $ivalue = 1 Then
 																	$result = $result & $multipleidrhbis & "   " & $displayname & "  [-] ok !"
 																ElseIf @error = 2 Then
-																	$result = $result & "Target OU not found !"
+																	$result = $result & "l'OU cible n'a pas été trouvée !"
 																ElseIf @error = 3 Then
 																	$result = $result & $multipleidrhbis & "   " & $displayname & "  n'est pas membre !"
 																ElseIf @error = 3 Then
@@ -1292,7 +1322,7 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 												;_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & $result & @CRLF);, 1)
 												ExitLoop
 											Else
-												MsgBox(4160, "warning !", "nothing selected... try again or close window")
+												MsgBox(4160, "warning !", "Pas de selection... réessayer ou refermer la fenetre [x]...")
 											EndIf
 										Case $gui_event_close
 											$idcheckboxgroup = 2
@@ -1317,7 +1347,7 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 										Guidelete($hGUI)
 										Return 0
 									EndIf
-									Global $ireply = MsgBox(308, "Rename AD Account ?", "Do you want to rename  '" & $idrh1 & "'  ?")
+									Global $ireply = MsgBox(308, "Renommer user Srce ?", "voulez-vous renommer user Srce:  '" & $idrh1 & "'  ?")
 									If $ireply <> 6 Then
 										Guidelete($hGUI)
 										Return 0
@@ -1325,7 +1355,7 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 									Global $prenomidrh1 = ""
 									Global $nomidrh1 = ""
 									Global $samidrh1 = ""
-									Global $formr = GUICreate("Renaming user:  [ " & $idrh1 & " ]  -  " & _ad_getobjectattribute($idrh1, "givenName") & " " & _ad_getobjectattribute($idrh1, "sn"), 814, 180)
+									Global $formr = GUICreate("Renommer user Srce:  [ " & $idrh1 & " ]  -  " & _ad_getobjectattribute($idrh1, "givenName") & " " & _ad_getobjectattribute($idrh1, "sn"), 814, 180)
 									GUICtrlCreateLabel("IDRH: ", 38, 12, 231, 17)
 									GUICtrlCreateLabel("Prenom: ", 38, 42, 231, 17)
 									GUICtrlCreateLabel("Nom: ", 38, 82, 231, 17)
@@ -1345,6 +1375,9 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 										Switch $nmsg
 											Case $gui_event_close, $bcancel
 												$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "   renommer un compte utilisateur AD:  " & $idrh1 & "  commande annulée !"
+												_GUICtrlRichEdit_SetCharColor($aff, 0x000000ff)      ;   set color red (BBGGRR format)
+												_GUICtrlRichEdit_SetFont($aff, 10)                   ;   set size
+												_GUICtrlRichEdit_SetCharAttributes($aff, '+bo')      ;   set bold
 												_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "   renommer un compte utilisateur AD:  " & $idrh1 & "  commande annulée !" & @CRLF);, 1)
 												GUIDelete($formr)
 												Guidelete($hGUI)
@@ -1356,6 +1389,9 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 												$descriptionidrh1 = GUICtrlRead($inewdescription)
 												GUIDelete($formr)
 												$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "   renommer un compte utilisateur AD:  " & $idrh1 & "  commande validée !"
+												_GUICtrlRichEdit_SetCharColor($aff, 0x00ff0000)      ;   set color blue (BBGGRR format)
+												_GUICtrlRichEdit_SetFont($aff, 10)                   ;   set size
+												_GUICtrlRichEdit_SetCharAttributes($aff, '+bo')      ;   set bold
 												_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "   renommer un compte utilisateur AD:  " & $idrh1 & "  commande validée !" & @CRLF);, 1)
 												ExitLoop
 										EndSwitch
@@ -1363,15 +1399,15 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 									If _ad_objectexists($samidrh1) = 0 OR ($samidrh1 = $idrh1) Then
 										Global $ivalue = _ad_renameobject($idrh1, $prenomidrh1 & " " & $nomidrh1)
 										If $ivalue = 1 Then
-											MsgBox(64, "Renaming user...", "User [" & $idrh1 & "] renamed to..." & @CRLF & @CRLF & "[" & $samidrh1 & "] -  " & $prenomidrh1 & " " & $nomidrh1 & "  -  '" & $descriptionidrh1 & "'" & @CRLF & @CRLF & "initially was:" & @CRLF & @CRLF & "[" & StringUpper($idrh1) & "] -  " & $initialprenom & " " & $initialnom & "  -  '" & $initialdesc & "'")
-											$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "   Renaming user..." & "  User [" & $idrh1 & "] renamed to..." & @CRLF & @CRLF & "[" & $samidrh1 & "] -  " & $prenomidrh1 & " " & $nomidrh1 & "  -  '" & $descriptionidrh1 & "'" & @CRLF & @CRLF & "compte initial:" & @CRLF & @CRLF & "[" & StringUpper($idrh1) & "] -  " & $initialprenom & " " & $initialnom & "  -  '" & $initialdesc & "'"
-										_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "   Renaming user..." & "  User [" & $idrh1 & "] renamed to..." & @CRLF & @CRLF & "[" & $samidrh1 & "] -  " & $prenomidrh1 & " " & $nomidrh1 & "  -  '" & $descriptionidrh1 & "'" & @CRLF & @CRLF & "compte initial:" & @CRLF & @CRLF & "[" & StringUpper($idrh1) & "] -  " & $initialprenom & " " & $initialnom & "  -  '" & $initialdesc & "'" & @CRLF);, 1)
+											MsgBox(64, "Renommer user Srce...", "User [" & $idrh1 & "] renommé en..." & @CRLF & @CRLF & "[" & $samidrh1 & "] -  " & $prenomidrh1 & " " & $nomidrh1 & "  -  '" & $descriptionidrh1 & "'" & @CRLF & @CRLF & "initial:" & @CRLF & @CRLF & "[" & StringUpper($idrh1) & "] -  " & $initialprenom & " " & $initialnom & "  -  '" & $initialdesc & "'")
+											$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "   Renommer user Srce..." & "  User [" & $idrh1 & "] renommé en..." & @CRLF & @CRLF & "[" & $samidrh1 & "] -  " & $prenomidrh1 & " " & $nomidrh1 & "  -  '" & $descriptionidrh1 & "'" & @CRLF & @CRLF & " initial:" & @CRLF & @CRLF & "[" & StringUpper($idrh1) & "] -  " & $initialprenom & " " & $initialnom & "  -  '" & $initialdesc & "'"
+										_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "   Renomme user Srce..." & "  User [" & $idrh1 & "] renommé en..." & @CRLF & @CRLF & "[" & $samidrh1 & "] -  " & $prenomidrh1 & " " & $nomidrh1 & "  -  '" & $descriptionidrh1 & "'" & @CRLF & @CRLF & " initial:" & @CRLF & @CRLF & "[" & StringUpper($idrh1) & "] -  " & $initialprenom & " " & $initialnom & "  -  '" & $initialdesc & "'" & @CRLF);, 1)
 										ElseIf @error = 1 Then
-											MsgBox(64, "Renaming user...", "Object '" & $samidrh1 & "' does not exist")
+											MsgBox(64, "Renomme user Srce...", "user Srce '" & $samidrh1 & "' n'existe pas !")
 											$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "   utilisateur  " & $samidrh1 & "  inexistant !"
 										_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "   utilisateur  " & $samidrh1 & "  inexistant !" & @CRLF);, 1)
 										Else
-											MsgBox(64, "Renaming user...", "Return code '" & @error & "' from Active Directory")
+											MsgBox(64, "Renomme user Srce...", "Return code '" & @error & "' from Active Directory")
 											$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "   code erreur: " & @error & "  accès refusé ?!"
 											_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "   code erreur: " & @error & "  accès refusé ?!" & @CRLF);, 1)
 										EndIf
@@ -1389,9 +1425,12 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 										_ad_modifyattribute($idrh1, "userPrincipalName", $samidrh1 & "@" & $iobject, 2)
 										_ad_modifyattribute($idrh1, "sAMAccountName", $samidrh1, 2)
 									Else
-										MsgBox(0, "Warning !", "'" & $idrh1 & "'" & " can't be renamed to '" & $samidrh1 & "' !" & @CRLF & "This ID is already used ...", 15)
-										$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "   Warning !  " & "  '" & $idrh1 & "'" & " can't be renamed to '" & $samidrh1 & "' !" & "   " & "This ID is already used !"
-									_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "   Warning !  " & "  '" & $idrh1 & "'" & " can't be renamed to '" & $samidrh1 & "' !" & "   " & "This ID is already used !" & @CRLF);, 1)
+										MsgBox(0, "Warning !", "'" & $idrh1 & "'" & " impossible de changer Idrh Srce '" & $samidrh1 & "' !" & @CRLF & " Déjà utilisé ...", 15)
+										$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "   Warning !  " & "  '" & $idrh1 & "'" & " impossible de changer Idrh Srce '" & $samidrh1 & "' !" & "   " & " Déjà utilisé !"
+										  _GUICtrlRichEdit_SetCharColor($aff, 0x000000ff)      ;   set color red (BBGGRR format)
+										  _GUICtrlRichEdit_SetFont($aff, 10)                   ;   set size
+										  _GUICtrlRichEdit_SetCharAttributes($aff, '+bo')      ;   set bold
+									_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "   Warning !  " & "  '" & $idrh1 & "'" & " ne peut etre renommé en '" & $samidrh1 & "' !" & "   " & " l'idrh existe déjà  !" & @CRLF);, 1)
 									EndIf
 									Guidelete($hGUI)
 									Return 0
@@ -1399,8 +1438,11 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 									If $isdct = 1 Then
 										$unite = InputBox("default OU ?", "ex: MILY, MITE, BPLY, GAUB ... " & @CRLF & "?? : scan all OUs...", "")
 										If @error Then
-											MsgBox(0, "Info !", "Aborting... create user !")
+											MsgBox(0, "Info !", "Abandon... creation user Srce !")
 											$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  annulation creation nouvel utilisateur !"
+											 _GUICtrlRichEdit_SetCharColor($aff, 0x000000ff)      ;   set color red (BBGGRR format)
+											 _GUICtrlRichEdit_SetFont($aff, 10)                   ;   set size
+											 _GUICtrlRichEdit_SetCharAttributes($aff, '+bo')      ;   set bold
 											_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "  annulation creation nouvel utilisateur !" & @CRLF);, 1)
 											Guidelete($hGUI)
 											Return 0
@@ -1437,7 +1479,7 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 									$nomidrh1 = StringUpper($nomidrh1)
 									Global $passwordtoset = ""
 									If StringInStr($unite, "CF") Then
-										$passwordtoset = InputBox("initial Pwd for users: Cnah", "Initial Pwd set for: " & $idrh1, "Cnah" & @YEAR)
+										$passwordtoset = InputBox(" Pwd initial pour users du [Cnah]", "Initial Pwd set for: " & $idrh1, "Cnah" & @YEAR)
 									ElseIf StringUpper($domainname) = "COURRIER" Then
 										$passwordtoset = InputBox("initial Password", "Initial Pwd set for: " & $idrh1, "Abcd1234*")
 									Else
@@ -1450,19 +1492,30 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 									Local $jetonC=0
 									Global $ivalue = _ad_createuser($sou, $idrh1, $prenomidrh1 & " " & $nomidrh1)
 									If $ivalue = 1 Then
-										MsgBox(64, "", "User '" & $idrh1 & "' in OU '" & $sou & "' successfully created" & @CRLF & @CRLF & "mot de passe initial (à changer): " & $passwordtoset)
-										$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  " & $idrh1 & "' in OU '" & $sou & "' à été crée, " & "le mot de passe initial (à changer): " & $passwordtoset & @CRLF & @CRLF
+										MsgBox(64, "", "User Srce '" & $idrh1 & "' dans OU '" & $sou & "' crée" & @CRLF & @CRLF & "mot de passe initial (à changer): " & $passwordtoset)
+										$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  " & $idrh1 & "' dans OU '" & $sou & "' à été crée, " & "le mot de passe initial (à changer): " & $passwordtoset & @CRLF & @CRLF
 										_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & $idrh1 & "' in OU '" & $sou & "' à été crée, " & "le mot de passe initial (à changer): " & $passwordtoset & @CRLF  & @CRLF);, 1)
 										If StringUpper($domainname) = "COURRIER" Then
 											$oudep = InputBox("code regate", " code regate à 6 chiffres...", "")
 											_ad_addusertogroup("GLD-Z-UtilEtab-Etab" & $oudep, $idrh1)
 											_ad_addusertogroup("GGD-Z-DansEtab-Etab" & $oudep, $idrh1)
-										EndIf
+										 EndIf
+
+										 If StringUpper($domainname) = "CORP" Then
+											$oudep = InputBox("code regate", " code regate à 6 chiffres...", "")
+											$test=StringUpper( StringLeft($idrh1,1) )
+											if StringInStr($test,"X") Then	;compte en 'X'
+											_ad_addusertogroup("Profil-ORG-" & $oudep & "-Externe_Local", $idrh1)
+										    Else
+											_ad_addusertogroup("Profil-ORG-" & $oudep & "-Interne_Local", $idrh1)
+											EndIf
+										 EndIf
+
 										If $isdct = 1 Then
 											$historik = $historik & "Autopilote, groupe rajouté: rg-pitr_cm_dir-tertiaire_standard_std" & @CRLF & @CRLF
 											_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "Autopilote, groupe rajouté: rg-pitr_cm_dir-tertiaire_standard_std" & @CRLF  & @CRLF);, 1)
 										EndIf
-										ToolTip("working...", 5, 5, "")
+										ToolTip("Travail en cours...", 5, 5, "")
 										Sleep(3000)
 										ToolTip("", 5, 5, "")
 										_ad_modifyattribute($idrh1, "givenName", $prenomidrh1, 2)
@@ -1505,17 +1558,17 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 											_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & $pwdreset & @CRLF);, 1)
 										EndIf
 									ElseIf @error = 1 Then
-										MsgBox(64, "", "User '" & $idrh1 & "' already exists")
+										MsgBox(64, "", "User Srce '" & $idrh1 & "' existe déjà !")
 										$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  " & $idrh1 & " , existe deja !"
 										_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & $idrh1 & " , existe deja !" & @CRLF);, 1)
 									    $jetonC=1
 
 									ElseIf @error = 2 Then
-										MsgBox(64, "", "OU '" & $sou & "' does not exist")
+										MsgBox(64, "", "OU '" & $sou & "' n'existe pas")
 										$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  " & $idrh1 & " , n'existe pas !"
 										_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & $idrh1 & " , n'existe pas !" & @CRLF);, 1)
 									ElseIf @error = 3 Then
-										MsgBox(64, "", "Value for CN (e.g. Lastname Firstname) is missing")
+										MsgBox(64, "", "Value for CN (e.g. Lastname Firstname) est manquant !")
 										$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  " & $idrh1 & " , le nom ou le prenom n'a pas été saisi !"
 										_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & $idrh1 & " , le nom ou le prenom n'a pas été saisi !" & @CRLF);, 1)
 									ElseIf @error = 4 Then
@@ -1533,6 +1586,9 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 									If $userexist = 0 and $jetonC=1 Then
 										MsgBox(0, "Warning !", "La creation à échouée car ce  Nom/prénom  existe sous un autre 'Idrh'" & @CRLF & "...ou droits dans cette OU !", 15)
 										$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  La création à echouée car l'utilisateur existe deja sous un autre 'idrh' !"
+										  _GUICtrlRichEdit_SetCharColor($aff, 0x000000ff)      ;   set color red (BBGGRR format)
+										  _GUICtrlRichEdit_SetFont($aff, 10)                   ;   set size
+										  _GUICtrlRichEdit_SetCharAttributes($aff, '+bo')      ;   set bold
 										_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF &  "  La création à echouée car l'utilisateur existe deja sous un autre 'idrh' !" & @CRLF);, 1)
 										Global $rechercheanrc = ""
 										$rechercheanrc = InputBox("Recherche par 'ANR'", "Creation du compte échoué !" & @CRLF & "recherche par 'Nom' ... ", "")
@@ -1551,7 +1607,7 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 										 If IsArray($auserids) Then ; ANR M.1
 									ToolTip("", 5, 5, "")
 									ClipPut(_arraytostring($auserids, ";"))
-									__arraydisplay($auserids, "M.1/ common usernames found ! for keyworld,  '" & $idrh1 & "'")
+									__arraydisplay($auserids, "M.1/ ANR usernames trouvés ! avec mot clé,  '" & $idrh1 & "'")
 								;EndIf
 									     ElseIf IsArray($auserids) = 0 Then ;ANR M.2
 								   ToolTip("", 5, 5)
@@ -1573,12 +1629,12 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 										 If IsArray($auserids) Then
 									ToolTip("", 5, 5, "")
 									ClipPut(_arraytostring($auserids, ";"))
-									__arraydisplay($auserids, "M.2/ common usernames found ! for keyworld,  '" & $idrh1 & "'")
+									__arraydisplay($auserids, "M.2/ ANR usernames trouvés ! avec mot clé,  '" & $idrh1 & "'")
 								EndIf
 										ToolTip("", 5, 5)
 										;ClipPut(_arraytostring($auserids, ";"))
 										;$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & " noms trouvés par recherche ANR... " & @CRLF & _arraytostring($auserids, ";" & @crlf)
-										_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF &  " noms trouvés par recherche ANR... " & @CRLF & _arraytostring($auserids, ";" & @CRLF);, 1)
+										_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF &  " noms trouvés par recherche ANR... copiés vers le presse-papier" & @CRLF ) ;& _arraytostring($auserids, ";" & @CRLF) );, 1)
 										;__arraydisplay($auserids, "common usernames found ! for keyworld,  '" & $rechercheanrc & "'")
 										Guidelete($hGUI)
 										Return 0
@@ -1591,7 +1647,7 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 									$t = MsgBox(4, "Apply Directive ?", "Rajouter une directive après la création du compte  " & $idrh1 & "  ?")
 									If $t = 6 Then
 										$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  Rajouter une 'Directive' pour  " & $idrh1 & @CRLF & @CRLF
-										_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "  Rajouter une 'Directive' pour  " & $idrh1 & @CRLF & @CRLF);, 1)
+										_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "  Rajouter une 'Directive' pour  " & $idrh1 & @CRLF & @CRLF) ;, 1)
 										directives()
 									Else
 									EndIf
@@ -1599,7 +1655,7 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 
 							Case $idcheckboxcreate = 1 AND $userexist = 1
 								$defautdc = $defautdcinit
-								MsgBox(0, "warning !", " Idrh Srce [" & $idrh1 & "] already exists in AD !", 7)
+								MsgBox(0, "warning !", " Idrh Srce [" & $idrh1 & "] existe déjà dans l'AD !", 7)
 								$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  L'idrh " & $idrh1 & "  existe deja !"
 								_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "  L'idrh " & $idrh1 & "  existe deja !" & @CRLF);, 1)
 								Guidelete($hGUI)
@@ -1610,6 +1666,7 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 								Global $date_expire = ""
 								$date_expire = _ad_getobjectproperties($idrh1, "accountExpires")
 								$date_expire = $date_expire[1][1]
+								$date_expire = _dateadd("d", -1, $date_expire)
 								If $date_expire = "0000/00/00 00:00:00" OR $date_expire = "1601/01/01 00:00:00" Then
 									MsgBox(0, "warning !", "Le compte '" & $idrh1 & "' , n'expire jamais...", 7)
 									$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "warning !  , " & "Le compte '" & $idrh1 & "' , n'expire jamais..."
@@ -1622,7 +1679,7 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 										$date_expire = "01/01/1970 00:00:00"
 										$ivalue = _ad_setaccountexpire($idrh1, $date_expire)
 									Else
-										$date_expire = _dateadd("d", -1, $date_expire)
+										;$date_expire = _dateadd("d", -1, $date_expire)
 										$hguicalendar = GUICreate("compte " & $idrh1, 300, 100, 350, 120)
 										Local $iddate = GUICtrlCreateDate($date_expire, 30, 30, 100, 20, $dts_shortdateformat)
 										Local $idbtn = GUICtrlCreateButton("OK", 120, 65, 60, 20)
@@ -1650,11 +1707,11 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 									EndIf
 								Else
 									If _ispressed("10", $hdll) Then
-										MsgBox(0, "no expiration date !", "[" & $idrh1 & "] : no expire date ...", 7)
+										MsgBox(0, "no expiration date !", "[" & $idrh1 & "] : retirer la date d'expiration, n'expire plus ...", 7)
 										$date_expire = "01/01/1970 00:00:00"
 										$ivalue = _ad_setaccountexpire($idrh1, $date_expire)
 									Else
-										$date_expire = _dateadd("d", -1, $date_expire)
+										;$date_expire = _dateadd("d", -1, $date_expire)
 										$hguicalendar = GUICreate("compte " & $idrh1, 300, 100, 350, 120)
 										Local $iddate = GUICtrlCreateDate($date_expire, 30, 30, 100, 20, $dts_shortdateformat)
 										Local $idbtn = GUICtrlCreateButton("OK", 120, 65, 60, 20)
@@ -1688,7 +1745,7 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 								$ousourcedir = $ousourcedir[3]
 								$ousourcedir = StringTrimLeft($ousourcedir, 3)
 								If $isdct = 1 Then
-									$ou = InputBox("default OU ?", "ex: MILY, MITE, BPLY, GAUB ... " & @CRLF & @CRLF & "   " & $idrh1 & " , actual OU:  [ " & $ousourcedir & " ]" & @CRLF & @CRLF & "?? : scan all OUs...", "")
+									$ou = InputBox("default OU ?", "ex: MILY, MITE, BPLY, GAUB ... " & @CRLF & @CRLF & "   " & $idrh1 & " , OU actuelle:  [ " & $ousourcedir & " ]" & @CRLF & @CRLF & "?? : scan all OUs...", "")
 									If StringLen($ou) < 2 OR StringLen($ou) > 4 AND NOT ($ou = "virtuos" OR $ou = "??") Then
 										Guidelete($hGUI)
 										Return 0
@@ -1715,24 +1772,24 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 								$sobject = _ad_samaccountnametofqdn($idrh1)
 								Global $ivalue = _ad_moveobject($sou2, $sobject)
 								If $ivalue = 1 Then
-									MsgBox(64, "Active Directory ", $idrh1 & "' successfully moved to '" & $ou & "'")
+									MsgBox(64, "Active Directory ", $idrh1 & ",  déplacé de  '" & StringUpper($ousourcedir) & "  vers   '" & StringUpper($ou) & "'")
 									$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  " & $idrh1 & " déplacé vers " & $ou
-									_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF &  $idrh1 & " déplacé vers " & $ou & @CRLF);, 1)
+									_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF &  $idrh1 &  " déplacé de  '" & StringUpper($ousourcedir) &  "'  vers  '" & StringUpper($ou) & "'" & @CRLF);, 1)
 									ToolTip("synchronising AD", 5, 5)
 									Sleep(3000)
 									ToolTip("", 5, 5)
 								ElseIf @error = 1 Then
-									MsgBox(64, "Active Directory ", "Target OU '" & $ou & "' does not exist")
+									MsgBox(64, "Active Directory ", "OU cible '" & $ou & "' n'existe pas !")
 								ElseIf @error = 2 Then
-									MsgBox(64, "Active Directory ", "Object '" & $idrh1 & "' does not exist")
+									MsgBox(64, "Active Directory ", "User Srce '" & $idrh1 & "' n'existe pas !")
 								ElseIf @error = 3 Then
-									MsgBox(64, "Active Directory ", "Object '" & $idrh1 & "' already in OU '" & $ou & "'")
+									MsgBox(64, "Active Directory ", "User Srce '" & $idrh1 & "' déjà dans la meme OU '" & $ou & "'   :)")
 								ElseIf @error >= 4 OR @error = -2147352567 Then
-									MsgBox(64, "Active Directory ", "You have no permissions to move user " & $idrh1)
+									MsgBox(64, "Active Directory ", "Droits refusés pour déplacer user Srce " & $idrh1)
 									$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  " & $idrh1 & "non deplacé vers " & $ou & ",  accès refusé !"
 									_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF &  $idrh1 & "non deplacé vers " & $ou & ",  accès refusé !" & @CRLF);, 1)
 								Else
-									MsgBox(0, "warning !", "User Idrh Srce '" & $idrh1 & "already exists in AD !", 7)
+									MsgBox(0, "warning !", "User Idrh Srce '" & $idrh1 & "existe déjà dans l'AD !", 7)
 									Guidelete($hGUI)
 									Return 0
 								EndIf
@@ -1762,12 +1819,13 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 									For $j = 0 To UBound($drivesidrh1) - 1
 										For $k = 1 To 26
 											$chaine = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-											$lettre = StringMid($chaine, $k, 1)
-											$test = StringRegExp($drivesidrh1[$j], $lettre & ";\\", 3)
+											$lettre = StringUpper (StringMid($chaine, $k, 1) )
+											; $test = StringRegExp($drivesidrh1[$j], $lettre & ";\\", 3) ;old
+											$test = StringRegExp( StringUpper (StringLeft( $drivesidrh1[$j],1 )), $lettre , 3)  ;rectif
 											If UBound($test) >= 1 Then
 												$chaine2 = StringReplace($chaine2, $lettre, "")
 												$chaine5 = $chaine5 & $lettre
-											Else
+											 Else
 											EndIf
 										Next
 									Next
@@ -1786,14 +1844,25 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 										$presencems = ""
 									EndIf
 									$driveismanual = InputBox("Entrez le chemin en entier !", "ex: T;\\429940SN001.429940S.IRGP\DOCUMENT " & @CRLF & @CRLF & "Lettres de lecteurs dispo:" & @CRLF & $chaine1 & @CRLF & $chaine2 & $presencems, "")
-									If $driveismanual = "" Then
-										MsgBox(0, "Info !", "Empty drive ! aborting...", 7)
+									If $driveismanual = "" or StringLen($driveismanual)<4 Then
+										MsgBox(0, "Warning !", "drive ! chemin non saisi / incomplet , abandon ...", 7)
 										Guidelete($hGUI)
 										Return 0
-									EndIf
+									 EndIf
+
+									 $test=StringUpper ( StringLeft($driveismanual,1) )
+									 $driveismanual=StringTrimLeft($driveismanual,1)
+									 $driveismanual=$test & $driveismanual
+
+									 if StringIsAlpha ($test) = 0 Then
+										MsgBox(0, "Warning !", "drive, la lettre saisie est manquante ! " & @crlf & " " & $driveismanual & @crlf & @CRLF & "  Abandon ...", 7)
+										Guidelete($hGUI)
+										Return 0
+									 EndIf
+
 									$manual2 = $driveismanual
 									If StringRegExp($manual2, "Mes scan;") AND $presencemesscan = 1 Then
-										MsgBox(0, "Warning !", "'Mes scan' already used ! aborting..." & @CRLF & "adding: " & $driveismanual & @CRLF & "dispo: " & $chaine3, 7)
+										MsgBox(0, "Warning !", "'Mes scan' déjà utilisé! abandon..." & @CRLF & "ajout: " & $driveismanual & @CRLF & "lettres lecteurs dispo: " & $chaine3, 7)
 										Guidelete($hGUI)
 										Return 0
 									EndIf
@@ -1801,7 +1870,7 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 										$chaine4 = StringMid($chaine5, $k, 1)
 										$chaine4 = $chaine4 & ";"
 										If StringInStr(StringUpper(StringLeft($manual2, 2)), $chaine4) Then
-											MsgBox(0, "Warning !", "Drive letter already used ! aborting..." & @CRLF & $driveismanual & @CRLF & "dispo: " & $chaine3, 7)
+											MsgBox(0, "Warning !", "Drive lettre lecteur déjà utilisé ! abandon..." & @CRLF & $driveismanual & @CRLF & "lettres lecteurs dispo: " & $chaine3, 7)
 											Guidelete($hGUI)
 											Return 0
 										EndIf
@@ -1818,11 +1887,11 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 									Else
 									EndIf
 									$listmanualdrives = $listmanualdrives & "|" & $driveismanual
-									_arraydisplay($drivesidrh1, "LaPoste00-NetworkDrive modified for: [" & $idrh1 & "]")
+									_arraydisplay($drivesidrh1, "LaPoste00-NetworkDrive modifié pour: [" & $idrh1 & "]")
 									If $t = 7 Then
 										ExitLoop
 									Else
-										$t = MsgBox(256 + 32 + 4, "Add new Drive ?", "Souhaitez-vous rajouter un autre lecteur ?")
+										$t = MsgBox(256 + 32 + 4, "[+] Drive ?", "Souhaitez-vous rajouter un autre lecteur ?")
 										If $t = 6 Then
 										ElseIf $t = 7 Then
 											_arraydelete($drivesidrh1, 0)
@@ -1834,12 +1903,12 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 								Global $ivalue = _ad_modifyattribute($idrh1, "LaPoste00-NetworkDrive", $drivesidrh1, 2)
 								If $ivalue = 1 Then
 								ElseIf @error = 1 Then
-									MsgBox(0, "info !", "[user does not exist]", 7)
+									MsgBox(0, "info !", "[user Srce n'existe pas]", 7)
 								Else
 									MsgBox(0, "info !", "[Return error code " & @error & "] from Active Directory", 7)
 								EndIf
 								ToolTip("synchronising AD", 5, 5)
-								Sleep(3000)
+								Sleep(1000)
 								ToolTip("", 5, 5)
 							Case $idcheckboxgroupremove = 1 AND StringLen($idrh1) <> 0 AND $userexist = 1
 								$defautdc = $defautdcinit
@@ -1851,7 +1920,7 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 								EndIf
 								_arraysort($groupsidrh1, 0, 1)
 								Global $aselected[1]
-								Global $hgui2 = GUICreate("Select/unselect groups to REMOVE from '" & $idrh1 & "' , then validate with the button [ Apply ] !  ", 1000, 500)
+								Global $hgui2 = GUICreate("Selection groupes [-] pour '" & $idrh1 & "' , puis valider avec le bouton [ Apply ] !  ", 1000, 500)
 								Global $hlistbox = _guictrllistbox_create($hgui2, "String upon creation", 10, 30, 980, 470, BitOR($ws_border, $lbs_hasstrings, $ws_vscroll, $lbs_multiplesel))
 								_guictrllistbox_beginupdate($hlistbox)
 								_guictrllistbox_resetcontent($hlistbox)
@@ -1868,7 +1937,7 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 								If IsArray($groupsidrh1) = 0 Then
 									$idcheckboxgroup = 2
 									GUIDelete($hgui2)
-									MsgBox(0, "Info !", "aborting, no Groups found in: " & $idrh1, 7)
+									MsgBox(0, "Info !", "abandon, pas de Groupes pour: " & $idrh1, 7)
 									Guidelete($hGUI)
 									Return 0
 								EndIf
@@ -1895,13 +1964,13 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 														If $ivalue = 1 AND $userexist = 1 Then
 															$actiongroups = $actiongroups & $sitems[$z] & " [-] OK ; "
 														ElseIf @error = 2 Then
-															$actiongroups = $actiongroups & $sitems[$z] & " [target OU ?] ; "
+															$actiongroups = $actiongroups & $sitems[$z] & " [ OU cible  ?  ] ; "
 														ElseIf @error = 3 AND $test = 1 Then
-															$actiongroups = $actiongroups & $sitems[$z] & " [pas membre !] ; "
+															$actiongroups = $actiongroups & $sitems[$z] & " [ pas membre  ! ] ; "
 														ElseIf @error = 3 AND $test = 0 Then
-															$actiongroups = $actiongroups & $sitems[$z] & " [déjà membre !] ; "
+															$actiongroups = $actiongroups & $sitems[$z] & " [ déjà membre  ! ] ; "
 														ElseIf @error >= 4 OR @error = -2147352567 Then
-															$actiongroups = $actiongroups & $sitems[$z] & " [accès refusé !] ; "
+															$actiongroups = $actiongroups & $sitems[$z] & " [ accès refusé ! ] ; "
 														EndIf
 													EndIf
 												Next
@@ -1912,7 +1981,7 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 												ToolTip("", 5, 5)
 												ExitLoop
 											Else
-												MsgBox(4160, "warning !", "nothing selected... try again or close window")
+												MsgBox(4160, "warning !", "aucune selection... réessayez ou refermez la fenetre [x]")
 											EndIf
 										Case $gui_event_close
 											GUIDelete($hgui2)
@@ -1929,25 +1998,25 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 									If $t = 6 Then
 										Global $ivalue = _ad_deleteobject($idrh1, _ad_getobjectclass($idrh1))
 										If $ivalue = 1 Then
-											MsgBox(64, "Info !", "User  '" & $idrh1 & "'  successfully deleted !")
+											MsgBox(64, "Info !", "User Srce '" & $idrh1 & "'  supprimé !")
 											Guidelete($hGUI)
 											Return 0
 										ElseIf @error = 1 Then
-											MsgBox(64, "warning !", "User '" & $idrh1 & "' does not exist !")
+											MsgBox(64, "warning !", "User Srce '" & $idrh1 & "' n'existe pas !")
 										Else
 											MsgBox(64, "warning !", "Return code '" & @error & "' from AD !")
 										EndIf
 									Else
-										MsgBox(0, "Deleting Aborted !", "Aborting Deleting account :  " & $idrh1, 7)
+										MsgBox(0, "Abandon !", "Abandon suppression user Srce :  " & $idrh1, 7)
 									EndIf
 								Else
 									Global $ivalue = _ad_disableobject($idrh1)
 									If $ivalue = 1 Then
-										MsgBox(64, "Info !", "User  '" & $idrh1 & "'  successfully disabled !")
+										MsgBox(64, "Info !", "User Srce '" & $idrh1 & "'  désactivé !")
 										Guidelete($hGUI)
 										Return 0
 									ElseIf @error = 1 Then
-										MsgBox(64, "warning !", "User '" & $idrh1 & "' does not exist !")
+										MsgBox(64, "warning !", "User Srce '" & $idrh1 & "' n'existe pas !")
 									Else
 										MsgBox(64, "warning !", "Return code '" & @error & "' from AD !")
 									EndIf
@@ -1963,12 +2032,12 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 								EndIf
 								If $descriptsrce <> "" Then
 									_ad_modifyattribute($idrh1, "description", $descriptsrce, 2)
-									MsgBox(0, "Info !", "Source " & $idrh1 & ", Description set to:" & @CRLF & @CRLF & $descriptsrce)
+									MsgBox(0, "Info !", "Source " & $idrh1 & ", Description :" & @CRLF & @CRLF & $descriptsrce)
 									Guidelete($hGUI)
 									Return 0
 								Else
 									_ad_modifyattribute($idrh1, "description", $descriptsrce, 2)
-									MsgBox(0, "Info !", "Source " & $idrh1 & ", Description is now cleared !")
+									MsgBox(0, "Info !", "Source " & $idrh1 & ", Description est maintenant vide !")
 									Guidelete($hGUI)
 									Return 0
 								EndIf
@@ -1979,7 +2048,7 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 								Global $drivesidrh1 = _ad_getobjectproperties($idrh1, "LaPoste00-NetworkDrive")
 								_arraydelete($drivesidrh1, 0)
 								If UBound($drivesidrh1) = 0 Then
-									MsgBox(0, "Info !", "aborting, no Drives found for: " & $idrh1, 7)
+									MsgBox(0, "Info !", "abandon, pas de Drives pour: " & $idrh1, 7)
 									Guidelete($hGUI)
 									Return 0
 								EndIf
@@ -1987,7 +2056,7 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 								$drivesidrh1 = StringReplace($drivesidrh1, "LaPoste00-NetworkDrive|", "")
 								$drivesidrh1 = StringSplit($drivesidrh1, @CRLF)
 								Global $aselected[1]
-								Global $hgui2 = GUICreate("Select drives to REMOVE from '" & $idrh1 & "' , then validate with the button [ Apply ] !  ", 1000, 500)
+								Global $hgui2 = GUICreate("Selection drives [-] pour '" & $idrh1 & "' , puis validez avec bouton [ Apply ] !  ", 1000, 500)
 								Global $hlistbox = _guictrllistbox_create($hgui2, "String upon creation", 10, 30, 980, 470, BitOR($ws_border, $lbs_hasstrings, $ws_vscroll, $lbs_multiplesel))
 								_guictrllistbox_beginupdate($hlistbox)
 								_guictrllistbox_resetcontent($hlistbox)
@@ -2002,7 +2071,7 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 								EndIf
 								If IsArray($drivesidrh1) = 0 Then
 									GUIDelete($hgui2)
-									MsgBox(0, "Info !", "aborting, no Drives found for: " & $idrh1, 7)
+									MsgBox(0, "Info !", "abandon, pas de Drives pour: " & $idrh1, 7)
 									Guidelete($hGUI)
 									Return 0
 								EndIf
@@ -2066,7 +2135,7 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 								$descriptsrce = _ad_getobjectattribute($idrh1, "Comment")
 								$descriptsrce = InputBox("Comment " & $idrh1, " ", $descriptsrce)
 								If @error = 1 Then
-									MsgBox(0, "Info !", " ...aborting !" & @CRLF & @CRLF & $descriptsrce)
+									MsgBox(0, "Info !", " ...abandon Comment !" & @CRLF & @CRLF & $descriptsrce)
 									Guidelete($hGUI)
 									Return 0
 								Else
@@ -2113,41 +2182,53 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 													If $ivalue = 1 AND $actiongrp = 0 Then
 														$idgroup2result = $idgroup2result & $idrh1 & " [-] OK,  '" & $idgroup2[$z] & "'" & " ;  [" & _ad_getobjectattribute($idgroup2[$z], "distinguishedName") & "]" & @CRLF
 														$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  :" & $idrh1 & "   '" & $idgroup2[$z] & "'" & "[-] OK  ;  [" & _ad_getobjectattribute($idgroup2[$z], "distinguishedName") & "]" & @CRLF
+												    _GUICtrlRichEdit_SetCharColor($aff, 0x00000000)      ;   set color black (BBGGRR format)
 													_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & $idrh1 & "   '" & $idgroup2[$z] & "'" & "[-] OK  ;  [" & _ad_getobjectattribute($idgroup2[$z], "distinguishedName") & "]" & @CRLF);, 1)
 													ElseIf @error = 1 Then
-														$idgroup2result = $idgroup2result & "Group '" & $idgroup2[$z] & "' n'existe pas !" & @CRLF
+														$idgroup2result = $idgroup2result & "Groupe '" & $idgroup2[$z] & "' n'existe pas !" & @CRLF
 														$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  :	" & $idgroup2[$z] & "	groupe n'existe pas !"
+												    _GUICtrlRichEdit_SetCharColor($aff, 0x000000ff)      ;   set color red (BBGGRR format)
 													_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & $idgroup2[$z] & "	groupe n'existe pas !" & @CRLF);, 1)
+													_GUICtrlRichEdit_SetCharColor($aff, 0x00000000)      ;   set color black (BBGGRR format)
 													ElseIf @error = 2 Then
 														MsgBox(64, "", "Idrh source '" & $idrh1 & "' inexistant !")
 													ElseIf @error = 3 Then
 														$idgroup2result = $idgroup2result & $idrh1 & " n'est deja pas membre de '" & $idgroup2[$z] & "'" & @CRLF
 														$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "	:  " & $idrh1 & ",  n'est deja pas membre de :  " & $idgroup2[$z]
 													_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & $idrh1 & ",  n'est deja pas membre de :  " & $idgroup2[$z] & @CRLF);, 1)
+													_GUICtrlRichEdit_SetCharColor($aff, 0x00000000)      ;   set color black (BBGGRR format)
 													Else
 														$idgroup2result = $idgroup2result & $idrh1 & " [X] '" & $idgroup2[$z] & "' " & "Return code '" & @error & "' from Active Directory" & @CRLF
 														$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "	:	code erreur:  " & @error & " !  (accès refusé...)"
+												    _GUICtrlRichEdit_SetCharColor($aff, 0x000000ff)      ;   set color red (BBGGRR format)
 													_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "	:	code erreur:  " & @error & " !  (accès refusé...)" & @CRLF);, 1)
+													_GUICtrlRichEdit_SetCharColor($aff, 0x00000000)      ;   set color black (BBGGRR format)
 													EndIf
 												Case $actiongrp = 1
 													If $ivalue = 1 AND $actiongrp = 1 Then
 														$idgroup2result = $idgroup2result & $idrh1 & " [+] OK,   '" & $idgroup2[$z] & "'" & " ;  [" & _ad_getobjectattribute($idgroup2[$z], "distinguishedName") & "]" & @CRLF
 														$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  :" & $idrh1 & "	  '" & $idgroup2[$z] & "'" & "[+] OK  ;  [" & _ad_getobjectattribute($idgroup2[$z], "distinguishedName") & "]" & @CRLF
+												    _GUICtrlRichEdit_SetCharColor($aff, 0x00000000)      ;   set color black (BBGGRR format)
 													_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & $idrh1 & "	  '" & $idgroup2[$z] & "'" & "[+] OK  ;  [" & _ad_getobjectattribute($idgroup2[$z], "distinguishedName") & "]" & @CRLF);, 1)
 													ElseIf @error = 1 Then
 														$idgroup2result = $idgroup2result & "Group '" & $idgroup2[$z] & "' n'existe pas !" & @CRLF
 														$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  :	" & $idgroup2[$z] & "	groupe n'existe pas !"
+												    _GUICtrlRichEdit_SetCharColor($aff, 0x000000ff)      ;   set color red (BBGGRR format)
 													_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & $idgroup2[$z] & "	groupe n'existe pas !" & @CRLF);, 1)
+													_GUICtrlRichEdit_SetCharColor($aff, 0x00000000)      ;   set color black (BBGGRR format)
 													ElseIf @error = 2 Then
 														MsgBox(64, "", "Idrh source '" & $idrh1 & "' inexistant !")
 													ElseIf @error = 3 Then
 														$idgroup2result = $idgroup2result & $idrh1 & " est deja membre de :  '" & $idgroup2[$z] & "'" & @CRLF
 														$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  " & $idrh1 & ",  est deja membre de :  " & $idgroup2[$z]
 													_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF &  $idrh1 & ",  est deja membre de :  " & $idgroup2[$z] & @CRLF);, 1)
+													_GUICtrlRichEdit_SetCharColor($aff, 0x00000000)      ;   set color black (BBGGRR format)
 													Else
 														$idgroup2result = $idgroup2result & $idrh1 & " [X] '" & $idgroup2[$z] & "' " & "Return code '" & @error & "' from Active Directory" & @CRLF
 														$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  :  code erreur:  " & @error & " !  (accès refusé...)"
+												    _GUICtrlRichEdit_SetCharColor($aff, 0x000000ff)      ;   set color red (BBGGRR format)
 													_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "  :  code erreur:  " & @error & " !  (accès refusé...)" & @CRLF);, 1)
+													_GUICtrlRichEdit_SetCharColor($aff, 0x00000000)      ;   set color black (BBGGRR format)
 													EndIf
 											EndSelect
 										EndIf
@@ -2155,13 +2236,13 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 									$actiongroups = $idgroup2result
 									If $idgroup2result <> "" Then
 										If $actiongrp = 0 Then
-											$actiongroups = "Removing Multiple Groups from: " & $idrh1 & @CRLF & "--------------------------" & @CRLF & $actiongroups
+											$actiongroups = "Retirer Multiple Groupes de user Srce:    " & $idrh1 & @CRLF & "--------------------------" & @CRLF & $actiongroups
 										Else
-											$actiongroups = "Adding Multiple Groups to: " & $idrh1 & @CRLF & "------------------------" & @CRLF & $actiongroups
+											$actiongroups = "Rajouter Multiple Groupes pour user Srce: " & $idrh1 & @CRLF & "--------------------------" & @CRLF & $actiongroups
 										EndIf
 									EndIf
 								Else
-									MsgBox(0, "Info !", "aborting, no Groups to add to: " & $idrh1, 7)
+									MsgBox(0, "Info !", "abandon, pas de Groupes à rajouter pour user Srce: " & $idrh1, 7)
 								EndIf
 						EndSelect
 
@@ -2173,11 +2254,12 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 							Global $date_expire = ""
 							$date_expire = _ad_getobjectproperties($idrh1, "accountExpires")
 							$date_expire = $date_expire[1][1]
+							$date_expire = _dateadd("d", -1, $date_expire)
 							If $date_expire = "0000/00/00 00:00:00" OR $date_expire = "1601/01/01 00:00:00" Then
 								$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "warning !  , " & "Le compte '" & $idrh1 & "' , n'expire jamais..."
 								_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "warning !  , " & "Le compte '" & $idrh1 & "' , n'expire jamais..." & @CRLF);, 1)
 							EndIf
-							$date_expire = _dateadd("d", -1, $date_expire)
+							;$date_expire = _dateadd("d", -1, $date_expire)
 							$hguicalendar = GUICreate("compte " & $idrh1, 300, 100, 350, 120)
 							Local $iddate = GUICtrlCreateDate($date_expire, 30, 30, 100, 20, $dts_shortdateformat)
 							Local $idbtn = GUICtrlCreateButton("OK", 120, 65, 60, 20)
@@ -2203,7 +2285,7 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 							$ivalue = _ad_setaccountexpire($idrh1, $dated)
 							Sleep(500)
 						Else
-							MsgBox(0, "no expiration date !", "[" & $idrh1 & "] : no expire date ...", 7)
+							MsgBox(0, "no expiration date !", "[" & $idrh1 & "] : pas de date d'expiration ...", 7)
 							$date_expire = "01/01/1970 00:00:00"
 							$ivalue = _ad_setaccountexpire($idrh1, $date_expire)
 						EndIf
@@ -2235,32 +2317,32 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 							If $idcheckboxairwatch = 1 Then
 								$mail = InputBox("setting e-Mail ...", " ", $mail)
 								If @error = 1 Then
-									MsgBox(0, "Info !", "Airwatch ...aborting !" & @CRLF & @CRLF & $mail)
+									MsgBox(0, "Info !", "Airwatch abandon !" & @CRLF & @CRLF & $mail)
 									Guidelete($hGUI)
 									Return 0
 								EndIf
 								_ad_modifyattribute($idrh1, "mail", $mail, 2)
 								If $isdct = 0 Then
-									MsgBox(0, "Airwatch DCT ?", "AW is only for domain DCT" & @CRLF & "  mail is set to: " & $mail & @CRLF & "  for user: " & $idrh1)
+									MsgBox(0, "Airwatch DCT ?", "AW n'est valable que pour domaine DCT" & @CRLF & "  mail est tout de meme defini à: " & $mail & @CRLF & "  pour user Srce: " & $idrh1)
 								Else
 									Global $ousourcedir = _ad_getobjectattribute($idrh1, "distinguishedName")
 									$ousourcedir = StringSplit($ousourcedir, ",")
 									$ousourcedir = $ousourcedir[3]
 									$ousourcedir = StringTrimLeft($ousourcedir, 3)
 									If StringInStr($ousourcedir, "GAUB") = 1 Then
-										$bpnn = InputBox("OU ? (BPLY, BPGR, etc...)", "Actual user OU= " & $ousourcedir & " (for: " & $idrh1 & ")" & @CRLF & "by default is BPNA, you can change it !", "BPNA")
+										$bpnn = InputBox("OU ? (BPLY, BPGR, etc...)", "Actuel user Srce OU= " & $ousourcedir & " (pour: " & $idrh1 & ")" & @CRLF & "par defaut BPNA, vous pouvez le modifier !", "BPNA")
 									Else
-										$bpnn = InputBox("OU ? (BPLY, BPGR, etc...)", "Actual user OU= " & $ousourcedir & " (for: " & $idrh1 & ")", $ousourcedir)
+										$bpnn = InputBox("OU ? (BPLY, BPGR, etc...)", "Actuel user Srce OU= " & $ousourcedir & " (pour: " & $idrh1 & ")", $ousourcedir)
 									EndIf
 									If @error = 1 Then
-										MsgBox(0, "Info !", "Airwatch ...aborting !" & @CRLF & @CRLF & $mail)
+										MsgBox(0, "Info !", "Airwatch ...abandon !" & @CRLF & @CRLF & $mail)
 										Guidelete($hGUI)
 										Return 0
 									EndIf
 									If $bpe = 0 Then
 										_ad_addusertogroup("RG-" & $bpnn & "_AW Commun Manager", $idrh1)
-										$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  rajout @mail et groupe Airwatch, pour: " & $idrh1 & "  " & "RG-" & $bpnn & "_AW Commun Manager"
-									_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "  rajout @mail et groupe Airwatch, pour: " & $idrh1 & "  " & "RG-" & $bpnn & "_AW Commun Manager" & @CRLF);, 1)
+										$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  rajout de @mail et aussi du groupe Airwatch, pour: " & $idrh1 & "  " & "RG-" & $bpnn & "_AW Commun Manager"
+									_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "  rajout @mail et du groupe Airwatch, pour: " & $idrh1 & "  " & "RG-" & $bpnn & "_AW Commun Manager" & @CRLF);, 1)
 									EndIf
 									If $bpe = 1 Then
 										Dim $arrayaw[0]
@@ -2288,8 +2370,8 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 										$scomboreadaw = GUICtrlRead($idcomboboxaw)
 										MsgBox(0, "info AW !", " Choix AW: " & @CRLF & @CRLF & "> " & $scomboreadaw)
 										_ad_addusertogroup($scomboreadaw, $idrh1)
-										$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  rajout @mail et groupe Airwatch, pour: " & $idrh1 & "  " & $scomboreadaw
-										_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "  rajout @mail et groupe Airwatch, pour: " & $idrh1 & "  " & $scomboreadaw & @CRLF);, 1)
+										$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  rajout @mail et du groupe Airwatch, pour: " & $idrh1 & "  " & $scomboreadaw
+										_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "  rajout @mail et du groupe Airwatch, pour: " & $idrh1 & "  " & $scomboreadaw & @CRLF);, 1)
 										GUIDelete($hguiaw)
 									EndIf
 								EndIf
@@ -2334,14 +2416,14 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 							$sout = ""
 							$filez = FileOpen(@ScriptDir & "\Groups-AD_OU-" & $unite & ".txt", 2)
 							If @error > 0 Then
-								MsgBox(64, $adroot, "No Groups found ! ")
+								MsgBox(64, $adroot, "Pas de Groupes trouvés ! ")
 								FileClose($filez)
 								Guidelete($hGUI)
 								Return 0
 							Else
-								$filterou = InputBox("filtering groups ?", "empty = all groups , or type: cbk, dpi ... ", "")
+								$filterou = InputBox("filtre des  groupes ?", "vide = tous , ou mots clés: _cbk, _dpi ... ", "")
 								Global $aselected[1]
-								Global $hgui2 = GUICreate("Select/unselect groups then validate with the button [ Apply ] !  (" & $filterou & ")", 1000, 500)
+								Global $hgui2 = GUICreate("Selection groupes puis valider avec le bouton [ Apply ] !  filtre:(" & $filterou & ")", 1000, 500)
 								Global $hlistbox = _guictrllistbox_create($hgui2, "String upon creation", 10, 30, 980, 470, BitOR($ws_border, $lbs_hasstrings, $ws_vscroll, $lbs_multiplesel))
 								_guictrllistbox_beginupdate($hlistbox)
 								_guictrllistbox_resetcontent($hlistbox)
@@ -2377,7 +2459,7 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 							If IsArray($aous) = 0 Then
 								$idcheckboxgroup = 2
 								GUIDelete($hgui2)
-								MsgBox(0, "Info !", "aborting, no groups found in: " & $unite, 7)
+								MsgBox(0, "Info !", "abandon, pas de groupes trouvés dans l'OU: " & $unite, 7)
 								FileClose($filez)
 								Guidelete($hGUI)
 								Return 0
@@ -2405,13 +2487,13 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 													If $ivalue = 1 Then
 														$actiongroups = $actiongroups & $sitems[$z] & " [+] OK ; "
 													ElseIf @error = 2 Then
-														$actiongroups = $actiongroups & $sitems[$z] & " [target OU ?] ; "
+														$actiongroups = $actiongroups & $sitems[$z] & " [  OU cible ?  ] ; "
 													ElseIf @error = 3 Then
-														$actiongroups = $actiongroups & $sitems[$z] & " [deja membre !] ; "
+														$actiongroups = $actiongroups & $sitems[$z] & " [  deja membre ! ] ; "
 													ElseIf @error = 3 Then
-														$actiongroups = $actiongroups & $sitems[$z] & " [pas membre !] ; "
+														$actiongroups = $actiongroups & $sitems[$z] & " [  pas membre !  ] ; "
 													ElseIf @error >= 4 OR @error = -2147352567 Then
-														$actiongroups = $actiongroups & $sitems[$z] & " [accès refusé !] ; "
+														$actiongroups = $actiongroups & $sitems[$z] & " [ accès refusé ! ] ; "
 													EndIf
 												EndIf
 											Next
@@ -2419,7 +2501,7 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 											GUIDelete($hgui2)
 											ExitLoop
 										Else
-											MsgBox(4160, "warning !", "nothing selected... try again or close window")
+											MsgBox(4160, "warning !", "aucune selection... reessayez ou fermez la fenetre [x]")
 										EndIf
 									Case $gui_event_close
 										$idcheckboxgroup = 2
@@ -2430,14 +2512,14 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 						Else
 						EndIf
 						If $idcheckboxgroup = 1 AND $idcheckboxrole = 0 Then
-							ToolTip("Awaiting 3 more secondes, for synchronizing AD ...", 5, 5, "")
-							Sleep(3000)
+							ToolTip("synchronizing with AD ...", 5, 5, "")
+							Sleep(1800)
 							ToolTip("", 5, 5, "")
 						EndIf
 						If $idcheckboxrole = 1 AND $idcheckboxgroup = 0 Then
 						   $defautdc = $defautdcinit
 							If $isdct = 0 Then
-								MsgBox(0, "Warning !", "Roles only available in domain: DCT.Adt.Local", 7)
+								MsgBox(0, "Warning !", "Roles valables que pour le domaine DCT !", 7)
 								Guidelete($hGUI)
 								Return 0
 							EndIf
@@ -2477,9 +2559,9 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 								Guidelete($hGUI)
 								Return 0
 							Else
-								$filterou = InputBox("filtering Roles ?", "empty = all Roles , or type: Bancaire ... ", "")
+								$filterou = InputBox("filtrer les Roles ?", "vide = tous , ou mot clé: Bancaire ... ", "")
 								Global $aselected[1]
-								Global $hgui2 = GUICreate("Select/unselect Role then validate with the button [ Apply ] !  (" & $filterou & ")", 1000, 500)
+								Global $hgui2 = GUICreate("Selection Role puis valider avec le bouton [ Apply ] !  filtre:(" & $filterou & ")", 1000, 500)
 								Global $hlistbox = _guictrllistbox_create($hgui2, "String upon creation", 10, 30, 980, 470, BitOR($ws_border, $lbs_hasstrings, $ws_vscroll, $lbs_multiplesel))
 								_guictrllistbox_beginupdate($hlistbox)
 								_guictrllistbox_resetcontent($hlistbox)
@@ -2515,7 +2597,7 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 							If IsArray($aous) = 0 Then
 								$idcheckboxgroup = 2
 								GUIDelete($hgui2)
-								MsgBox(0, "Info !", "aborting, no Roles found in: " & $unite, 7)
+								MsgBox(0, "Info !", "abandon, aucun Roles trouvé dans l'OU: " & $unite, 7)
 								FileClose($filez)
 								Guidelete($hGUI)
 								Return 0
@@ -2527,7 +2609,7 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 									Case $hbutton
 										$aselected = _guictrllistbox_getselitems($hlistbox)
 										If $aselected[0] > 1 Then
-											MsgBox(4160, "warning !", "multiple 'Roles' selected ! choose just one Role or close window")
+											MsgBox(4160, "warning !", "multiples 'Roles' choisis ! choisissez un seul role ou refermer la fenetre [x]")
 										Else
 											If $aselected[0] = 1 Then
 												$sitem = " item"
@@ -2547,13 +2629,13 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 															If $ivalue = 1 Then
 																$actiongroups = $actiongroups & $sitems[$z] & " [+] OK ; "
 															ElseIf @error = 2 Then
-																$actiongroups = $actiongroups & $sitems[$z] & " [target OU ?] ; "
+																$actiongroups = $actiongroups & $sitems[$z] & " [  OU cible ? ] ; "
 															ElseIf @error = 3 Then
-																$actiongroups = $actiongroups & $sitems[$z] & " [deja membre !] ; "
+																$actiongroups = $actiongroups & $sitems[$z] & " [  deja membre ! ] ; "
 															ElseIf @error = 3 Then
-																$actiongroups = $actiongroups & $sitems[$z] & " [pas membre !] ; "
+																$actiongroups = $actiongroups & $sitems[$z] & " [  pas membre !  ] ; "
 															ElseIf @error >= 4 OR @error = -2147352567 Then
-																$actiongroups = $actiongroups & $sitems[$z] & " [accès refusé !] ; "
+																$actiongroups = $actiongroups & $sitems[$z] & " [ accès refusé ! ] ; "
 															EndIf
 														EndIf
 													Next
@@ -2563,7 +2645,7 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 													GUIDelete($hgui2)
 													ExitLoop
 												Else
-													MsgBox(4160, "warning !", "nothing selected... try again or close window")
+													MsgBox(4160, "warning !", "aucune selection... reessayez ou refermez la fenetre [x]")
 												EndIf
 											Else
 											EndIf
@@ -2577,8 +2659,8 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 						Else
 						EndIf
 						If $idcheckboxgroup = 0 AND $idcheckboxrole = 1 Then
-							ToolTip("Awaiting 3 more secondes, for synchronizing AD ...", 5, 5, "")
-							Sleep(3000)
+							ToolTip("synchronizing AD ...", 5, 5, "")
+							Sleep(1800)
 							ToolTip("", 5, 5, "")
 						EndIf
 						Global $groupsidrh1 = _ad_getusergroups($idrh1)
@@ -2602,7 +2684,7 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 							$accountexpire = $accountexpire[1][1]
 							If $accountexpire = "0000/00/00 00:00:00" OR $accountexpire = "1601/01/01 00:00:00" Then
 								$accountexpire = "Le compte n'expire jamais..."
-								If StringInStr(StringLeft($idrh1, 1), "x") Then
+								If StringInStr(StringLeft($idrh1, 1), "x") And $idcheckboxprolonge = 1 Then
 									$t = MsgBox(4, "Warning ! ", "Le compte [" & $idrh1 & "], n'a pas de date d'expiration !" & @CRLF & @CRLF & @CRLF & "  (Oui): mettre une date d'expiration" & @CRLF & @CRLF & "  (Non): laisser tel quel")
 									If $t = 6 Then
 										$hguicalendar = GUICreate("compte " & $idrh1, 300, 100, 350, 120)
@@ -2645,7 +2727,7 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 							If $checkbuttonpwdreset = 1 Then
 								$password = InputBox("password reset", "mot de passe par defaut: W!nd0ws10" & @CRLF & "Vous pouvez modifier le mdp par defaut", "W!nd0ws10")
 								If @error = 1 Then
-									MsgBox(0, "", "Aborting reset pwd !", 3)
+									MsgBox(0, "", "Abandon 'reset pwd' pour user Srce !", 3)
 									Guidelete($hGUI)
 									Return 0
 								EndIf
@@ -2668,9 +2750,11 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 									_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & $pwdreset & @CRLF);, 1)
 									EndIf
 								Else
-									MsgBox(0, "warning !", "Reseting password : Access denied , for user:  " & $idrh1)
-									$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "" & "warning !, " & "Reset mot de passe windows, access refusé pour:  " & $idrh1
-									_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "warning !, " & "Reset mot de passe windows, access refusé pour:  " & $idrh1 & @CRLF);, 1)
+									MsgBox(0, "warning !", "Réinit. password : Acces refusé , pour user:  " & $idrh1)
+									$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "" & "warning !, " & "Reset mot de passe windows, acces refusé pour:  " & $idrh1
+									_GUICtrlRichEdit_SetCharColor($aff, 0x000000ff)      ;   set color red (BBGGRR format)
+									_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "warning !, " & "Reset mot de passe windows, acces refusé pour:  " & $idrh1 & @CRLF);, 1)
+									_GUICtrlRichEdit_SetCharColor($aff, 0x00000000)      ;   set color black (BBGGRR format)
 									Guidelete($hGUI)
 									Return 0
 								EndIf
@@ -2723,11 +2807,11 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 							$pwdinfo = ""
 							If $scomboreaddirectives <> "" Then
 								If $dirapplied = 1 Then
-									$outputidrh1 = "	   Directive applied:   " & $scomboreaddirectives & "	,  OU d'origine= " & $ousourcedir & @CRLF
+									$outputidrh1 = "	   Directive appliquée:   " & $scomboreaddirectives & "	,  OU d'origine= " & $ousourcedir & @CRLF
 									$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & $outputidrh1
 									_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & $outputidrh1 & @CRLF);, 1)
 								Else
-									$outputidrh1 = "	   Directive Not applied !   " & $scomboreaddirectives & "	,  OU d'origine= " & $ousourcedir & @CRLF
+									$outputidrh1 = "	   Directive Non appliquée !  (rollback)  " & $scomboreaddirectives & "	,  OU d'origine= " & $ousourcedir & @CRLF
 									$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & $outputidrh1
 									_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & $outputidrh1 & @CRLF);, 1)
 								EndIf
@@ -2777,8 +2861,8 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 								$lastiter = $lastiter & @CRLF & @CRLF & "	Modifs: " & $actiongroupsar & @CRLF & @CRLF
 							EndIf
 							If $listmanualdrives <> "" Then
-								$outputidrh1 = $outputidrh1 & @CRLF & @CRLF & "	Modifs: adding new drive:  " & $listmanualdrives & @CRLF & @CRLF
-								$lastiter = $lastiter & @CRLF & @CRLF & "	Modifs: adding new drive:  " & $listmanualdrives & @CRLF & @CRLF
+								$outputidrh1 = $outputidrh1 & @CRLF & @CRLF & "	Modifs: [+]  Drive:   " & $listmanualdrives & @CRLF & @CRLF
+								$lastiter = $lastiter & @CRLF & @CRLF & "	Modifs: [+] Drive:   " & $listmanualdrives & @CRLF & @CRLF
 							EndIf
 							If $idcheckboxgroup <> 2 Then
 								ClipPut($outputidrh1)
@@ -2812,7 +2896,7 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 
 							If  $userexist2 = 0 and StringUpper($idrh2) <> "" And $checkbuttondrives=1 Then ;StringUpper($idrh2) = "" OR StringLen($idrh2) = 0 OR
 								;Sleep(2500)
-								MsgBox(0,"","user 'Dest' [ " & $idrh2 & " ] n'existe pas !",15)
+								MsgBox(0,"","user Dest [ " & $idrh2 & " ] n'existe pas !",15)
 								ToolTip("", 5, 5, "")
 							Else
 							;	$checkbuttondrives = BitAND(GUICtrlRead($idcheckboxdrives), $gui_checked)
@@ -2831,8 +2915,10 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 											$drivewspace = StringStripWS($cpydrives1[$i], $str_stripleading + $str_striptrailing)
 											$drivewspace = StringStripCR($cpydrives1[$i])
 											If StringInStr($drivewspace, " ") AND NOT StringInStr($drivewspace, "Mes scan") Then
-												MsgBox(0, "Warning !", "  White space found in drive (from Idrh Srce): " & $idrh1 & @CRLF & $drivewspace & @CRLF & "  ..removed WS !", 15)
+												MsgBox(0, "Warning !", "  'White space' found in drive (from Idrh Srce): " & $idrh1 & @CRLF & $drivewspace & @CRLF & "  ..removed WS !", 15)
+												_GUICtrlRichEdit_SetCharColor($aff, 0x000000ff)      ;   set color red (BBGGRR format)
 												_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "  White space found in drive (from Idrh Srce): " & $idrh1 & @CRLF & $drivewspace & "  ..removed WS !" & @CRLF & @CRLF);, 1)
+												_GUICtrlRichEdit_SetCharColor($aff, 0x00000000)      ;   set color black (BBGGRR format)
 												$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "  White space found in drive (from Idrh Srce): " & $idrh1 & @CRLF & $drivewspace & "  ..removed WS !" & @CRLF
 												$drivewspace = StringSplit($drivewspace, " ")
 												$drivewspace = $drivewspace[1]
@@ -2843,10 +2929,12 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 										_arraydelete($cpydrives1, 0)
 									Else
 										MsgBox(0, "Warning !", "No drives to copy from Srce:  " & $idrh1 & " !", 7)
-										_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "No drives to copy from Srce:  " & $idrh1 & " !" & @CRLF & @CRLF);, 1)
+										_GUICtrlRichEdit_SetCharColor($aff, 0x000000ff)      ;   set color red (BBGGRR format)
+										_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "Aucun Drive à copier depuis user Srce:  " & $idrh1 & " !" & @CRLF & @CRLF);, 1)
+										_GUICtrlRichEdit_SetCharColor($aff, 0x00000000)      ;   set color black (BBGGRR format)
 									EndIf
 									If UBound($cpydrives1) <> 0 AND $cpydrives1[1] <> "" Then
-										_arraydisplay($cpydrives1, "cpy drives from '" & $idrh1 & "'   to   '" & $idrh2 & "'")
+										_arraydisplay($cpydrives1, "cpy drives depuis user Srce '" & $idrh1 & "'   vers   '" & $idrh2 & "'")
 									EndIf
 									$cpydrives1bis = $cpydrives1
 									$drivesidrh2 = _ad_getobjectproperties($idrh2, "LaPoste00-NetworkDrive")
@@ -2889,24 +2977,32 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 									$drivesidrh1 = _arraytostring($drivesidrh1)
 									$drivesidrh1 = StringReplace($drivesidrh1, "LaPoste00-NetworkDrive|", "")
 									If UBound($cpydrives1) = 0 OR $cpydrives1[1] = "" Then
-										MsgBox(0, "warning !", "no Drives for user srce: " & $idrh1 & " , stopping process...")
-										_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "no Drives for user srce: " & $idrh1 & " , stopping process..." & @CRLF & @CRLF);, 1)
-										$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "no Drives for user srce: " & $idrh1 & " , stopping process..."
+										MsgBox(0, "warning !", "no Drives pour user Srce: " & $idrh1 & " , Abandon...")
+										_GUICtrlRichEdit_SetCharColor($aff, 0x000000ff)      ;   set color red (BBGGRR format)
+										_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "no Drives pour user Srce: " & $idrh1 & " , abandon..." & @CRLF & @CRLF);, 1)
+										$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "no Drives pour user Srce: " & $idrh1 & " , abandon..."
+										_GUICtrlRichEdit_SetCharColor($aff, 0x00000000)      ;   set color black (BBGGRR format)
 									ElseIf UBound($cpydrives3) = 0 Then
-										MsgBox(0, "warning !", "All Drives letters are already used by user dest. " & $idrh2 & " !" & " , stopping process..." & @CRLF & "already used:" & @CRLF & $doublons)
-										_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "All Drives letters are already used by user dest. " & $idrh2 & " !" & " , stopping process..." & @CRLF & "already used:" & @CRLF & $doublons & @CRLF & @CRLF);, 1)
-										$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "All Drives letters are already used by user dest. " & $idrh2 & " !" & " , stopping process..." & @CRLF & "already used:" & @CRLF & $doublons
+										MsgBox(0, "warning !", "Tous les lettres Drives sont déjà présents pour user Dest. " & $idrh2 & " !" & " , abandon..." & @CRLF & "déjà utilisés:" & @CRLF & $doublons)
+										_GUICtrlRichEdit_SetCharColor($aff, 0x000000ff)      ;   set color red (BBGGRR format)
+										_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "Tous les lettres Drives sont déjà présents pour user Dest. " & $idrh2 & " !" & " , abandon..." & @CRLF & "déjà utilisés:" & @CRLF & $doublons & @CRLF & @CRLF);, 1)
+										$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "Tous les lettres Drives sont déjà présents pour user Dest. " & $idrh2 & " !" & " , abandon..." & @CRLF & "déjà utilisés:" & @CRLF & $doublons
+										_GUICtrlRichEdit_SetCharColor($aff, 0x00000000)      ;   set color black (BBGGRR format)
 									Else
 										Global $ivalue = _ad_modifyattribute($idrh2, "LaPoste00-NetworkDrive", $cpydrives3, 3)
 										If $ivalue = 1 Then
 											If $doublons = "" Then
-												MsgBox(0, "Info cpy drives", "successfully [+] drives to " & $idrh2 & "  from " & $idrh1 & @CRLF & @CRLF & $cpydrives1bis, 7)
-												_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "successfully [+] drives to " & $idrh2 & "  from " & $idrh1 & @CRLF & @CRLF & $cpydrives1bis & @CRLF & @CRLF);, 1)
-												$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "successfully [+] drives to " & $idrh2 & "  from " & $idrh1 & @CRLF & @CRLF & $cpydrives1bis
+												MsgBox(0, "Info cpy drives", " [+] drives [OK] pour user Dest " & $idrh2 & "  recopiés depuis user Srce " & $idrh1 & @CRLF & @CRLF & $cpydrives1bis, 7)
+												_GUICtrlRichEdit_SetCharColor($aff, 0x00ff0000)      ;   set color blue (BBGGRR format)
+												_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & " [+] drives [OK] pour user Dest  " & $idrh2 & "  recopiés depuis user Srce  " & $idrh1 & @CRLF & @CRLF & $cpydrives1bis & @CRLF & @CRLF);, 1)
+												_GUICtrlRichEdit_SetCharColor($aff, 0x00000000)      ;   set color black (BBGGRR format)
+												$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "  [+] drives [OK] pour user Dest  " & $idrh2 & "  recopiés depuis user Srce   " & $idrh1 & @CRLF & @CRLF & $cpydrives1bis
 											Else
-												MsgBox(0, "Warning cpy drives", "not [+] some drives to " & $idrh2 & "  from " & $idrh1, 7)
-												_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "not [+] some drives to " & $idrh2 & "  from " & $idrh1 & @CRLF & @CRLF);, 1)
-												$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & ":  not [+] some drives to " & $idrh2 & "  from " & $idrh1 & @CRLF
+												MsgBox(0, "Warning cpy drives", " [+] drives [pas tous recopiés] pour user Dest " & $idrh2 & "  depuis user Srce " & $idrh1, 7)
+												_GUICtrlRichEdit_SetCharColor($aff, 0x00ff0000)      ;   set color blue (BBGGRR format)
+												_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & " Quelques [+] drives n'ont pas été récopiés vers user Dest " & $idrh2 & "  depuis user Srce " & $idrh1 & @CRLF & @CRLF);, 1)
+												$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & ":   Quelques [+] drives n'ont pas été récopiés vers user Dest  " & $idrh2 & "  depuis user Srce  " & $idrh1 & @CRLF
+												_GUICtrlRichEdit_SetCharColor($aff, 0x00000000)      ;   set color black (BBGGRR format)
 												$drivesidrh2 = _arraytostring($drivesidrh2, @CRLF)
 												$drivesidrh2bis = _ad_getobjectproperties($idrh2, "LaPoste00-NetworkDrive")
 												_arraydelete($drivesidrh2bis, 0)
@@ -2920,90 +3016,104 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 												Next
 												_arraydelete($drivesidrh2bis, 0)
 												$drivesidrh2bis = _arraytostring($drivesidrh2bis, @CRLF)
-												$result = "Warning !  :  " & "cpy drives from : " & $idrh1 & " to " & $idrh2 & @CRLF & @CRLF & "Drives [+] :  :)" & @CRLF & $cpydrives1bis & @CRLF & @CRLF & "Drives letter already used by  '" & $idrh2 & "'  and can't be added..." & @CRLF & "-You have to manually adding drives by changing drives Letters for each of them below...  :(" & $doublons & @CRLF & @CRLF & "'Drives list'  before cpy for user dest.  '" & $idrh2 & "' :" & @CRLF & $drivesidrh2 & @CRLF & @CRLF & "'Drives list' after  cpy for user dest.   '" & $idrh2 & "' :" & @CRLF & $drivesidrh2bis & @CRLF
+												$result = "Warning !  :  " & "cpy drives depuis : " & $idrh1 & " vers " & $idrh2 & @CRLF & @CRLF & "Drives [+] :  :)" & @CRLF & $cpydrives1bis & @CRLF & @CRLF & "Lettres Drives déjà utilisés par user Dest  '" & $idrh2 & "'  ne peut pas etre écrasé..." & @CRLF & "-Vous devez rajouter les Drives non copiés manuellement !  :(" & $doublons & @CRLF & @CRLF & "'Liste Drives'  avant copie pour user Dest.  '" & $idrh2 & "' :" & @CRLF & $drivesidrh2 & @CRLF & @CRLF & "'Liste Drives' après copie pour user Dest.   '" & $idrh2 & "' :" & @CRLF & $drivesidrh2bis & @CRLF
 												ClipPut($result)
+												_GUICtrlRichEdit_SetCharColor($aff, 0x00000000)      ;   set color black (BBGGRR format)
 												_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & $result & @CRLF & @CRLF & "			=====	=====	=====	=====	=====			" & @CRLF & @CRLF);, 1)
 												$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & $result
 											EndIf
 										ElseIf @error = 1 Then
-											MsgBox(0, "info cpy drives", "user does not exist " & $idrh2)
-											_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "user does not exist " & $idrh2 & @CRLF & @CRLF);, 1)
+											MsgBox(0, "info cpy drives", "user Dest n'existe pas ! " & $idrh2)
+											_GUICtrlRichEdit_SetCharColor($aff, 0x000000ff)      ;   set color red (BBGGRR format)
+											_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "user Dest n'existe pas ! " & $idrh2 & @CRLF & @CRLF);, 1)
+											_GUICtrlRichEdit_SetCharColor($aff, 0x00000000)      ;   set color black (BBGGRR format)
 										Else
-											MsgBox(0, "info cpy drives", "[Return code " & @error & "] from Active Directory for user " & $idrh2 & @CRLF & "Access denied ...")
-											_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "[Return code " & @error & "] from Active Directory for user " & $idrh2 & "  Access denied ..." & @CRLF & @CRLF);, 1)
+											MsgBox(0, "info cpy drives", "[Return code " & @error & "] from Active Directory for user " & $idrh2 & @CRLF & "Acces refusé ...")
+											_GUICtrlRichEdit_SetCharColor($aff, 0x000000ff)      ;   set color red (BBGGRR format)
+											_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "[Return code " & @error & "] from Active Directory for user " & $idrh2 & "  Acces refusé ..." & @CRLF & @CRLF);, 1)
+											_GUICtrlRichEdit_SetCharColor($aff, 0x00000000)      ;   set color black (BBGGRR format)
 										EndIf
 									EndIf
 								 Else
 									if StringUpper($idrh2) <> "" and $checkbuttondrives=1 Then
-									MsgBox(0,"Warning !","'cpy Drives' works only with domain DCT !",15)
+									MsgBox(0,"Warning !","'cpy Drives' n'est valable que pour le domaine DCT !",15)
 									EndIf
 								EndIf
 								If $idcheckscancpy = 1 And $isDCT=1 and $userexist2=1 Then
 									$commentidrh2 = $commentidrh1
 									If $commentidrh2 = "" Then
-										MsgBox(0, "Warning !", "user 'Srce': " & $idrh1 & ", comment 'Mes scan' undefined !" & @CRLF & "Aborting copy Comment 'Me scan' from 'Srce' to user 'Dest': " & $idrh2 & " !", 15)
-										_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "user 'Srce': " & $idrh1 & ", comment 'Mes scan' undefined !" & @CRLF & "Aborting copy Comment 'Me scan' from 'Srce' to user 'Dest': " & $idrh2 & " !" & @CRLF & @CRLF);, 1)
+										MsgBox(0, "Warning !", "user 'Srce': " & $idrh1 & ", comment 'Mes scan' non defini !" & @CRLF & "Abandon copy Comment 'Me scan' depuis user Srce vers user Dest: " & $idrh2 & " !", 15)
+										_GUICtrlRichEdit_SetCharColor($aff, 0x000000ff)      ;   set color red (BBGGRR format)
+										_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "user 'Srce': " & $idrh1 & ", comment 'Mes scan' non defini !" & @CRLF & "abandon copy Comment 'Me scan' depuis user Srce vers user Dest: " & $idrh2 & " !" & @CRLF & @CRLF);, 1)
+										_GUICtrlRichEdit_SetCharColor($aff, 0x00000000)      ;   set color black (BBGGRR format)
 									Else
 										$commentidrh2 = StringReplace($commentidrh2, $idrh1, $idrh2)
 										_ad_modifyattribute($idrh2, "Comment", "", 1)
 										Global $ivalue = _ad_modifyattribute($idrh2, "Comment", $commentidrh2, 2)
 										If $ivalue = 1 Then
-											MsgBox(0, "info cpy Comment 'Mes scan'", "successfully [+] comment to " & $idrh2 & "  from " & $idrh1, 15)
-											_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "successfully [+] comment to " & $idrh2 & "  from " & $idrh1 & @CRLF & @CRLF);, 1)
+											MsgBox(0, "info cpy Comment 'Mes scan'", " [+] comment [OK] pour user Dest " & $idrh2 & "  depuis user Srce " & $idrh1, 15)
+											_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & " [+] comment [OK] pour user Dest " & $idrh2 & "  depuis user Srce " & $idrh1 & @CRLF & @CRLF);, 1)
 										ElseIf @error = 1 Then
-											MsgBox(0, "info cpy Comment 'Mes scan'", "[user does not exist] " & $idrh2, 15)
-											_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "[user does not exist] " & $idrh2 & @CRLF & @CRLF);, 1)
+											MsgBox(0, "info cpy Comment 'Mes scan'", " user Dest n'existe pas : " & $idrh2, 15)
+											_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "[user n'existe pas !] " & $idrh2 & @CRLF & @CRLF);, 1)
 										Else
-											MsgBox(0, "info cpy Comment 'Mes scan'", "[Return code " & @error & "]  from Active Directory for  " & $idrh2 & @CRLF & "Access denied ?...", 15)
-											_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "[Return code " & @error & "]  from Active Directory for  " & $idrh2 & @CRLF & "Access denied ?..." & @CRLF & @CRLF);, 1)
+											MsgBox(0, "info cpy Comment 'Mes scan'", "[Return code " & @error & "]  from Active Directory for  " & $idrh2 & @CRLF & "Acces refusé !...", 15)
+											_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "[Return code " & @error & "]  from Active Directory for  " & $idrh2 & @CRLF & "Acces refusé !..." & @CRLF & @CRLF);, 1)
 										EndIf
 									EndIf
 								 Else
 									if StringUpper($idrh2) <> "" and $idcheckscancpy=1 Then
-									MsgBox(0,"Warning !","'cpy Mes Scan' works only with domain DCT !",15)
+									MsgBox(0,"Warning !","'cpy Mes Scan' n'est valable que pour le domaine DCT !",15)
 									endif
 								EndIf
 								If $checkbuttongroups = 1 and $userexist2=1 Then ;cpy Groups
-									_arraydisplay($groupidrh1_add, "list of groups selected for adding to user " & $idrh2)
+									_arraydisplay($groupidrh1_add, "  Liste des groupes pour [+] vers user Dest " & $idrh2)
 									$idrh2 = _ad_samaccountnametofqdn($idrh2)
 									$mail = _ad_getobjectattribute($idrh2, "mail")
 									For $k = 0 To UBound($groupidrh1_add) - 1
 										$ivalue = _ad_addusertogroup($groupidrh1_add[$k], $idrh2)
 										If $ivalue = 1 Then
-											ToolTip("User '" & $idrh2 & "' successfully assigned to group '" & $groupidrh1_add[$k] & "'", 5, 5, "")
-											_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "User '" & $idrh2 & "' successfully assigned to group '" & $groupidrh1_add[$k] & "'");, 1)
-											$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "User '" & $idrh2 & "' successfully assigned to group '" & $groupidrh1_add[$k] & "'"
+											ToolTip("User '" & $idrh2 & "' [+] groupe OK :  " & $groupidrh1_add[$k] & "", 5, 5, "")
+											_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "User '" & $idrh2 & "' [+] groupe OK :  " & $groupidrh1_add[$k] & "");, 1)
+											$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "User '" & $idrh2 & "' assigné au groupe metier  '" & $groupidrh1_add[$k] & "'"
 										ElseIf @error = 1 Then
-											MsgBox(64, "Active Directory", "Group '" & $groupidrh1_add[$k] & "' does not exist")
-											_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "Active Directory", "Group '" & $groupidrh1_add[$k] & "' does not exist");, 1)
-											$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & ":  Group '" & $groupidrh1_add[$k] & "' n'existe pas !"
+											MsgBox(64, "Active Directory", "Groupe '" & $groupidrh1_add[$k] & "' n'existe pas !")
+											_GUICtrlRichEdit_SetCharColor($aff, 0x000000ff)      ;   set color red (BBGGRR format)
+											_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "Active Directory", "Le Groupe '" & $groupidrh1_add[$k] & "' n'existe pas !");, 1)
+											$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & ":  Le Groupe '" & $groupidrh1_add[$k] & "' n'existe pas !"
+											_GUICtrlRichEdit_SetCharColor($aff, 0x00000000)      ;   set color black (BBGGRR format)
 										ElseIf @error = 2 Then
-											MsgBox(64, "Active Directory", "User '" & $idrh2 & "' does not exist")
-											_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "User '" & $idrh2 & "' does not exist");, 1)
-											$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & ":   User '" & $idrh2 & "' n'existe pas !"
+											MsgBox(64, "Active Directory", "User Dest '" & $idrh2 & "' n'existe pas !")
+											_GUICtrlRichEdit_SetCharColor($aff, 0x000000ff)      ;   set color red (BBGGRR format)
+											_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "User Dest '" & $idrh2 & "' n'existe pas !");, 1)
+											$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & ":   User Dest '" & $idrh2 & "' n'existe pas !"
+											_GUICtrlRichEdit_SetCharColor($aff, 0x00000000)      ;   set color black (BBGGRR format)
 										ElseIf @error = 3 Then
-											ToolTip("User '" & $idrh2 & "' already memberof group '" & $groupidrh1_add[$k] & "'", 5, 5, "")
-											_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "User '" & $idrh2 & "' already memberof group '" & $groupidrh1_add[$k] & "'");, 1)
-											$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & ":  User '" & $idrh2 & "' already memberof group '" & $groupidrh1_add[$k] & "'"
+											ToolTip("User '" & $idrh2 & "' déjà membre de '" & $groupidrh1_add[$k] & "'", 5, 5, "")
+											_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "User '" & $idrh2 & "' déjà membre de '" & $groupidrh1_add[$k] & "'");, 1)
+											$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & ":  User '" & $idrh2 & "' déjà membre de '" & $groupidrh1_add[$k] & "'"
+											_GUICtrlRichEdit_SetCharColor($aff, 0x00000000)      ;   set color black (BBGGRR format)
 										Else
-											MsgBox(64, "Active Directory", "Return code '" & @error & "' from Active Directory for adding group " & $groupidrh1_add[$k] & " to " & $idrh2 & @CRLF & "Access denied ...")
-											_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "Return code '" & @error & "' from Active Directory for adding group " & $groupidrh1_add[$k] & " to " & $idrh2 & @CRLF & "Access denied ...");, 1)
-											$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & ":  " & $groupidrh1_add[$k] & "  =>  " & $idrh2 & ", access refusé !"
+											MsgBox(64, "Active Directory", "Return code '" & @error & "' from Active Directory for adding group " & $groupidrh1_add[$k] & " to " & $idrh2 & @CRLF & "Acces refusé ! ...")
+											_GUICtrlRichEdit_SetCharColor($aff, 0x000000ff)      ;   set color red (BBGGRR format)
+											_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "Return code '" & @error & "' from Active Directory for adding group " & $groupidrh1_add[$k] & " pour user Dest " & $idrh2 & " :" & " Acces refusé ! ...");, 1)
+											$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & ":  " & $groupidrh1_add[$k] & "  =>  " & $idrh2 & ", acces refusé !"
+											_GUICtrlRichEdit_SetCharColor($aff, 0x00000000)      ;   set color black (BBGGRR format)
 										EndIf
 										If StringInStr($groupidrh1_add[$k], "_AW Commun Manager") AND $mail = "" Then
 											_ad_removeuserfromgroup($groupidrh1_add[$k], $idrh2)
-											$historik = $historik & @CRLF & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & ":  " & $groupidrh1_add[$k] & "  =>  " & $idrh2 & ", removed :  no email Description is set !" & @CRLF
-										_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & $groupidrh1_add[$k] & "  =>  " & $idrh2 & ", removed :  no email Description is set !"  & @CRLF);, 1)
+											$historik = $historik & @CRLF & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & ":  " & $groupidrh1_add[$k] & "  =>  " & $idrh2 & ", retiré email Description !" & @CRLF
+										_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & $groupidrh1_add[$k] & "  =>  " & $idrh2 & ", retiré email Description !"  & @CRLF);, 1)
 										EndIf
 										If StringInStr($groupidrh1_add[$k], "_AW BPE") AND $mail = "" Then
 											_ad_removeuserfromgroup($groupidrh1_add[$k], $idrh2)
-											$historik = $historik & @CRLF & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & ":  " & $groupidrh1_add[$k] & "  =>  " & $idrh2 & ", removed :  no email Description is set !" & @CRLF
-										_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & $groupidrh1_add[$k] & "  =>  " & $idrh2 & ", removed :  no email Description is set !" & @CRLF);, 1)
+											$historik = $historik & @CRLF & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & ":  " & $groupidrh1_add[$k] & "  =>  " & $idrh2 & ", retiré email Description !" & @CRLF
+										_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & $groupidrh1_add[$k] & "  =>  " & $idrh2 & ", retiré email Description !" & @CRLF);, 1)
 										EndIf
 										If StringInStr($groupidrh1_add[$k], "_AW BPE Restreint") AND $mail = "" Then
 											_ad_removeuserfromgroup($groupidrh1_add[$k], $idrh2)
-											$historik = $historik & @CRLF & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & ":  " & $groupidrh1_add[$k] & "  =>  " & $idrh2 & ", removed :  no email Description is set !" & @CRLF
-										_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & $groupidrh1_add[$k] & "  =>  " & $idrh2 & ", removed :  no email Description is set !" & @CRLF);, 1)
+											$historik = $historik & @CRLF & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & ":  " & $groupidrh1_add[$k] & "  =>  " & $idrh2 & ", retiré email Description !" & @CRLF
+										_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & $groupidrh1_add[$k] & "  =>  " & $idrh2 & ", retiré email Description !" & @CRLF);, 1)
 										EndIf
 									Next
 								 Else
@@ -3014,10 +3124,11 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 							Guidelete($hGUI)
 							Return 0
 						Else
-							MsgBox(0, "Warning !", "userID:  '" & $idrh1 & "'  does not exist !", 5)
-							_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "userID:  '" & $idrh1 & "'  does not exist !");, 1)
-							$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & ":  utilisateur,  " & $idrh1 & ", n'existe pas !"
-
+							MsgBox(0, "Warning !", "user Srce  '" & $idrh1 & "'  n'existe pas !", 5)
+							_GUICtrlRichEdit_SetCharColor($aff, 0x000000ff)      ;   set color red (BBGGRR format)
+							_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "user Srce:  '" & $idrh1 & "'  n'existe pas !");, 1)
+							$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & ":  user Srce:  " & $idrh1 & ", n'existe pas !"
+						    _GUICtrlRichEdit_SetCharColor($aff, 0x00000000)      ;   set color black (BBGGRR format)
 							Guidelete($hGUI)
 							Return 0
 						EndIf
@@ -3752,6 +3863,7 @@ Func bitlocker()
 	$filez = FileOpen(@ScriptDir & "\computers-AD_OU" & ".txt", 2)
 	If @error > 0 Then
 		MsgBox(64, $adroot, "No computers found ! ")
+		_GUICtrlRichEdit_SetCharColor($aff, 0x000000ff)      ;   set color red (BBGGRR format)
 		_GUICtrlRichEdit_AppendText($aff, @CRLF & "Bitlocker Error ! No computers found in this OU: " & $sout);, 1)
 		ToolTip("", 5, 5)
 		Return 0
@@ -3792,6 +3904,7 @@ Func bitlocker()
 			GUIDelete($hgui2)
 			ToolTip("", 5, 5)
 			MsgBox(0, "Info !", "aborting, no computers found !", 7)
+			_GUICtrlRichEdit_SetCharColor($aff, 0x000000ff)      ;   set color red (BBGGRR format)
 			_GUICtrlRichEdit_AppendText($aff, @CRLF & "Bitlocker Error ! No computers found in this OU: " & $sout);, 1)
 			Return 0
 		EndIf
@@ -3836,7 +3949,7 @@ Func bitlocker()
 						ToolTip("", 5, 5)
 						ExitLoop
 					Else
-						MsgBox(4160, "warning !", "nothing selected... try again or close window")
+						MsgBox(4160, "warning !", "aucune selection... réessayez ou fermer la fenetre... [x]")
 					EndIf
 				Case $gui_event_close
 					GUIDelete($hgui2)
@@ -3879,10 +3992,12 @@ $result=""
 	If @error > 0 Then
 		MsgBox(64, $adroot, "No computers found ! ")
 		 if $isDCT=1 Then
-_GUICtrlRichEdit_AppendText($aff, @CRLF & "DCT: SCCM group in PITR ! No computers found in this OU: " & $sout);, 1)
-Else
-_GUICtrlRichEdit_AppendText($aff, @CRLF & " No computers found in this OU: " & $sout);, 1)
-   EndIf
+			_GUICtrlRichEdit_SetCharColor($aff, 0x000000ff)      ;   set color red (BBGGRR format)
+			_GUICtrlRichEdit_AppendText($aff, @CRLF & "DCT: SCCM group in PITR ! No computers found in this OU: " & $sout);, 1)
+		 Else
+			_GUICtrlRichEdit_SetCharColor($aff, 0x000000ff)      ;   set color red (BBGGRR format)
+			_GUICtrlRichEdit_AppendText($aff, @CRLF & " No computers found in this OU: " & $sout);, 1)
+		 EndIf
 		ToolTip("", 5, 5)
 		Return 0
 	 EndIf
@@ -3961,7 +4076,7 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & " No computers found in this OU: " & $
 					ToolTip("", 5, 5)
 					ExitLoop
 				Else
-					MsgBox(4160, "warning !", "nothing selected... try again or close window")
+					MsgBox(4160, "warning !", "aucune selection... réessayez ou fermer la fenetre... [x]")
 				EndIf
 			Case $gui_event_close
 				GUIDelete($hgui2)
@@ -4138,7 +4253,7 @@ EndIf
 					 ;sort de la boucle et termine boucle for $i (computers[$i])
 					ExitLoop
 				Else
-					MsgBox(4160, "warning !", "nothing selected... try again or close window")
+					MsgBox(4160, "warning !", "aucune selection... réessayez ou fermer la fenetre... [x]")
 				EndIf
 			Case $gui_event_close
 				$idcheckboxgroup = 2
@@ -4212,6 +4327,7 @@ EndIf
 					$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  " & $result
 				 Else ; Abandon car aucun groupe n'a été selectionné...
 					MsgBox(0,"Information !","  Pas de Groupe(s) selectionné(s) pour Ordinateur(s) !" & @crlf & @crlf & " Abandon !")
+			_GUICtrlRichEdit_SetCharColor($aff, 0x000000ff)      ;   set color red (BBGGRR format)
 	 		_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  Pas de groupe(s) selectionné(s) => Ordinateur(s)...  Abandon !" & @CRLF);, 1)
 			;$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  " & $result
 	 EndIf
@@ -4232,8 +4348,8 @@ Func directives() ;routine principale des Directives Metiers
 
 	#Region IHM Directives
 		If $isdct = 0 Then
-			MsgBox(0, "warning !", "'Directives' only working for domain: DCT.Adt.Local", 7)
-			_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "'Directives' only working for domain: DCT.Adt.Local (Directives Metiers: Dir-nnn)" & @CRLF);, 1)
+			MsgBox(0, "warning !", "'Directives Metier'  valable que pour le domaine DCT !", 7)
+			_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "'Directives Metiers' valable que pour le domaine: DCT.ADT.Local " & @CRLF);, 1)
 			Return 0
 		 EndIf
 
@@ -4241,13 +4357,14 @@ Func directives() ;routine principale des Directives Metiers
 		$ousourcedir = StringSplit($ousourcedir, ",")
 		$ousourcedir = $ousourcedir[3]
 		$ousourcedir = StringTrimLeft($ousourcedir, 3)
-		$hguidir = GUICreate("Select Directive and close window...", 650, 80)
+		$hguidir = GUICreate("Selection 'Directive Metier'  puis fermer fenetre [x]...", 650, 80)
 	#EndRegion
 
 	#Region Liste des Directives
 		If $directives = "" Then
 			liste_directives()
-			_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "Database Directives Metiers active" & @CRLF);, 1)
+			_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & " Premier lancement des 'Directives Metiers' !  (matrice crée)" & @CRLF);, 1)
+			_GUICtrlRichEdit_SetCharColor($aff, 0x00000000)      ;   set color black (BBGGRR format)
 		EndIf
 	#EndRegion Liste des Directives
 
@@ -4261,8 +4378,8 @@ Func directives() ;routine principale des Directives Metiers
 				If StringLen($scomboreaddirectives) > 4 Then
 				Else
 					Global $dirapplied = 0
-					MsgBox(0, "Warning !", "inexistant Directive... aborting !", 7)
-					_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "inexistant Directive... aborting !" & @CRLF);, 1)
+					MsgBox(0, "Warning !", "Directive Metier n'existe pas dans cette OU !", 7)
+					_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & " Directive Metier n'existe pas... abandon !" & @CRLF);, 1)
 					GUIDelete($hguidir)
 					ExitLoop
 				EndIf
@@ -4295,7 +4412,7 @@ Func directives() ;routine principale des Directives Metiers
 								If $scomboreaddirectives = "[ Zero Directives ]" Then
 									Global $groupsidrh1 = _ad_getusergroups($idrh1)
 									If @error > 0 Then
-										MsgBox(0, "Info !", "user " & $idrh1 & "has no groups...", 7)
+										MsgBox(0, "Info !", "user Srce " & $idrh1 & " n'a pas de groupes...", 7)
 										Return 0
 									EndIf
 									auto_remove()
@@ -4308,7 +4425,7 @@ Func directives() ;routine principale des Directives Metiers
 								If $scomboreaddirectives = "_SM_Sites Tertiaires RLP" OR $scomboreaddirectives = "_SM_Site_Tertiaire_Enseigne" Then ; _SM_Sites Tertiaires RLP
 									Global $groupsidrh1 = _ad_getusergroups($idrh1)
 									If @error > 0 Then
-										MsgBox(0, "Info !", "user " & $idrh1 & "has no groups...", 7)
+										MsgBox(0, "Info !", "user " & $idrh1 & "n'a pas de groupes..", 7)
 										Return 0
 									EndIf
 									auto_remove()
@@ -4320,25 +4437,26 @@ Func directives() ;routine principale des Directives Metiers
 									Global $ivalue = _ad_addusertogroup("RG-" & $ou & "_SM_Sites Tertiaires RLP", $idrh1)
 									If $ivalue = 1 Then
 										$dirapplied = 1
-										MsgBox(64, "", "User '" & $idrh1 & "' successfully assigned to group '" & "RG-" & $ou & "_SM_Sites Tertiaires RLP" & "'")
+										MsgBox(64, "", "User Srce '" & $idrh1 & "'  assigné  au groupe metier '" & "RG-" & $ou & "_SM_Sites Tertiaires RLP" & "'")
 									ElseIf @error = 1 Then
-										MsgBox(64, "", "Group '" & "RG-" & $ou & "_SM_Sites Tertiaires RLP" & "' does not exist")
+										MsgBox(64, "", "Groupe '" & "RG-" & $ou & "_SM_Sites Tertiaires RLP" & "' n'existe pas dans cette OU")
 									ElseIf @error = 2 Then
-										MsgBox(64, "", "User '" & $idrh1 & "' does not exist")
+										MsgBox(64, "", "User Srce '" & $idrh1 & "' n'existe pas !")
 									ElseIf @error = 3 Then
-										MsgBox(64, "", "User '" & $idrh1 & "' is already a member of group '" & "RG-" & $ou & "_SM_Sites Tertiaires RLP" & "'")
+										MsgBox(64, "", "User '" & $idrh1 & "' déjà membre du groupe metier '" & "RG-" & $ou & "_SM_Sites Tertiaires RLP" & "'")
 										$dirapplied = 1
 									Else
 										MsgBox(64, "", "Return code '" & @error & "' from Active Directory")
 									EndIf
 									If $dirapplied = 0 Then
+									    $defautdc = $defautdcinit
 										$defautdc = StringReplace($defautdc, ".", ",DC=")
 										$defautdc = ",DC=" & $defautdc
 										$sobject = _ad_samaccountnametofqdn($idrh1)
 										$souinitial = "OU=Utilisateurs,OU=" & $ousourcedir & ",OU=" & StringUpper(StringMid($ousourcedir, 1, 2)) & $defautdc
 										$ivalue = _ad_moveobject($souinitial, $sobject)
 										If $ivalue = 1 Then
-											MsgBox(64, "Active Directory ", $idrh1 & "' successfully replaced to '" & $ousourcedir & "'" & @CRLF & @CRLF & "Directive Not Applied...")
+											MsgBox(64, "Active Directory ", $idrh1 & "' replacé vers  '" & $ousourcedir & "'" & @CRLF & @CRLF & "Directive non appliquée ...")
 											ToolTip("synchronising AD", 5, 5)
 											Sleep(3000)
 											ToolTip("", 5, 5)
@@ -4350,7 +4468,7 @@ Func directives() ;routine principale des Directives Metiers
 												_ad_addusertogroup($groupsidrh1[$z], $idrh1)
 											Next
 										EndIf
-										$actiongroups = StringReplace($actiongroups, " Groupes Obsoletes Directive : ", " Rollback de la Directive Initiale ")
+										$actiongroups = StringReplace($actiongroups, " Groupes Obsoletes Directive : ", " Rollback de la Directive Metier Initiale :  ")
 									EndIf
 									If $dirapplied = 1 Then
 										Global $groupsidrh1 = _ad_getusergroups($idrh1)
@@ -4361,38 +4479,39 @@ Func directives() ;routine principale des Directives Metiers
 								   ;SG-GAUB_ACCES_EVS; USR_BP_GUICHET_GENE;USR_BP_GUICHET_ESPACE_CO
 									Global $groupsidrh1 = _ad_getusergroups($idrh1)
 									If @error > 0 Then
-										MsgBox(0, "Info !", "user " & $idrh1 & "has no groups...", 7)
+										MsgBox(0, "Info !", "user " & $idrh1 & "n'a pas de groupes...", 7)
 										Return 0
 									EndIf
 									auto_remove()
 									Global $restoredirectives = $actiongroups
 									$restoredirectives = StringReplace($restoredirectives, " ; ", "|")
 									$actiongroups = " Groupes Obsoletes Directive : " & $actiongroups
-									$ou = InputBox("default OU ?", "ex: BPLY, BPRE ... " & @CRLF & "_SM_GUICHET" & @crlf & " on ne met plus: RG-GAUB_SM_GUICHET...", "GAUB")
+									$ou = InputBox("default OU ?", "ex: BPLY, BPRE ... " & @CRLF & "Dir-" & $numdirmetier & "   =>  " & "[ GAUB ]" & @CRLF & "_SM_GUICHET" & @crlf & " on ne met plus: RG-GAUB_SM_GUICHET...", "GAUB")
 									move_user()
 									;Global $ivalue = _ad_addusertogroup("RG-" & $ou & "_SM_GUICHET", $idrh1)
 									Global $ivalue = _ad_addusertogroup("SG-" & $ou & "_ACCES_EVS" , $idrh1)
 									If $ivalue = 1 Then
 										$dirapplied = 1
-										MsgBox(64, "", "User '" & $idrh1 & "' successfully assigned to group '" & "SG-" & $ou & "_ACCES_EVS" & "'")
+										MsgBox(64, "", "User '" & $idrh1 & "' assigné au groupe metier  '" & "SG-" & $ou & "_ACCES_EVS" & "'")
 									ElseIf @error = 1 Then
-										MsgBox(64, "", "Group '" & "SG-" & $ou & "_ACCES_EVS" & "' does not exist")
+										MsgBox(64, "", "Group '" & "SG-" & $ou & "_ACCES_EVS" & "' n'existe pas !")
 									ElseIf @error = 2 Then
-										MsgBox(64, "", "User '" & $idrh1 & "' does not exist")
+										MsgBox(64, "", "User '" & $idrh1 & "' n'existe pas !")
 									ElseIf @error = 3 Then
-										MsgBox(64, "", "User '" & $idrh1 & "' is already a member of group '" & "SG-" & $ou & "_ACCES_EVS" & "'")
+										MsgBox(64, "", "User '" & $idrh1 & "' est déjà membre du groupe '" & "SG-" & $ou & "_ACCES_EVS" & "'")
 										$dirapplied = 1
 									Else
 										MsgBox(64, "", "Return code '" & @error & "' from Active Directory")
 									EndIf
 									If $dirapplied = 0 Then
+									    $defautdc = $defautdcinit
 										$defautdc = StringReplace($defautdc, ".", ",DC=")
 										$defautdc = ",DC=" & $defautdc
 										$sobject = _ad_samaccountnametofqdn($idrh1)
 										$souinitial = "OU=Utilisateurs,OU=" & $ousourcedir & ",OU=" & StringUpper(StringMid($ousourcedir, 1, 2)) & $defautdc
 										$ivalue = _ad_moveobject($souinitial, $sobject)
 										If $ivalue = 1 Then
-											MsgBox(64, "Active Directory ", $idrh1 & "' successfully replaced to '" & $ousourcedir & "'" & @CRLF & @CRLF & "Directive Not Applied...")
+											MsgBox(64, "Active Directory ", $idrh1 & "' replacé vers  '" & $ousourcedir & "'" & @CRLF & @CRLF & "Directive non appliquée ...")
 											ToolTip("synchronising AD", 5, 5)
 											Sleep(3000)
 											ToolTip("", 5, 5)
@@ -4404,7 +4523,7 @@ Func directives() ;routine principale des Directives Metiers
 												_ad_addusertogroup($groupsidrh1[$z], $idrh1)
 											Next
 										EndIf
-										$actiongroups = StringReplace($actiongroups, " Groupes Obsoletes Directive : ", " Rollback de la Directive Initiale ")
+										$actiongroups = StringReplace($actiongroups, " Groupes Obsoletes Directive : ", " Rollback de la Directive Metier Initiale :  ")
 									EndIf
 									If $dirapplied = 1 Then
 										_ad_addusertogroup("SG-GAUB_ACCES_EVS", $idrh1)
@@ -4420,7 +4539,7 @@ Func directives() ;routine principale des Directives Metiers
 							    If $scomboreaddirectives = "_Vendeur Formateur LPM" Then
 									Global $groupsidrh1 = _ad_getusergroups($idrh1)
 									If @error > 0 Then
-										MsgBox(0, "Info !", "user " & $idrh1 & "has no groups...", 7)
+										MsgBox(0, "Info !", "user " & $idrh1 & "n'a pas de groupes...", 7)
 										Return 0
 									EndIf
 									auto_remove()
@@ -4433,25 +4552,26 @@ Func directives() ;routine principale des Directives Metiers
 									Global $ivalue = _ad_addusertogroup("SG-" & $ou & "_ACCES_EVS" , $idrh1)
 									If $ivalue = 1 Then
 										$dirapplied = 1
-										MsgBox(64, "", "User '" & $idrh1 & "' successfully assigned to group '" & "SG-" & $ou & "_ACCES_EVS" & "'")
+										MsgBox(64, "", "User '" & $idrh1 & "' assigné au groupe metier  '" & "SG-" & $ou & "_ACCES_EVS" & "'")
 									ElseIf @error = 1 Then
-										MsgBox(64, "", "Group '" & "SG-" & $ou & "_ACCES_EVS" & "' does not exist")
+										MsgBox(64, "", "Group '" & "SG-" & $ou & "_ACCES_EVS" & "' n'existe pas !")
 									ElseIf @error = 2 Then
-										MsgBox(64, "", "User '" & $idrh1 & "' does not exist")
+										MsgBox(64, "", "User '" & $idrh1 & "' n'existe pas !")
 									ElseIf @error = 3 Then
-										MsgBox(64, "", "User '" & $idrh1 & "' is already a member of group '" & "SG-" & $ou & "_ACCES_EVS" & "'")
+										MsgBox(64, "", "User '" & $idrh1 & "' est déjà membre du groupe '" & "SG-" & $ou & "_ACCES_EVS" & "'")
 										$dirapplied = 1
 									Else
 										MsgBox(64, "", "Return code '" & @error & "' from Active Directory")
 									EndIf
 									If $dirapplied = 0 Then
+									    $defautdc = $defautdcinit
 										$defautdc = StringReplace($defautdc, ".", ",DC=")
 										$defautdc = ",DC=" & $defautdc
 										$sobject = _ad_samaccountnametofqdn($idrh1)
 										$souinitial = "OU=Utilisateurs,OU=" & $ousourcedir & ",OU=" & StringUpper(StringMid($ousourcedir, 1, 2)) & $defautdc
 										$ivalue = _ad_moveobject($souinitial, $sobject)
 										If $ivalue = 1 Then
-											MsgBox(64, "Active Directory ", $idrh1 & "' successfully replaced to '" & $ousourcedir & "'" & @CRLF & @CRLF & "Directive Not Applied...")
+											MsgBox(64, "Active Directory ", $idrh1 & "' replacé vers  '" & $ousourcedir & "'" & @CRLF & @CRLF & "Directive non appliquée ...")
 											ToolTip("synchronising AD", 5, 5)
 											Sleep(3000)
 											ToolTip("", 5, 5)
@@ -4463,7 +4583,7 @@ Func directives() ;routine principale des Directives Metiers
 												_ad_addusertogroup($groupsidrh1[$z], $idrh1)
 											Next
 										EndIf
-										$actiongroups = StringReplace($actiongroups, " Groupes Obsoletes Directive : ", " Rollback de la Directive Initiale ")
+										$actiongroups = StringReplace($actiongroups, " Groupes Obsoletes Directive : ", " Rollback de la Directive Metier Initiale :  ")
 									EndIf
 									If $dirapplied = 1 Then
 										_ad_addusertogroup("SG-GAUB_ACCES_EVS", $idrh1)
@@ -4483,7 +4603,7 @@ Func directives() ;routine principale des Directives Metiers
 								   ;RG-[EAID]_SM_Conseil Bancaire; SG-GAUB_ACCES_EVS; USR_BP_GUICHET_GENE
 									Global $groupsidrh1 = _ad_getusergroups($idrh1)
 									If @error > 0 Then
-										MsgBox(0, "Info !", "user " & $idrh1 & "has no groups...", 7)
+										MsgBox(0, "Info !", "user " & $idrh1 & "n'a pas de groupes...", 7)
 										Return 0
 									EndIf
 									auto_remove()
@@ -4492,7 +4612,7 @@ Func directives() ;routine principale des Directives Metiers
 									$actiongroups = " Groupes Obsoletes Directive : " & $actiongroups
 									Global $groupsidrh1 = _ad_getusergroups($idrh1)
 									If @error > 0 Then
-										MsgBox(0, "Info !", "user " & $idrh1 & "has no groups...", 7)
+										MsgBox(0, "Info !", "user " & $idrh1 & "n'a pas de groupes...", 7)
 										Return 0
 									EndIf
 									_arraysort($groupsidrh1, 0, 1)
@@ -4501,13 +4621,13 @@ Func directives() ;routine principale des Directives Metiers
 									Global $ivalue = _ad_addusertogroup("RG-" & $ou & "_SM_Conseil Bancaire", $idrh1)
 									If $ivalue = 1 Then
 										$dirapplied = 1
-										MsgBox(64, "", "User '" & $idrh1 & "' successfully assigned to group '" & "RG-" & $ou & "_SM_Conseil Bancaire" & "'")
+										MsgBox(64, "", "User '" & $idrh1 & "' assigné au groupe metier  '" & "RG-" & $ou & "_SM_Conseil Bancaire" & "'")
 									ElseIf @error = 1 Then
-										MsgBox(64, "", "Group '" & "RG-" & $ou & "_SM_Conseil Bancaire" & "' does not exist")
+										MsgBox(64, "", "Groupe '" & "RG-" & $ou & "_SM_Conseil Bancaire" & "' n'existe pas !")
 									ElseIf @error = 2 Then
-										MsgBox(64, "", "User '" & $idrh1 & "' does not exist")
+										MsgBox(64, "", "User '" & $idrh1 & "' n'existe pas !")
 									ElseIf @error = 3 Then
-										MsgBox(64, "", "User '" & $idrh1 & "' is already a member of group '" & "RG-" & $ou & "_SM_Conseil Bancaire" & "'")
+										MsgBox(64, "", "User '" & $idrh1 & "' est déjà membre du groupe '" & "RG-" & $ou & "_SM_Conseil Bancaire" & "'")
 										$dirapplied = 1
 									Else
 										MsgBox(64, "", "Return code '" & @error & "' from Active Directory")
@@ -4519,7 +4639,7 @@ Func directives() ;routine principale des Directives Metiers
 										$souinitial = "OU=Utilisateurs,OU=" & $ousourcedir & ",OU=" & StringUpper(StringMid($ousourcedir, 1, 2)) & $defautdc
 										$ivalue = _ad_moveobject($souinitial, $sobject)
 										If $ivalue = 1 Then
-											MsgBox(64, "Active Directory ", $idrh1 & "' successfully replaced to '" & $ousourcedir & "'" & @CRLF & @CRLF & "Directive Not Applied...")
+											MsgBox(64, "Active Directory ", $idrh1 & "' replacé vers  '" & $ousourcedir & "'" & @CRLF & @CRLF & "Directive non appliquée ...")
 											ToolTip("synchronising AD", 5, 5)
 											Sleep(3000)
 											ToolTip("", 5, 5)
@@ -4531,7 +4651,7 @@ Func directives() ;routine principale des Directives Metiers
 												_ad_addusertogroup($groupsidrh1[$z], $idrh1)
 											Next
 										EndIf
-										$actiongroups = StringReplace($actiongroups, " Groupes Obsoletes Directive : ", " Rollback de la Directive Initiale ")
+										$actiongroups = StringReplace($actiongroups, " Groupes Obsoletes Directive : ", " Rollback de la Directive Metier Initiale :  ")
 									EndIf
 									If $dirapplied = 1 Then
 										_ad_addusertogroup("SG-GAUB_ACCES_EVS", $idrh1)
@@ -4545,7 +4665,7 @@ Func directives() ;routine principale des Directives Metiers
 								If $scomboreaddirectives = "_SM_Conseil Bancaire W10" Then ;SM_Conseil Bancaire (w10)
 									Global $groupsidrh1 = _ad_getusergroups($idrh1)
 									If @error > 0 Then
-										MsgBox(0, "Info !", "user " & $idrh1 & "has no groups...", 7)
+										MsgBox(0, "Info !", "user " & $idrh1 & "n'a pas de groupes...", 7)
 										Return 0
 									EndIf
 									auto_remove()
@@ -4554,7 +4674,7 @@ Func directives() ;routine principale des Directives Metiers
 									$actiongroups = " Groupes Obsoletes Directive : " & $actiongroups
 									Global $groupsidrh1 = _ad_getusergroups($idrh1)
 									If @error > 0 Then
-										MsgBox(0, "Info !", "user " & $idrh1 & "has no groups...", 7)
+										MsgBox(0, "Info !", "user " & $idrh1 & "n'a pas de groupes...", 7)
 										Return 0
 									EndIf
 									_arraysort($groupsidrh1, 0, 1)
@@ -4563,13 +4683,13 @@ Func directives() ;routine principale des Directives Metiers
 									Global $ivalue = _ad_addusertogroup("RG-" & $ou & "SM_Conseil Bancaire", $idrh1)
 									If $ivalue = 1 Then
 										$dirapplied = 1
-										MsgBox(64, "", "User '" & $idrh1 & "' successfully assigned to group '" & "RG-" & $ou & "SM_Conseil Bancaire" & "'")
+										MsgBox(64, "", "User '" & $idrh1 & "' assigné au groupe metier  '" & "RG-" & $ou & "SM_Conseil Bancaire" & "'")
 									ElseIf @error = 1 Then
-										MsgBox(64, "", "Group '" & "RG-" & $ou & "SM_Conseil Bancaire" & "' does not exist")
+										MsgBox(64, "", "Groupe '" & "RG-" & $ou & "SM_Conseil Bancaire" & "' n'existe pas !")
 									ElseIf @error = 2 Then
-										MsgBox(64, "", "User '" & $idrh1 & "' does not exist")
+										MsgBox(64, "", "User '" & $idrh1 & "' n'existe pas !")
 									ElseIf @error = 3 Then
-										MsgBox(64, "", "User '" & $idrh1 & "' is already a member of group '" & "RG-" & $ou & "SM_Conseil Bancaire" & "'")
+										MsgBox(64, "", "User '" & $idrh1 & "' est déjà membre du groupe '" & "RG-" & $ou & "SM_Conseil Bancaire" & "'")
 										$dirapplied = 1
 									Else
 										MsgBox(64, "", "Return code '" & @error & "' from Active Directory")
@@ -4581,7 +4701,7 @@ Func directives() ;routine principale des Directives Metiers
 										$souinitial = "OU=Utilisateurs,OU=" & $ousourcedir & ",OU=" & StringUpper(StringMid($ousourcedir, 1, 2)) & $defautdc
 										$ivalue = _ad_moveobject($souinitial, $sobject)
 										If $ivalue = 1 Then
-											MsgBox(64, "Active Directory ", $idrh1 & "' successfully replaced to '" & $ousourcedir & "'" & @CRLF & @CRLF & "Directive Not Applied...")
+											MsgBox(64, "Active Directory ", $idrh1 & "' replacé vers  '" & $ousourcedir & "'" & @CRLF & @CRLF & "Directive non appliquée ...")
 											ToolTip("synchronising AD", 5, 5)
 											Sleep(3000)
 											ToolTip("", 5, 5)
@@ -4593,7 +4713,7 @@ Func directives() ;routine principale des Directives Metiers
 												_ad_addusertogroup($groupsidrh1[$z], $idrh1)
 											Next
 										EndIf
-										$actiongroups = StringReplace($actiongroups, " Groupes Obsoletes Directive : ", " Rollback de la Directive Initiale ")
+										$actiongroups = StringReplace($actiongroups, " Groupes Obsoletes Directive : ", " Rollback de la Directive Metier Initiale :  ")
 									EndIf
 									If $dirapplied = 1 Then
 										; _ad_addusertogroup("RG-PITR_CM_COBA_Agent", $idrh1)
@@ -4611,7 +4731,7 @@ Func directives() ;routine principale des Directives Metiers
 								   ;RG-[EAID]_SM_Conseil Bancaire; SG-GAUB_ACCES_EVS; USR_BP_GUICHET_GENE
 									Global $groupsidrh1 = _ad_getusergroups($idrh1)
 									If @error > 0 Then
-										MsgBox(0, "Info !", "user " & $idrh1 & "has no groups...", 7)
+										MsgBox(0, "Info !", "user " & $idrh1 & "n'a pas de groupes...", 7)
 										Return 0
 									EndIf
 									auto_remove()
@@ -4620,7 +4740,7 @@ Func directives() ;routine principale des Directives Metiers
 									$actiongroups = " Groupes Obsoletes Directive : " & $actiongroups
 									Global $groupsidrh1 = _ad_getusergroups($idrh1)
 									If @error > 0 Then
-										MsgBox(0, "Info !", "user " & $idrh1 & "has no groups...", 7)
+										MsgBox(0, "Info !", "user " & $idrh1 & "n'a pas de groupes...", 7)
 										Return 0
 									EndIf
 									_arraysort($groupsidrh1, 0, 1)
@@ -4636,28 +4756,28 @@ Func directives() ;routine principale des Directives Metiers
 									If $ivalue = 1 Then
 										$dirapplied = 1
 										If $t = 6 Then
-											MsgBox(64, "", "User '" & $idrh1 & "' successfully assigned to group '" & "RG-" & $ou & "_SM_DET" & "'")
+											MsgBox(64, "", "User '" & $idrh1 & "' assigné au groupe metier  '" & "RG-" & $ou & "_SM_DET" & "'")
 										EndIf
 										If $t = 7 Then
-											MsgBox(64, "", "User '" & $idrh1 & "' successfully assigned to group '" & "RG-" & $ou & "_SM_Conseil Bancaire" & "'")
+											MsgBox(64, "", "User '" & $idrh1 & "' assigné au groupe metier  '" & "RG-" & $ou & "_SM_Conseil Bancaire" & "'")
 										EndIf
 									ElseIf @error = 1 Then
-										; " does not exist"
+										; " n'existe pas !"
 										If $t = 6 Then
-											MsgBox(64, "", "Group '" & "RG-" & $ou & "_SM_DET" & "' does not exist")
+											MsgBox(64, "", "Groupe '" & "RG-" & $ou & "_SM_DET" & "' n'existe pas !")
 										EndIf
 										If $t = 7 Then
-											MsgBox(64, "", "Group '" & "RG-" & $ou & "_SM_Conseil Bancaire" & "' does not exist")
+											MsgBox(64, "", "Groupe '" & "RG-" & $ou & "_SM_Conseil Bancaire" & "' n'existe pas !")
 										EndIf
 									ElseIf @error = 2 Then
-										MsgBox(64, "", "User '" & $idrh1 & "' does not exist")
+										MsgBox(64, "", "User '" & $idrh1 & "' n'existe pas !")
 									ElseIf @error = 3 Then
-										; " User $idrh1 is already a member of group "
+										; " User $idrh1 est déjà membre du groupe "
 										If $t = 6 Then
-											MsgBox(64, "", "User '" & $idrh1 & "' is already a member of group '" & "RG-" & $ou & "_SM_DET" & "'")
+											MsgBox(64, "", "User '" & $idrh1 & "' est déjà membre du groupe '" & "RG-" & $ou & "_SM_DET" & "'")
 										EndIf
 										If $t = 7 Then
-											MsgBox(64, "", "User '" & $idrh1 & "' is already a member of group '" & "RG-" & $ou & "_SM_Conseil Bancaire" & "'")
+											MsgBox(64, "", "User '" & $idrh1 & "' est déjà membre du groupe '" & "RG-" & $ou & "_SM_Conseil Bancaire" & "'")
 										 EndIf
 
 										$dirapplied = 1
@@ -4665,13 +4785,14 @@ Func directives() ;routine principale des Directives Metiers
 										MsgBox(64, "", "Return code '" & @error & "' from Active Directory")
 									EndIf
 									If $dirapplied = 0 Then
+									    $defautdc = $defautdcinit
 										$defautdc = StringReplace($defautdc, ".", ",DC=")
 										$defautdc = ",DC=" & $defautdc
 										$sobject = _ad_samaccountnametofqdn($idrh1)
 										$souinitial = "OU=Utilisateurs,OU=" & $ousourcedir & ",OU=" & StringUpper(StringMid($ousourcedir, 1, 2)) & $defautdc
 										$ivalue = _ad_moveobject($souinitial, $sobject)
 										If $ivalue = 1 Then
-											MsgBox(64, "Active Directory ", $idrh1 & "' successfully replaced to '" & $ousourcedir & "'" & @CRLF & @CRLF & "Directive Not Applied...")
+											MsgBox(64, "Active Directory ", $idrh1 & "' replacé vers  '" & $ousourcedir & "'" & @CRLF & @CRLF & "Directive non appliquée ...")
 											ToolTip("synchronising AD", 5, 5)
 											Sleep(3000)
 											ToolTip("", 5, 5)
@@ -4683,7 +4804,7 @@ Func directives() ;routine principale des Directives Metiers
 												_ad_addusertogroup($groupsidrh1[$z], $idrh1)
 											Next
 										EndIf
-										$actiongroups = StringReplace($actiongroups, " Groupes Obsoletes Directive : ", " Rollback de la Directive Initiale ")
+										$actiongroups = StringReplace($actiongroups, " Groupes Obsoletes Directive : ", " Rollback de la Directive Metier Initiale :  ")
 									EndIf
 									If $dirapplied = 1 Then
 										 If $t = 6 Then ;win 10 (_SM_det)
@@ -4703,7 +4824,7 @@ Func directives() ;routine principale des Directives Metiers
 								If $scomboreaddirectives = "_SM_Siege_Enseigne" Then ; n'existe plus renommé en RG-[EAID]_SM_Siege Banque (ne sera pas pris en compte)
 									Global $groupsidrh1 = _ad_getusergroups($idrh1)
 									If @error > 0 Then
-										MsgBox(0, "Info !", "user " & $idrh1 & "has no groups...", 7)
+										MsgBox(0, "Info !", "user " & $idrh1 & "n'a pas de groupes...", 7)
 										Return 0
 									EndIf
 									auto_remove()
@@ -4715,25 +4836,26 @@ Func directives() ;routine principale des Directives Metiers
 									Global $ivalue = _ad_addusertogroup("RG-" & $ou & "_SM_Siege_Enseigne", $idrh1)
 									If $ivalue = 1 Then
 										$dirapplied = 1
-										MsgBox(64, "", "User '" & $idrh1 & "' successfully assigned to group '" & "RG-" & $ou & "_SM_Siege_Enseigne" & "'")
+										MsgBox(64, "", "User '" & $idrh1 & "' assigné au groupe metier  '" & "RG-" & $ou & "_SM_Siege_Enseigne" & "'")
 									ElseIf @error = 1 Then
-										MsgBox(64, "", "Group '" & "RG-" & $ou & "_SM_Siege_Enseigne" & "' does not exist")
+										MsgBox(64, "", "Groupe '" & "RG-" & $ou & "_SM_Siege_Enseigne" & "' n'existe pas !")
 									ElseIf @error = 2 Then
-										MsgBox(64, "", "User '" & $idrh1 & "' does not exist")
+										MsgBox(64, "", "User '" & $idrh1 & "' n'existe pas !")
 									ElseIf @error = 3 Then
-										MsgBox(64, "", "User '" & $idrh1 & "' is already a member of group '" & "RG-" & $ou & "_SM_Siege_Enseigne" & "'")
+										MsgBox(64, "", "User '" & $idrh1 & "' est déjà membre du groupe '" & "RG-" & $ou & "_SM_Siege_Enseigne" & "'")
 										$dirapplied = 1
 									Else
 										MsgBox(64, "", "Return code '" & @error & "' from Active Directory")
 									EndIf
 									If $dirapplied = 0 Then
+									    $defautdc = $defautdcinit
 										$defautdc = StringReplace($defautdc, ".", ",DC=")
 										$defautdc = ",DC=" & $defautdc
 										$sobject = _ad_samaccountnametofqdn($idrh1)
 										$souinitial = "OU=Utilisateurs,OU=" & $ousourcedir & ",OU=" & StringUpper(StringMid($ousourcedir, 1, 2)) & $defautdc
 										$ivalue = _ad_moveobject($souinitial, $sobject)
 										If $ivalue = 1 Then
-											MsgBox(64, "Active Directory ", $idrh1 & "' successfully replaced to '" & $ousourcedir & "'" & @CRLF & @CRLF & "Directive Not Applied...")
+											MsgBox(64, "Active Directory ", $idrh1 & "' replacé vers  '" & $ousourcedir & "'" & @CRLF & @CRLF & "Directive non appliquée ...")
 											ToolTip("synchronising AD", 5, 5)
 											Sleep(3000)
 											ToolTip("", 5, 5)
@@ -4745,7 +4867,7 @@ Func directives() ;routine principale des Directives Metiers
 												_ad_addusertogroup($groupsidrh1[$z], $idrh1)
 											Next
 										EndIf
-										$actiongroups = StringReplace($actiongroups, " Groupes Obsoletes Directive : ", " Rollback de la Directive Initiale ")
+										$actiongroups = StringReplace($actiongroups, " Groupes Obsoletes Directive : ", " Rollback de la Directive Metier Initiale :  ")
 									EndIf
 									If $dirapplied = 1 Then
 										Global $groupsidrh1 = _ad_getusergroups($idrh1)
@@ -4755,7 +4877,7 @@ Func directives() ;routine principale des Directives Metiers
 								If $scomboreaddirectives = "_SM_Siege Banque" Then
 									Global $groupsidrh1 = _ad_getusergroups($idrh1)
 									If @error > 0 Then
-										MsgBox(0, "Info !", "user " & $idrh1 & "has no groups...", 7)
+										MsgBox(0, "Info !", "user " & $idrh1 & "n'a pas de groupes...", 7)
 										Return 0
 									EndIf
 									auto_remove()
@@ -4767,25 +4889,26 @@ Func directives() ;routine principale des Directives Metiers
 									Global $ivalue = _ad_addusertogroup("RG-" & $ou & "_SM_Siege Banque", $idrh1)
 									If $ivalue = 1 Then
 										$dirapplied = 1
-										MsgBox(64, "", "User '" & $idrh1 & "' successfully assigned to group '" & "RG-" & $ou & "_SM_Siege Banque" & "'")
+										MsgBox(64, "", "User '" & $idrh1 & "' assigné au groupe metier  '" & "RG-" & $ou & "_SM_Siege Banque" & "'")
 									ElseIf @error = 1 Then
-										MsgBox(64, "", "Group '" & "RG-" & $ou & "_SM_Siege Banque" & "' does not exist")
+										MsgBox(64, "", "Groupe '" & "RG-" & $ou & "_SM_Siege Banque" & "' n'existe pas !")
 									ElseIf @error = 2 Then
-										MsgBox(64, "", "User '" & $idrh1 & "' does not exist")
+										MsgBox(64, "", "User '" & $idrh1 & "' n'existe pas !")
 									ElseIf @error = 3 Then
-										MsgBox(64, "", "User '" & $idrh1 & "' is already a member of group '" & "RG-" & $ou & "_SM_Siege Banque" & "'")
+										MsgBox(64, "", "User '" & $idrh1 & "' est déjà membre du groupe '" & "RG-" & $ou & "_SM_Siege Banque" & "'")
 										$dirapplied = 1
 									Else
 										MsgBox(64, "", "Return code '" & @error & "' from Active Directory")
 									EndIf
 									If $dirapplied = 0 Then
+									    $defautdc = $defautdcinit
 										$defautdc = StringReplace($defautdc, ".", ",DC=")
 										$defautdc = ",DC=" & $defautdc
 										$sobject = _ad_samaccountnametofqdn($idrh1)
 										$souinitial = "OU=Utilisateurs,OU=" & $ousourcedir & ",OU=" & StringUpper(StringMid($ousourcedir, 1, 2)) & $defautdc
 										$ivalue = _ad_moveobject($souinitial, $sobject)
 										If $ivalue = 1 Then
-											MsgBox(64, "Active Directory ", $idrh1 & "' successfully replaced to '" & $ousourcedir & "'" & @CRLF & @CRLF & "Directive Not Applied...")
+											MsgBox(64, "Active Directory ", $idrh1 & "' replacé vers  '" & $ousourcedir & "'" & @CRLF & @CRLF & "Directive non appliquée ...")
 											ToolTip("synchronising AD", 5, 5)
 											Sleep(3000)
 											ToolTip("", 5, 5)
@@ -4797,7 +4920,7 @@ Func directives() ;routine principale des Directives Metiers
 												_ad_addusertogroup($groupsidrh1[$z], $idrh1)
 											Next
 										EndIf
-										$actiongroups = StringReplace($actiongroups, " Groupes Obsoletes Directive : ", " Rollback de la Directive Initiale ")
+										$actiongroups = StringReplace($actiongroups, " Groupes Obsoletes Directive : ", " Rollback de la Directive Metier Initiale :  ")
 									EndIf
 									If $dirapplied = 1 Then
 										Global $groupsidrh1 = _ad_getusergroups($idrh1)
@@ -4807,7 +4930,7 @@ Func directives() ;routine principale des Directives Metiers
 								If $scomboreaddirectives = "_SM_Siege Banque_LBPGP" Then
 									Global $groupsidrh1 = _ad_getusergroups($idrh1)
 									If @error > 0 Then
-										MsgBox(0, "Info !", "user " & $idrh1 & "has no groups...", 7)
+										MsgBox(0, "Info !", "user " & $idrh1 & "n'a pas de groupes...", 7)
 										Return 0
 									EndIf
 									auto_remove()
@@ -4819,25 +4942,26 @@ Func directives() ;routine principale des Directives Metiers
 									Global $ivalue = _ad_addusertogroup("RG-" & $ou & "_SM_Siege Banque_LBPGP", $idrh1)
 									If $ivalue = 1 Then
 										$dirapplied = 1
-										MsgBox(64, "", "User '" & $idrh1 & "' successfully assigned to group '" & "RG-" & $ou & "_SM_Siege Banque_LBPGP" & "'")
+										MsgBox(64, "", "User '" & $idrh1 & "' assigné au groupe metier  '" & "RG-" & $ou & "_SM_Siege Banque_LBPGP" & "'")
 									ElseIf @error = 1 Then
-										MsgBox(64, "", "Group '" & "RG-" & $ou & "_SM_Siege Banque_LBPGP" & "' does not exist")
+										MsgBox(64, "", "Groupe '" & "RG-" & $ou & "_SM_Siege Banque_LBPGP" & "' n'existe pas !")
 									ElseIf @error = 2 Then
-										MsgBox(64, "", "User '" & $idrh1 & "' does not exist")
+										MsgBox(64, "", "User '" & $idrh1 & "' n'existe pas !")
 									ElseIf @error = 3 Then
-										MsgBox(64, "", "User '" & $idrh1 & "' is already a member of group '" & "RG-" & $ou & "_SM_Siege Banque_LBPGP" & "'")
+										MsgBox(64, "", "User '" & $idrh1 & "' est déjà membre du groupe '" & "RG-" & $ou & "_SM_Siege Banque_LBPGP" & "'")
 										$dirapplied = 1
 									Else
 										MsgBox(64, "", "Return code '" & @error & "' from Active Directory")
 									EndIf
 									If $dirapplied = 0 Then
+									    $defautdc = $defautdcinit
 										$defautdc = StringReplace($defautdc, ".", ",DC=")
 										$defautdc = ",DC=" & $defautdc
 										$sobject = _ad_samaccountnametofqdn($idrh1)
 										$souinitial = "OU=Utilisateurs,OU=" & $ousourcedir & ",OU=" & StringUpper(StringMid($ousourcedir, 1, 2)) & $defautdc
 										$ivalue = _ad_moveobject($souinitial, $sobject)
 										If $ivalue = 1 Then
-											MsgBox(64, "Active Directory ", $idrh1 & "' successfully replaced to '" & $ousourcedir & "'" & @CRLF & @CRLF & "Directive Not Applied...")
+											MsgBox(64, "Active Directory ", $idrh1 & "' replacé vers  '" & $ousourcedir & "'" & @CRLF & @CRLF & "Directive non appliquée ...")
 											ToolTip("synchronising AD", 5, 5)
 											Sleep(3000)
 											ToolTip("", 5, 5)
@@ -4849,7 +4973,7 @@ Func directives() ;routine principale des Directives Metiers
 												_ad_addusertogroup($groupsidrh1[$z], $idrh1)
 											Next
 										EndIf
-										$actiongroups = StringReplace($actiongroups, " Groupes Obsoletes Directive : ", " Rollback de la Directive Initiale ")
+										$actiongroups = StringReplace($actiongroups, " Groupes Obsoletes Directive : ", " Rollback de la Directive Metier Initiale :  ")
 									EndIf
 									If $dirapplied = 1 Then
 										Global $groupsidrh1 = _ad_getusergroups($idrh1)
@@ -4859,7 +4983,7 @@ Func directives() ;routine principale des Directives Metiers
 								If $scomboreaddirectives = "_SM_Siege Banque_LBPAI" Then
 									Global $groupsidrh1 = _ad_getusergroups($idrh1)
 									If @error > 0 Then
-										MsgBox(0, "Info !", "user " & $idrh1 & "has no groups...", 7)
+										MsgBox(0, "Info !", "user " & $idrh1 & "n'a pas de groupes...", 7)
 										Return 0
 									EndIf
 									auto_remove()
@@ -4871,25 +4995,26 @@ Func directives() ;routine principale des Directives Metiers
 									Global $ivalue = _ad_addusertogroup("RG-" & $ou & "_SM_Siege Banque_LBPAI", $idrh1)
 									If $ivalue = 1 Then
 										$dirapplied = 1
-										MsgBox(64, "", "User '" & $idrh1 & "' successfully assigned to group '" & "RG-" & $ou & "_SM_Siege Banque_LBPAI" & "'")
+										MsgBox(64, "", "User '" & $idrh1 & "' assigné au groupe metier  '" & "RG-" & $ou & "_SM_Siege Banque_LBPAI" & "'")
 									ElseIf @error = 1 Then
-										MsgBox(64, "", "Group '" & "RG-" & $ou & "_SM_Siege Banque_LBPAI" & "' does not exist")
+										MsgBox(64, "", "Groupe '" & "RG-" & $ou & "_SM_Siege Banque_LBPAI" & "' n'existe pas !")
 									ElseIf @error = 2 Then
-										MsgBox(64, "", "User '" & $idrh1 & "' does not exist")
+										MsgBox(64, "", "User '" & $idrh1 & "' n'existe pas !")
 									ElseIf @error = 3 Then
-										MsgBox(64, "", "User '" & $idrh1 & "' is already a member of group '" & "RG-" & $ou & "_SM_Siege Banque_LBPAI" & "'")
+										MsgBox(64, "", "User '" & $idrh1 & "' est déjà membre du groupe '" & "RG-" & $ou & "_SM_Siege Banque_LBPAI" & "'")
 										$dirapplied = 1
 									Else
 										MsgBox(64, "", "Return code '" & @error & "' from Active Directory")
 									EndIf
 									If $dirapplied = 0 Then
+									    $defautdc = $defautdcinit
 										$defautdc = StringReplace($defautdc, ".", ",DC=")
 										$defautdc = ",DC=" & $defautdc
 										$sobject = _ad_samaccountnametofqdn($idrh1)
 										$souinitial = "OU=Utilisateurs,OU=" & $ousourcedir & ",OU=" & StringUpper(StringMid($ousourcedir, 1, 2)) & $defautdc
 										$ivalue = _ad_moveobject($souinitial, $sobject)
 										If $ivalue = 1 Then
-											MsgBox(64, "Active Directory ", $idrh1 & "' successfully replaced to '" & $ousourcedir & "'" & @CRLF & @CRLF & "Directive Not Applied...")
+											MsgBox(64, "Active Directory ", $idrh1 & "' replacé vers  '" & $ousourcedir & "'" & @CRLF & @CRLF & "Directive non appliquée ...")
 											ToolTip("synchronising AD", 5, 5)
 											Sleep(3000)
 											ToolTip("", 5, 5)
@@ -4901,7 +5026,7 @@ Func directives() ;routine principale des Directives Metiers
 												_ad_addusertogroup($groupsidrh1[$z], $idrh1)
 											Next
 										EndIf
-										$actiongroups = StringReplace($actiongroups, " Groupes Obsoletes Directive : ", " Rollback de la Directive Initiale ")
+										$actiongroups = StringReplace($actiongroups, " Groupes Obsoletes Directive : ", " Rollback de la Directive Metier Initiale :  ")
 									EndIf
 									If $dirapplied = 1 Then
 										Global $groupsidrh1 = _ad_getusergroups($idrh1)
@@ -4911,7 +5036,7 @@ Func directives() ;routine principale des Directives Metiers
 								If $scomboreaddirectives = "_SM_Siege Banque_FondEcranFixe" Then
 									Global $groupsidrh1 = _ad_getusergroups($idrh1)
 									If @error > 0 Then
-										MsgBox(0, "Info !", "user " & $idrh1 & "has no groups...", 7)
+										MsgBox(0, "Info !", "user " & $idrh1 & "n'a pas de groupes...", 7)
 										Return 0
 									EndIf
 									auto_remove()
@@ -4923,25 +5048,26 @@ Func directives() ;routine principale des Directives Metiers
 									Global $ivalue = _ad_addusertogroup("RG-" & $ou & "_SM_Siege Banque_FondEcranFixe", $idrh1)
 									If $ivalue = 1 Then
 										$dirapplied = 1
-										MsgBox(64, "", "User '" & $idrh1 & "' successfully assigned to group '" & "RG-" & $ou & "_SM_Siege Banque_FondEcranFixe" & "'")
+										MsgBox(64, "", "User '" & $idrh1 & "' assigné au groupe metier  '" & "RG-" & $ou & "_SM_Siege Banque_FondEcranFixe" & "'")
 									ElseIf @error = 1 Then
-										MsgBox(64, "", "Group '" & "RG-" & $ou & "_SM_Siege Banque_FondEcranFixe" & "' does not exist")
+										MsgBox(64, "", "Groupe '" & "RG-" & $ou & "_SM_Siege Banque_FondEcranFixe" & "' n'existe pas !")
 									ElseIf @error = 2 Then
-										MsgBox(64, "", "User '" & $idrh1 & "' does not exist")
+										MsgBox(64, "", "User '" & $idrh1 & "' n'existe pas !")
 									ElseIf @error = 3 Then
-										MsgBox(64, "", "User '" & $idrh1 & "' is already a member of group '" & "RG-" & $ou & "_SM_Siege Banque_FondEcranFixe" & "'")
+										MsgBox(64, "", "User '" & $idrh1 & "' est déjà membre du groupe '" & "RG-" & $ou & "_SM_Siege Banque_FondEcranFixe" & "'")
 										$dirapplied = 1
 									Else
 										MsgBox(64, "", "Return code '" & @error & "' from Active Directory")
 									EndIf
 									If $dirapplied = 0 Then
+									    $defautdc = $defautdcinit
 										$defautdc = StringReplace($defautdc, ".", ",DC=")
 										$defautdc = ",DC=" & $defautdc
 										$sobject = _ad_samaccountnametofqdn($idrh1)
 										$souinitial = "OU=Utilisateurs,OU=" & $ousourcedir & ",OU=" & StringUpper(StringMid($ousourcedir, 1, 2)) & $defautdc
 										$ivalue = _ad_moveobject($souinitial, $sobject)
 										If $ivalue = 1 Then
-											MsgBox(64, "Active Directory ", $idrh1 & "' successfully replaced to '" & $ousourcedir & "'" & @CRLF & @CRLF & "Directive Not Applied...")
+											MsgBox(64, "Active Directory ", $idrh1 & "' replacé vers  '" & $ousourcedir & "'" & @CRLF & @CRLF & "Directive non appliquée ...")
 											ToolTip("synchronising AD", 5, 5)
 											Sleep(3000)
 											ToolTip("", 5, 5)
@@ -4953,7 +5079,7 @@ Func directives() ;routine principale des Directives Metiers
 												_ad_addusertogroup($groupsidrh1[$z], $idrh1)
 											Next
 										EndIf
-										$actiongroups = StringReplace($actiongroups, " Groupes Obsoletes Directive : ", " Rollback de la Directive Initiale ")
+										$actiongroups = StringReplace($actiongroups, " Groupes Obsoletes Directive : ", " Rollback de la Directive Metier Initiale :  ")
 									EndIf
 									If $dirapplied = 1 Then
 										_ad_addusertogroup("SG-GAUB_ACCES_EVS", $idrh1)
@@ -4965,7 +5091,7 @@ Func directives() ;routine principale des Directives Metiers
 								If $scomboreaddirectives = "_SM_DISFE" Then
 									Global $groupsidrh1 = _ad_getusergroups($idrh1)
 									If @error > 0 Then
-										MsgBox(0, "Info !", "user " & $idrh1 & "has no groups...", 7)
+										MsgBox(0, "Info !", "user " & $idrh1 & "n'a pas de groupes...", 7)
 										Return 0
 									EndIf
 									auto_remove()
@@ -4977,25 +5103,26 @@ Func directives() ;routine principale des Directives Metiers
 									Global $ivalue = _ad_addusertogroup("RG-" & $ou & "_SM_DISFE", $idrh1)
 									If $ivalue = 1 Then
 										$dirapplied = 1
-										MsgBox(64, "", "User '" & $idrh1 & "' successfully assigned to group '" & "RG-" & $ou & "_SM_DISFE" & "'")
+										MsgBox(64, "", "User '" & $idrh1 & "' assigné au groupe metier  '" & "RG-" & $ou & "_SM_DISFE" & "'")
 									ElseIf @error = 1 Then
-										MsgBox(64, "", "Group '" & "RG-" & $ou & "_SM_DISFE" & "' does not exist")
+										MsgBox(64, "", "Groupe '" & "RG-" & $ou & "_SM_DISFE" & "' n'existe pas !")
 									ElseIf @error = 2 Then
-										MsgBox(64, "", "User '" & $idrh1 & "' does not exist")
+										MsgBox(64, "", "User '" & $idrh1 & "' n'existe pas !")
 									ElseIf @error = 3 Then
-										MsgBox(64, "", "User '" & $idrh1 & "' is already a member of group '" & "RG-" & $ou & "_SM_DISFE" & "'")
+										MsgBox(64, "", "User '" & $idrh1 & "' est déjà membre du groupe '" & "RG-" & $ou & "_SM_DISFE" & "'")
 										$dirapplied = 1
 									Else
 										MsgBox(64, "", "Return code '" & @error & "' from Active Directory")
 									EndIf
 									If $dirapplied = 0 Then
+									    $defautdc = $defautdcinit
 										$defautdc = StringReplace($defautdc, ".", ",DC=")
 										$defautdc = ",DC=" & $defautdc
 										$sobject = _ad_samaccountnametofqdn($idrh1)
 										$souinitial = "OU=Utilisateurs,OU=" & $ousourcedir & ",OU=" & StringUpper(StringMid($ousourcedir, 1, 2)) & $defautdc
 										$ivalue = _ad_moveobject($souinitial, $sobject)
 										If $ivalue = 1 Then
-											MsgBox(64, "Active Directory ", $idrh1 & "' successfully replaced to '" & $ousourcedir & "'" & @CRLF & @CRLF & "Directive Not Applied...")
+											MsgBox(64, "Active Directory ", $idrh1 & "' replacé vers  '" & $ousourcedir & "'" & @CRLF & @CRLF & "Directive non appliquée ...")
 											ToolTip("synchronising AD", 5, 5)
 											Sleep(3000)
 											ToolTip("", 5, 5)
@@ -5007,7 +5134,7 @@ Func directives() ;routine principale des Directives Metiers
 												_ad_addusertogroup($groupsidrh1[$z], $idrh1)
 											Next
 										EndIf
-										$actiongroups = StringReplace($actiongroups, " Groupes Obsoletes Directive : ", " Rollback de la Directive Initiale ")
+										$actiongroups = StringReplace($actiongroups, " Groupes Obsoletes Directive : ", " Rollback de la Directive Metier Initiale :  ")
 									EndIf
 									If $dirapplied = 1 Then
 										Global $groupsidrh1 = _ad_getusergroups($idrh1)
@@ -5017,7 +5144,7 @@ Func directives() ;routine principale des Directives Metiers
 								If $scomboreaddirectives = "_SM_Siege Banque_LBPF" Then
 									Global $groupsidrh1 = _ad_getusergroups($idrh1)
 									If @error > 0 Then
-										MsgBox(0, "Info !", "user " & $idrh1 & "has no groups...", 7)
+										MsgBox(0, "Info !", "user " & $idrh1 & "n'a pas de groupes...", 7)
 										Return 0
 									EndIf
 									auto_remove()
@@ -5029,25 +5156,26 @@ Func directives() ;routine principale des Directives Metiers
 									Global $ivalue = _ad_addusertogroup("RG-" & $ou & "_SM_Siege Banque_LBPF", $idrh1)
 									If $ivalue = 1 Then
 										$dirapplied = 1
-										MsgBox(64, "", "User '" & $idrh1 & "' successfully assigned to group '" & "RG-" & $ou & "_SM_Siege Banque_LBPF" & "'")
+										MsgBox(64, "", "User '" & $idrh1 & "' assigné au groupe metier  '" & "RG-" & $ou & "_SM_Siege Banque_LBPF" & "'")
 									ElseIf @error = 1 Then
-										MsgBox(64, "", "Group '" & "RG-" & $ou & "_SM_Siege Banque_LBPF" & "' does not exist")
+										MsgBox(64, "", "Groupe '" & "RG-" & $ou & "_SM_Siege Banque_LBPF" & "' n'existe pas !")
 									ElseIf @error = 2 Then
-										MsgBox(64, "", "User '" & $idrh1 & "' does not exist")
+										MsgBox(64, "", "User '" & $idrh1 & "' n'existe pas !")
 									ElseIf @error = 3 Then
-										MsgBox(64, "", "User '" & $idrh1 & "' is already a member of group '" & "RG-" & $ou & "_SM_Siege Banque_LBPF" & "'")
+										MsgBox(64, "", "User '" & $idrh1 & "' est déjà membre du groupe '" & "RG-" & $ou & "_SM_Siege Banque_LBPF" & "'")
 										$dirapplied = 1
 									Else
 										MsgBox(64, "", "Return code '" & @error & "' from Active Directory")
 									EndIf
 									If $dirapplied = 0 Then
+									    $defautdc = $defautdcinit
 										$defautdc = StringReplace($defautdc, ".", ",DC=")
 										$defautdc = ",DC=" & $defautdc
 										$sobject = _ad_samaccountnametofqdn($idrh1)
 										$souinitial = "OU=Utilisateurs,OU=" & $ousourcedir & ",OU=" & StringUpper(StringMid($ousourcedir, 1, 2)) & $defautdc
 										$ivalue = _ad_moveobject($souinitial, $sobject)
 										If $ivalue = 1 Then
-											MsgBox(64, "Active Directory ", $idrh1 & "' successfully replaced to '" & $ousourcedir & "'" & @CRLF & @CRLF & "Directive Not Applied...")
+											MsgBox(64, "Active Directory ", $idrh1 & "' replacé vers  '" & $ousourcedir & "'" & @CRLF & @CRLF & "Directive non appliquée ...")
 											ToolTip("synchronising AD", 5, 5)
 											Sleep(3000)
 											ToolTip("", 5, 5)
@@ -5059,7 +5187,7 @@ Func directives() ;routine principale des Directives Metiers
 												_ad_addusertogroup($groupsidrh1[$z], $idrh1)
 											Next
 										EndIf
-										$actiongroups = StringReplace($actiongroups, " Groupes Obsoletes Directive : ", " Rollback de la Directive Initiale ")
+										$actiongroups = StringReplace($actiongroups, " Groupes Obsoletes Directive : ", " Rollback de la Directive Metier Initiale :  ")
 									EndIf
 									If $dirapplied = 1 Then
 										Global $groupsidrh1 = _ad_getusergroups($idrh1)
@@ -5069,7 +5197,7 @@ Func directives() ;routine principale des Directives Metiers
 								If $scomboreaddirectives = "_SM_DET" Then
 									Global $groupsidrh1 = _ad_getusergroups($idrh1)
 									If @error > 0 Then
-										MsgBox(0, "Info !", "user " & $idrh1 & "has no groups...", 7)
+										MsgBox(0, "Info !", "user " & $idrh1 & "n'a pas de groupes...", 7)
 										Return 0
 									EndIf
 									auto_remove()
@@ -5082,25 +5210,26 @@ Func directives() ;routine principale des Directives Metiers
 									Global $ivalue = _ad_addusertogroup("RG-" & $ou & "_SM_DET", $idrh1)
 									If $ivalue = 1 Then
 										$dirapplied = 1
-										MsgBox(64, "", "User '" & $idrh1 & "' successfully assigned to group '" & "RG-" & $ou & "_SM_DET" & "'")
+										MsgBox(64, "", "User '" & $idrh1 & "' assigné au groupe metier  '" & "RG-" & $ou & "_SM_DET" & "'")
 									ElseIf @error = 1 Then
-										MsgBox(64, "", "Group '" & "RG-" & $ou & "_SM_DET" & "' does not exist")
+										MsgBox(64, "", "Groupe '" & "RG-" & $ou & "_SM_DET" & "' n'existe pas !")
 									ElseIf @error = 2 Then
-										MsgBox(64, "", "User '" & $idrh1 & "' does not exist")
+										MsgBox(64, "", "User '" & $idrh1 & "' n'existe pas !")
 									ElseIf @error = 3 Then
-										MsgBox(64, "", "User '" & $idrh1 & "' is already a member of group '" & "RG-" & $ou & "_SM_DET" & "'")
+										MsgBox(64, "", "User '" & $idrh1 & "' est déjà membre du groupe '" & "RG-" & $ou & "_SM_DET" & "'")
 										$dirapplied = 1
 									Else
 										MsgBox(64, "", "Return code '" & @error & "' from Active Directory")
 									EndIf
 									If $dirapplied = 0 Then
+									    $defautdc = $defautdcinit
 										$defautdc = StringReplace($defautdc, ".", ",DC=")
 										$defautdc = ",DC=" & $defautdc
 										$sobject = _ad_samaccountnametofqdn($idrh1)
 										$souinitial = "OU=Utilisateurs,OU=" & $ousourcedir & ",OU=" & StringUpper(StringMid($ousourcedir, 1, 2)) & $defautdc
 										$ivalue = _ad_moveobject($souinitial, $sobject)
 										If $ivalue = 1 Then
-											MsgBox(64, "Active Directory ", $idrh1 & "' successfully replaced to '" & $ousourcedir & "'" & @CRLF & @CRLF & "Directive Not Applied...")
+											MsgBox(64, "Active Directory ", $idrh1 & "' replacé vers  '" & $ousourcedir & "'" & @CRLF & @CRLF & "Directive non appliquée ...")
 											ToolTip("synchronising AD", 5, 5)
 											Sleep(3000)
 											ToolTip("", 5, 5)
@@ -5112,7 +5241,7 @@ Func directives() ;routine principale des Directives Metiers
 												_ad_addusertogroup($groupsidrh1[$z], $idrh1)
 											Next
 										EndIf
-										$actiongroups = StringReplace($actiongroups, " Groupes Obsoletes Directive : ", " Rollback de la Directive Initiale ")
+										$actiongroups = StringReplace($actiongroups, " Groupes Obsoletes Directive : ", " Rollback de la Directive Metier Initiale :  ")
 									EndIf
 									If $dirapplied = 1 Then
 										_ad_addusertogroup("RG-PITR_CM_DIR-BP_DS_REC_RE_RC", $idrh1)
@@ -5139,37 +5268,38 @@ Func directives() ;routine principale des Directives Metiers
 								If $scomboreaddirectives = "_SM_Centres Financiers et Centres Nationaux" Then
 									Global $groupsidrh1 = _ad_getusergroups($idrh1)
 									If @error > 0 Then
-										MsgBox(0, "Info !", "user " & $idrh1 & "has no groups...", 7)
+										MsgBox(0, "Info !", "user " & $idrh1 & "n'a pas de groupes...", 7)
 										Return 0
 									EndIf
 									auto_remove()
 									Global $restoredirectives = $actiongroups
 									$restoredirectives = StringReplace($restoredirectives, " ; ", "|")
 									$actiongroups = " Groupes Obsoletes Directive : " & $actiongroups
-									$ou = InputBox("default OU ?", "ex: BPLY, BPRE, CFLY ... " & @CRLF & "SM_Centres Financiers et Centres Nationaux", $ousourcedir)
+									$ou = InputBox("default OU ?", "ex: BPLY, BPRE, CFLY ... " & @CRLF & "Dir-" & $numdirmetier & "   =>  " & "[ CFxx ]" & @CRLF & "SM_Centres Financiers et Centres Nationaux", $ousourcedir)
 									move_user()
 									Global $ivalue = _ad_addusertogroup("RG-" & $ou & "_SM_Centres Financiers et Centres Nationaux", $idrh1)
 									If $ivalue = 1 Then
 										$dirapplied = 1
-										MsgBox(64, "", "User '" & $idrh1 & "' successfully assigned to group '" & "RG-" & $ou & "_SM_Centres Financiers et Centres Nationaux" & "'")
+										MsgBox(64, "", "User '" & $idrh1 & "' assigné au groupe metier  '" & "RG-" & $ou & "_SM_Centres Financiers et Centres Nationaux" & "'")
 									ElseIf @error = 1 Then
-										MsgBox(64, "", "Group '" & "RG-" & $ou & "_SM_Centres Financiers et Centres Nationaux" & "' does not exist")
+										MsgBox(64, "", "Groupe '" & "RG-" & $ou & "_SM_Centres Financiers et Centres Nationaux" & "' n'existe pas !")
 									ElseIf @error = 2 Then
-										MsgBox(64, "", "User '" & $idrh1 & "' does not exist")
+										MsgBox(64, "", "User '" & $idrh1 & "' n'existe pas !")
 									ElseIf @error = 3 Then
-										MsgBox(64, "", "User '" & $idrh1 & "' is already a member of group '" & "RG-" & $ou & "_SM_Centres Financiers et Centres Nationaux" & "'")
+										MsgBox(64, "", "User '" & $idrh1 & "' est déjà membre du groupe '" & "RG-" & $ou & "_SM_Centres Financiers et Centres Nationaux" & "'")
 										$dirapplied = 1
 									Else
 										MsgBox(64, "", "Return code '" & @error & "' from Active Directory")
 									EndIf
 									If $dirapplied = 0 Then
+									    $defautdc = $defautdcinit
 										$defautdc = StringReplace($defautdc, ".", ",DC=")
 										$defautdc = ",DC=" & $defautdc
 										$sobject = _ad_samaccountnametofqdn($idrh1)
 										$souinitial = "OU=Utilisateurs,OU=" & $ousourcedir & ",OU=" & StringUpper(StringMid($ousourcedir, 1, 2)) & $defautdc
 										$ivalue = _ad_moveobject($souinitial, $sobject)
 										If $ivalue = 1 Then
-											MsgBox(64, "Active Directory ", $idrh1 & "' successfully replaced to '" & $ousourcedir & "'" & @CRLF & @CRLF & "Directive Not Applied...")
+											MsgBox(64, "Active Directory ", $idrh1 & "' replacé vers  '" & $ousourcedir & "'" & @CRLF & @CRLF & "Directive non appliquée ...")
 											ToolTip("synchronising AD", 5, 5)
 											Sleep(3000)
 											ToolTip("", 5, 5)
@@ -5181,7 +5311,7 @@ Func directives() ;routine principale des Directives Metiers
 												_ad_addusertogroup($groupsidrh1[$z], $idrh1)
 											Next
 										EndIf
-										$actiongroups = StringReplace($actiongroups, " Groupes Obsoletes Directive : ", " Rollback de la Directive Initiale ")
+										$actiongroups = StringReplace($actiongroups, " Groupes Obsoletes Directive : ", " Rollback de la Directive Metier Initiale :  ")
 									EndIf
 									If $dirapplied = 1 Then
 										Global $groupsidrh1 = _ad_getusergroups($idrh1)
@@ -5191,7 +5321,7 @@ Func directives() ;routine principale des Directives Metiers
 								If $scomboreaddirectives = "_SM_Utilisateurs_Postes_SIA" Then
 									Global $groupsidrh1 = _ad_getusergroups($idrh1)
 									If @error > 0 Then
-										MsgBox(0, "Info !", "user " & $idrh1 & "has no groups...", 7)
+										MsgBox(0, "Info !", "user " & $idrh1 & "n'a pas de groupes...", 7)
 										Return 0
 									EndIf
 									auto_remove()
@@ -5203,25 +5333,26 @@ Func directives() ;routine principale des Directives Metiers
 									Global $ivalue = _ad_addusertogroup("RG-" & $ou & "_SM_Utilisateurs_Postes_SIA", $idrh1)
 									If $ivalue = 1 Then
 										$dirapplied = 1
-										MsgBox(64, "", "User '" & $idrh1 & "' successfully assigned to group '" & "RG-" & $ou & "_SM_Utilisateurs_Postes_SIA" & "'")
+										MsgBox(64, "", "User '" & $idrh1 & "' assigné au groupe metier  '" & "RG-" & $ou & "_SM_Utilisateurs_Postes_SIA" & "'")
 									ElseIf @error = 1 Then
-										MsgBox(64, "", "Group '" & "RG-" & $ou & "_SM_Utilisateurs_Postes_SIA" & "' does not exist")
+										MsgBox(64, "", "Groupe '" & "RG-" & $ou & "_SM_Utilisateurs_Postes_SIA" & "' n'existe pas !")
 									ElseIf @error = 2 Then
-										MsgBox(64, "", "User '" & $idrh1 & "' does not exist")
+										MsgBox(64, "", "User '" & $idrh1 & "' n'existe pas !")
 									ElseIf @error = 3 Then
-										MsgBox(64, "", "User '" & $idrh1 & "' is already a member of group '" & "RG-" & $ou & "_SM_Utilisateurs_Postes_SIA" & "'")
+										MsgBox(64, "", "User '" & $idrh1 & "' est déjà membre du groupe '" & "RG-" & $ou & "_SM_Utilisateurs_Postes_SIA" & "'")
 										$dirapplied = 1
 									Else
 										MsgBox(64, "", "Return code '" & @error & "' from Active Directory")
 									EndIf
 									If $dirapplied = 0 Then
+									    $defautdc = $defautdcinit
 										$defautdc = StringReplace($defautdc, ".", ",DC=")
 										$defautdc = ",DC=" & $defautdc
 										$sobject = _ad_samaccountnametofqdn($idrh1)
 										$souinitial = "OU=Utilisateurs,OU=" & $ousourcedir & ",OU=" & StringUpper(StringMid($ousourcedir, 1, 2)) & $defautdc
 										$ivalue = _ad_moveobject($souinitial, $sobject)
 										If $ivalue = 1 Then
-											MsgBox(64, "Active Directory ", $idrh1 & "' successfully replaced to '" & $ousourcedir & "'" & @CRLF & @CRLF & "Directive Not Applied...")
+											MsgBox(64, "Active Directory ", $idrh1 & "' replacé vers  '" & $ousourcedir & "'" & @CRLF & @CRLF & "Directive non appliquée ...")
 											ToolTip("synchronising AD", 5, 5)
 											Sleep(3000)
 											ToolTip("", 5, 5)
@@ -5233,7 +5364,7 @@ Func directives() ;routine principale des Directives Metiers
 												_ad_addusertogroup($groupsidrh1[$z], $idrh1)
 											Next
 										EndIf
-										$actiongroups = StringReplace($actiongroups, " Groupes Obsoletes Directive : ", " Rollback de la Directive Initiale ")
+										$actiongroups = StringReplace($actiongroups, " Groupes Obsoletes Directive : ", " Rollback de la Directive Metier Initiale :  ")
 									EndIf
 									If $dirapplied = 1 Then
 										Global $groupsidrh1 = _ad_getusergroups($idrh1)
@@ -5243,7 +5374,7 @@ Func directives() ;routine principale des Directives Metiers
 								If $scomboreaddirectives = "_SM_RF_INDET" Then
 									Global $groupsidrh1 = _ad_getusergroups($idrh1)
 									If @error > 0 Then
-										MsgBox(0, "Info !", "user " & $idrh1 & "has no groups...", 7)
+										MsgBox(0, "Info !", "user " & $idrh1 & "n'a pas de groupes...", 7)
 										Return 0
 									EndIf
 									auto_remove()
@@ -5255,25 +5386,26 @@ Func directives() ;routine principale des Directives Metiers
 									Global $ivalue = _ad_addusertogroup("RG-" & $ou & "_SM_RF_INDET", $idrh1)
 									If $ivalue = 1 Then
 										$dirapplied = 1
-										MsgBox(64, "", "User '" & $idrh1 & "' successfully assigned to group '" & "RG-" & $ou & "_SM_RF_INDET" & "'")
+										MsgBox(64, "", "User '" & $idrh1 & "' assigné au groupe metier  '" & "RG-" & $ou & "_SM_RF_INDET" & "'")
 									ElseIf @error = 1 Then
-										MsgBox(64, "", "Group '" & "RG-" & $ou & "_SM_RF_INDET" & "' does not exist")
+										MsgBox(64, "", "Groupe '" & "RG-" & $ou & "_SM_RF_INDET" & "' n'existe pas !")
 									ElseIf @error = 2 Then
-										MsgBox(64, "", "User '" & $idrh1 & "' does not exist")
+										MsgBox(64, "", "User '" & $idrh1 & "' n'existe pas !")
 									ElseIf @error = 3 Then
-										MsgBox(64, "", "User '" & $idrh1 & "' is already a member of group '" & "RG-" & $ou & "_SM_RF_INDET" & "'")
+										MsgBox(64, "", "User '" & $idrh1 & "' est déjà membre du groupe '" & "RG-" & $ou & "_SM_RF_INDET" & "'")
 										$dirapplied = 1
 									Else
 										MsgBox(64, "", "Return code '" & @error & "' from Active Directory")
 									EndIf
 									If $dirapplied = 0 Then
+									    $defautdc = $defautdcinit
 										$defautdc = StringReplace($defautdc, ".", ",DC=")
 										$defautdc = ",DC=" & $defautdc
 										$sobject = _ad_samaccountnametofqdn($idrh1)
 										$souinitial = "OU=Utilisateurs,OU=" & $ousourcedir & ",OU=" & StringUpper(StringMid($ousourcedir, 1, 2)) & $defautdc
 										$ivalue = _ad_moveobject($souinitial, $sobject)
 										If $ivalue = 1 Then
-											MsgBox(64, "Active Directory ", $idrh1 & "' successfully replaced to '" & $ousourcedir & "'" & @CRLF & @CRLF & "Directive Not Applied...")
+											MsgBox(64, "Active Directory ", $idrh1 & "' replacé vers  '" & $ousourcedir & "'" & @CRLF & @CRLF & "Directive non appliquée ...")
 											ToolTip("synchronising AD", 5, 5)
 											Sleep(3000)
 											ToolTip("", 5, 5)
@@ -5285,7 +5417,7 @@ Func directives() ;routine principale des Directives Metiers
 												_ad_addusertogroup($groupsidrh1[$z], $idrh1)
 											Next
 										EndIf
-										$actiongroups = StringReplace($actiongroups, " Groupes Obsoletes Directive : ", " Rollback de la Directive Initiale ")
+										$actiongroups = StringReplace($actiongroups, " Groupes Obsoletes Directive : ", " Rollback de la Directive Metier Initiale :  ")
 									EndIf
 									If $dirapplied = 1 Then
 										Global $groupsidrh1 = _ad_getusergroups($idrh1)
@@ -5295,7 +5427,7 @@ Func directives() ;routine principale des Directives Metiers
 								If $scomboreaddirectives = "_SM_Management Commercial Unique" Then
 									Global $groupsidrh1 = _ad_getusergroups($idrh1)
 									If @error > 0 Then
-										MsgBox(0, "Info !", "user " & $idrh1 & "has no groups...", 7)
+										MsgBox(0, "Info !", "user " & $idrh1 & "n'a pas de groupes...", 7)
 										Return 0
 									EndIf
 									auto_remove()
@@ -5307,25 +5439,26 @@ Func directives() ;routine principale des Directives Metiers
 									Global $ivalue = _ad_addusertogroup("RG-" & $ou & "_SM_Management Commercial Unique", $idrh1)
 									If $ivalue = 1 Then
 										$dirapplied = 1
-										MsgBox(64, "", "User '" & $idrh1 & "' successfully assigned to group '" & "RG-" & $ou & "_SM_Management Commercial Unique" & "'")
+										MsgBox(64, "", "User '" & $idrh1 & "' assigné au groupe metier  '" & "RG-" & $ou & "_SM_Management Commercial Unique" & "'")
 									ElseIf @error = 1 Then
-										MsgBox(64, "", "Group '" & "RG-" & $ou & "_SM_Management Commercial Unique" & "' does not exist")
+										MsgBox(64, "", "Groupe '" & "RG-" & $ou & "_SM_Management Commercial Unique" & "' n'existe pas !")
 									ElseIf @error = 2 Then
-										MsgBox(64, "", "User '" & $idrh1 & "' does not exist")
+										MsgBox(64, "", "User '" & $idrh1 & "' n'existe pas !")
 									ElseIf @error = 3 Then
-										MsgBox(64, "", "User '" & $idrh1 & "' is already a member of group '" & "RG-" & $ou & "_SM_Management Commercial Unique" & "'")
+										MsgBox(64, "", "User '" & $idrh1 & "' est déjà membre du groupe '" & "RG-" & $ou & "_SM_Management Commercial Unique" & "'")
 										$dirapplied = 1
 									Else
 										MsgBox(64, "", "Return code '" & @error & "' from Active Directory")
 									EndIf
 									If $dirapplied = 0 Then
+									    $defautdc = $defautdcinit
 										$defautdc = StringReplace($defautdc, ".", ",DC=")
 										$defautdc = ",DC=" & $defautdc
 										$sobject = _ad_samaccountnametofqdn($idrh1)
 										$souinitial = "OU=Utilisateurs,OU=" & $ousourcedir & ",OU=" & StringUpper(StringMid($ousourcedir, 1, 2)) & $defautdc
 										$ivalue = _ad_moveobject($souinitial, $sobject)
 										If $ivalue = 1 Then
-											MsgBox(64, "Active Directory ", $idrh1 & "' successfully replaced to '" & $ousourcedir & "'" & @CRLF & @CRLF & "Directive Not Applied...")
+											MsgBox(64, "Active Directory ", $idrh1 & "' replacé vers  '" & $ousourcedir & "'" & @CRLF & @CRLF & "Directive non appliquée ...")
 											ToolTip("synchronising AD", 5, 5)
 											Sleep(3000)
 											ToolTip("", 5, 5)
@@ -5337,7 +5470,7 @@ Func directives() ;routine principale des Directives Metiers
 												_ad_addusertogroup($groupsidrh1[$z], $idrh1)
 											Next
 										EndIf
-										$actiongroups = StringReplace($actiongroups, " Groupes Obsoletes Directive : ", " Rollback de la Directive Initiale ")
+										$actiongroups = StringReplace($actiongroups, " Groupes Obsoletes Directive : ", " Rollback de la Directive Initiale : ")
 									EndIf
 									If $dirapplied = 1 Then
 										Global $groupsidrh1 = _ad_getusergroups($idrh1)
@@ -5353,7 +5486,7 @@ Func directives() ;routine principale des Directives Metiers
 								#Region mask
 									Global $groupsidrh1 = _ad_getusergroups($idrh1)
 									If @error > 0 Then
-										MsgBox(0, "Info !", "user " & $idrh1 & "has no groups...", 7)
+										MsgBox(0, "Info !", "user Srce " & $idrh1 & " n'a pas de groupes...", 7)
 										Return 0
 									EndIf
 									auto_remove()
@@ -5392,6 +5525,9 @@ Func directives() ;routine principale des Directives Metiers
 									 ElseIf StringInStr($numdirmetier,"319") Then
 										$ouDirmetier="DIR-" & $numdirmetier & "   =>  " & "[ BPXX ]"
 
+									 Elseif StringInStr($dirid ,"_SM_Centres Financiers et Centres Nationaux") Then
+									    $ouDirmetier="DIR-" & $numdirmetier & "   =>  " & "[ CFXX ]"
+
 									 Else
 										$ouDirmetier=""
 								     EndIf ;cas normal
@@ -5404,30 +5540,36 @@ Func directives() ;routine principale des Directives Metiers
 								Global $ivalue = _ad_addusertogroup("RG-" & $ou & $dirid, $idrh1)
 								If $ivalue = 1 Then
 									$dirapplied = 1
-									MsgBox(64, "", "User '" & $idrh1 & "' successfully assigned to group '" & "RG-" & $ou & $dirid & "'")
+									MsgBox(64, "", "User '" & $idrh1 & "' assigné au groupe Metier '" & "RG-" & $ou & $dirid & "'")
 								ElseIf @error = 1 Then
-									MsgBox(64, "", "Group '" & "RG-" & $ou & $dirid & "' does not exist")  ; ex: RG-[EAID]_SM_Siege_Enseigne n'existe pas/plus.. => rollback
+									MsgBox(64, "", "Groupe '" & "RG-" & $ou & $dirid & "' n'existe pas dans cette OU !")  ; ex: RG-[EAID]_SM_Siege_Enseigne n'existe pas/plus.. => rollback
 								ElseIf @error = 2 Then
-									MsgBox(64, "", "User '" & $idrh1 & "' does not exist")
+									MsgBox(64, "", "User Srce '" & $idrh1 & "' n'existe pas !")
 								ElseIf @error = 3 Then
-									MsgBox(64, "", "User '" & $idrh1 & "' is already a member of group '" & "RG-" & $ou & $dirid & "'")
+									MsgBox(64, "", "User Srce '" & $idrh1 & "' déjà membre du groupe Metier '" & "RG-" & $ou & $dirid & "'")
 									$dirapplied = 1
 								Else
 									MsgBox(64, "", "Return code '" & @error & "' from Active Directory")
 								 EndIf
 
 								If $dirapplied = 0 Then
+								    $defautdc = $defautdcinit
 									$defautdc = StringReplace($defautdc, ".", ",DC=")
 									$defautdc = ",DC=" & $defautdc
-									$sobject = _ad_samaccountnametofqdn($idrh1)
+									$sobject  = _ad_samaccountnametofqdn($idrh1)
 									$souinitial = "OU=Utilisateurs,OU=" & $ousourcedir & ",OU=" & StringUpper(StringMid($ousourcedir, 1, 2)) & $defautdc
-									$ivalue = _ad_moveobject($souinitial, $sobject)
+									Global $ivalue = _ad_moveobject($souinitial, $sobject)
+
 									If $ivalue = 1 Then
-										MsgBox(64, "Active Directory ", $idrh1 & "' successfully replaced to '" & $ousourcedir & "'" & @CRLF & @CRLF & "Directive Not Applied... rollback !")
-										ToolTip("synchronising AD", 5, 5)
-										Sleep(3000)
+										MsgBox(64, "Active Directory ", $idrh1 & "' replacé dans son OU d'origine '" & $ousourcedir & "'" & @CRLF & @CRLF & "Directive Non Appliquée... (rollback) !")
+										ToolTip("synchronising AD...", 5, 5)
+										Sleep(1800)
 										ToolTip("", 5, 5)
-									EndIf
+									 Else
+										MsgBox(64, "Active Directory ", $idrh1 & "' Vous devez replacer manuellement dans son OU d'origine '" & $ousourcedir & "'" & "  user: " & $idrh1 & @CRLF & @CRLF & "Directive Non Appliquée... (rollback) !")
+									 EndIf
+
+
 									$restoredirectives = StringTrimRight($restoredirectives, 1)
 									$groupsidrh1 = StringSplit($restoredirectives, "|")
 									If IsArray($groupsidrh1) = 1 Then
@@ -5435,7 +5577,7 @@ Func directives() ;routine principale des Directives Metiers
 											_ad_addusertogroup($groupsidrh1[$z], $idrh1)
 										Next
 									EndIf
-									$actiongroups = StringReplace($actiongroups, " Groupes Obsoletes Directive : ", " Rollback de la Directive Initiale ")
+									$actiongroups = StringReplace($actiongroups, " Groupes Obsoletes Directive : ", " Rollback avec la Directive Metier Initiale :  ")
 								EndIf
 
 							    If $dirapplied = 1 Then
@@ -5525,24 +5667,32 @@ Func directives() ;routine principale des Directives Metiers
 						EndIf
 
 				  if $dirapplied=1 then
-				  _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "Directive appliquée: " & $scomboreaddirectives & "   >" & $idrh1 & @crlf & $actiongroups & @CRLF);, 1)
-				  _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  >Groupes user:  " & $idrh1 & @CRLF & $groupidrh_final & @CRLF);, 1)
+				  _GUICtrlRichEdit_SetCharColor($aff, 0x00ff0000)      ;   set color blue (BBGGRR format)
+				  _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "Directive appliquée: " & $scomboreaddirectives & "   >" & $idrh1 & @crlf & $actiongroups & @CRLF );, 1)
+				  _GUICtrlRichEdit_SetCharColor($aff, 0x00000000)      ;   set color black (BBGGRR format)
+				  _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  >Groupes user Srce:  " & $idrh1 & @CRLF & $groupidrh_final & @CRLF);, 1)
 				  Else
-				  _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "Directive non appliquée: " & $scomboreaddirectives & "   >" & $idrh1 & @crlf & $actiongroups & @CRLF);, 1) ; $restoredirectives
-				  _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  >Groupes user:  " & $idrh1 & @CRLF & $groupidrh_final & @CRLF);, 1)
+				  _GUICtrlRichEdit_SetCharColor($aff, 0x000000ff)      ;   set color red (BBGGRR format)
+				  _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "Directive non appliquée: " & $scomboreaddirectives & "   >" & $idrh1 & @crlf & $actiongroups & @CRLF  & "	  Rollback de l'OU d'origine: " & $ousourcedir & @CRLF);, 1) ; $restoredirectives
+				  _GUICtrlRichEdit_SetCharColor($aff, 0x00000000)      ;   set color black (BBGGRR format)
+				  _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  >Groupes user Srce:  " & $idrh1 & @CRLF & $groupidrh_final & @CRLF);, 1)
 				  endif
 
 				  if $actiongroupsar<>"" Then
-				  _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  > Groupes retirés manuellement, après application de la Directive [ " & $scomboreaddirectives & " ] , pour:  " & $idrh1 & @CRLF & $actiongroupsar & @CRLF);, 1)
+				  _GUICtrlRichEdit_SetCharColor($aff, 0x00ff0000)      ;   set color blue (BBGGRR format)
+				  _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  > Groupes retirés manuellement, après [Apply] de la Directive Metier [ " & $scomboreaddirectives & " ] , pour user Srce:  " & $idrh1 & @CRLF & $actiongroupsar & @CRLF);, 1)
+				  _GUICtrlRichEdit_SetCharColor($aff, 0x00000000)      ;   set color black (BBGGRR format)
 				  EndIf
 
 				ElseIf $t = 7 Then
-					SplashTextOn("", "Aborting " & $scomboreaddirectives & " !", 1100, 100, -1, -1, 1, -1, 13, 600)
+					SplashTextOn("", "Abandon ! " & $scomboreaddirectives & " !", 1100, 100, -1, -1, 1, -1, 13, 600)
 					Sleep(1000)
 					SplashOff()
+					$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  Annulation 'Directive Metier' " & $scomboreaddirectives
+					_GUICtrlRichEdit_SetCharColor($aff, 0x000000ff)      ;   set color red (BBGGRR format)
+					_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "  Abandon 'Directive Metier' " & $scomboreaddirectives & @CRLF);, 1)
+					_GUICtrlRichEdit_SetCharColor($aff, 0x00000000)      ;   set color black (BBGGRR format)
 					$scomboreaddirectives = ""
-					$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  Annulé la validation 'Directive'"
-					_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "  Annulé la validation 'Directive'" & @CRLF);, 1)
 				EndIf
 				GUIDelete($hguidir)
 				ExitLoop
@@ -6805,8 +6955,8 @@ Func directives_DSIBA() ;routine principale des Directives Metiers DSIBA
 
 	#Region IHM Directives
 		If $isdct = 0 Then
-			MsgBox(0, "warning !", "'Directives DSIBA' only working for domain: DCT.Adt.Local", 7)
-			_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "'Directives DSIBA' only working for domain: DCT.Adt.Local (Directives Metiers DSIBA : Dir-nnn)" & @CRLF);, 1)
+			MsgBox(0, "warning !", "'Directives DSIBA' valable que pour le domaine: DCT.Adt.Local", 7)
+			_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "'Directives DSIBA' valable que pour le domaine: DCT.Adt.Local " & @CRLF);, 1)
 			Return 0
 		 EndIf
 
@@ -6814,7 +6964,7 @@ Func directives_DSIBA() ;routine principale des Directives Metiers DSIBA
 		$ousourcedir = StringSplit($ousourcedir, ",")
 		$ousourcedir = $ousourcedir[3]
 		$ousourcedir = StringTrimLeft($ousourcedir, 3)
-		$hguidir = GUICreate("Select Directive DSIBA and close window...", 650, 80)
+		$hguidir = GUICreate("Selection Directive DSIBA et fermer la fenetre [x] ...", 650, 80)
 	#EndRegion
 
 	#Region Liste des Directives
@@ -6839,7 +6989,8 @@ _arrayadd($arrayD,"[ Zero Directives ]")
 #EndRegion mise en forme $array2 => $array
 
 Global $directivesDSIBA = _arraytostring($arrayD, "|")
-_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "Database Directives Metiers DSIBA active" & @CRLF );, 1)
+_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "Premier lancement Directives Metiers DSIBA !" & @CRLF );, 1)
+_GUICtrlRichEdit_SetCharColor($aff, 0x00000000)      ;   set color black (BBGGRR format)
 		EndIf
 	#EndRegion Liste des Directives
 
@@ -6853,23 +7004,24 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 				If StringLen($scomboreaddirectives) > 4 Then
 				Else
 					Global $dirapplied = 0
-					MsgBox(0, "Warning !", "inexistant Directive DSIBA... aborting !", 7)
-					_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "inexistant Directive DSIBA ... aborting !" & @CRLF);, 1)
+					MsgBox(0, "Warning !", " Directive DSIBA inexistante dans cette OU... abandon !", 7)
+					_GUICtrlRichEdit_SetCharColor($aff, 0x000000ff)      ;   set color red (BBGGRR format)
+					_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & " Directive DSIBA inexistante dans cette OU ... abandon !" & @CRLF);, 1)
 					GUIDelete($hguidir)
 					ExitLoop
 				EndIf
 				GUIDelete($hguidir)
 				If $scomboreaddirectives = "[ Zero Directives ]" Then
-					$t = MsgBox(4, "Remove Directive DSIBA ?", "Do you want to remove any Directive found for: " & $idrh1 & " ...?")
+					$t = MsgBox(4, "Retirer Directive DSIBA ?", "Retirer Directive DSIBA pour user Srce: " & $idrh1 & "  ?")
 				Else
-					$t = MsgBox(4, "Apply Directive DSIBA ?", "Do you want to lauch process for: " & @CRLF & $scomboreaddirectives)
+					$t = MsgBox(4, "Valider Directive DSIBA ?", "Valider la Directive DSIBA : " & @CRLF & $scomboreaddirectives)
 				EndIf
 				If $t = 6 Then
-					SplashTextOn("", "Applying Directive DSIBA:  " & $scomboreaddirectives & " !", 1100, 100, -1, -1, 1, -1, 13, 600)
+					SplashTextOn("", "Valdation de la Directive DSIBA:  " & $scomboreaddirectives & " !", 1100, 100, -1, -1, 1, -1, 13, 600)
 					Sleep(1200)
 					SplashOff()
 					$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  Valider une 'Directive'"
-					_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "  Valider une 'Directive': " & $scomboreaddirectives & @CRLF);, 1)
+					_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "  Validation de la 'Directive DSIBA': " & $scomboreaddirectives & @CRLF);, 1)
 					Global $dirapplied = 0
 
 
@@ -6878,7 +7030,7 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 								If $scomboreaddirectives = "[ Zero Directives ]" Then
 									Global $groupsidrh1 = _ad_getusergroups($idrh1)
 									If @error > 0 Then
-										MsgBox(0, "Info !", "user " & $idrh1 & "has no groups...", 7)
+										MsgBox(0, "Info !", "user " & $idrh1 & "n'a pas de groupes...", 7)
 										Return 0
 									EndIf
 									auto_remove()
@@ -6892,7 +7044,7 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 							    If StringInStr($scomboreaddirectives ,"736" ) Then
 									Global $groupsidrh1 = _ad_getusergroups($idrh1)
 									If @error > 0 Then
-										MsgBox(0, "Info !", "user " & $idrh1 & "has no groups...", 7)
+										MsgBox(0, "Info !", "user " & $idrh1 & "n'a pas de groupes...", 7)
 										Return 0
 									EndIf
 									auto_remove()
@@ -6905,25 +7057,26 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 									If $ivalue = 1 Then
 										$dirapplied = 1
 										_ad_addusertogroup("RG-PITR_CM_DIR-STD-W10", $idrh1)
-										MsgBox(64, "", "User '" & $idrh1 & "' successfully assigned to group '" & "RG-" & $ou & "_SM_DISFE" & "'")
+										MsgBox(64, "", "User Srce '" & $idrh1 & "' assigné au groupe metier '" & "RG-" & $ou & "_SM_DISFE" & "'")
 									ElseIf @error = 1 Then
-										MsgBox(64, "", "Group '" & "RG-" & $ou & "_SM_DISFE" & "' does not exist")
+										MsgBox(64, "", "Groupe Metier '" & "RG-" & $ou & "_SM_DISFE" & "' n'existe pas dans cette OU : " & $ou & "  !")
 									ElseIf @error = 2 Then
-										MsgBox(64, "", "User '" & $idrh1 & "' does not exist")
+										MsgBox(64, "", "User Srce '" & $idrh1 & "' n'existe pas !")
 									ElseIf @error = 3 Then
-										MsgBox(64, "", "User '" & $idrh1 & "' is already a member of group '" & "RG-" & $ou & "_SM_DISFE" & "'")
+										MsgBox(64, "", "User Srce '" & $idrh1 & "' déjà membre du groupe metier '" & "RG-" & $ou & "_SM_DISFE" & "'")
 										$dirapplied = 1
 									Else
 										MsgBox(64, "", "Return code '" & @error & "' from Active Directory")
 									EndIf
 									If $dirapplied = 0 Then
+									    $defautdc = $defautdcinit
 										$defautdc = StringReplace($defautdc, ".", ",DC=")
 										$defautdc = ",DC=" & $defautdc
 										$sobject = _ad_samaccountnametofqdn($idrh1)
 										$souinitial = "OU=Utilisateurs,OU=" & $ousourcedir & ",OU=" & StringUpper(StringMid($ousourcedir, 1, 2)) & $defautdc
 										$ivalue = _ad_moveobject($souinitial, $sobject)
 										If $ivalue = 1 Then
-											MsgBox(64, "Active Directory ", $idrh1 & "' successfully replaced to '" & $ousourcedir & "'" & @CRLF & @CRLF & "Directive Not Applied...")
+											MsgBox(64, "Active Directory ", $idrh1 & "' replacé vers OU initiale '" & $ousourcedir & "'" & @CRLF & @CRLF & "Directive Metier Non Appliquée ... (rollback)")
 											ToolTip("synchronising AD", 5, 5)
 											Sleep(3000)
 											ToolTip("", 5, 5)
@@ -6935,7 +7088,7 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 												_ad_addusertogroup($groupsidrh1[$z], $idrh1)
 											Next
 										EndIf
-										$actiongroups = StringReplace($actiongroups, " Groupes Obsoletes Directive : ", " Rollback de la Directive Initiale ")
+										$actiongroups = StringReplace($actiongroups, " Groupes Obsoletes Directive : ", " Rollback de la Directive Metier Initiale :  ")
 									EndIf
 									If $dirapplied = 1 Then
 										Global $groupsidrh1 = _ad_getusergroups($idrh1)
@@ -6946,7 +7099,7 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 							    If StringInStr($scomboreaddirectives ,"737" ) Then
 									Global $groupsidrh1 = _ad_getusergroups($idrh1)
 									If @error > 0 Then
-										MsgBox(0, "Info !", "user " & $idrh1 & "has no groups...", 7)
+										MsgBox(0, "Info !", "user Srce " & $idrh1 & " n'a pas d groupes...", 7)
 										Return 0
 									EndIf
 									auto_remove()
@@ -6959,25 +7112,26 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 									If $ivalue = 1 Then
 										$dirapplied = 1
 										_ad_addusertogroup("RG-PITR_CM_DIR-DEV-W10", $idrh1)
-										MsgBox(64, "", "User '" & $idrh1 & "' successfully assigned to group '" & "RG-" & $ou & "_SM_DISFE" & "'")
+										MsgBox(64, "", "User '" & $idrh1 & "' assigné au groupe metier '" & "RG-" & $ou & "_SM_DISFE" & "'")
 									ElseIf @error = 1 Then
-										MsgBox(64, "", "Group '" & "RG-" & $ou & "_SM_DISFE" & "' does not exist")
+										MsgBox(64, "", "Groupe metier '" & "RG-" & $ou & "_SM_DISFE" & "' n'existe pas dans cette OU: " & $ou & " !")
 									ElseIf @error = 2 Then
-										MsgBox(64, "", "User '" & $idrh1 & "' does not exist")
+										MsgBox(64, "", "User Srce'" & $idrh1 & "' n'existe pas !")
 									ElseIf @error = 3 Then
-										MsgBox(64, "", "User '" & $idrh1 & "' is already a member of group '" & "RG-" & $ou & "_SM_DISFE" & "'")
+										MsgBox(64, "", "User Srce'" & $idrh1 & "' déjà membre du groupe metier  '" & "RG-" & $ou & "_SM_DISFE" & "'")
 										$dirapplied = 1
 									Else
 										MsgBox(64, "", "Return code '" & @error & "' from Active Directory")
 									EndIf
 									If $dirapplied = 0 Then
+						 			    $defautdc = $defautdcinit
 										$defautdc = StringReplace($defautdc, ".", ",DC=")
 										$defautdc = ",DC=" & $defautdc
 										$sobject = _ad_samaccountnametofqdn($idrh1)
 										$souinitial = "OU=Utilisateurs,OU=" & $ousourcedir & ",OU=" & StringUpper(StringMid($ousourcedir, 1, 2)) & $defautdc
 										$ivalue = _ad_moveobject($souinitial, $sobject)
 										If $ivalue = 1 Then
-											MsgBox(64, "Active Directory ", $idrh1 & "' successfully replaced to '" & $ousourcedir & "'" & @CRLF & @CRLF & "Directive Not Applied...")
+											MsgBox(64, "Active Directory ", $idrh1 & "' replacé vers OU '" & $ousourcedir & "'" & @CRLF & @CRLF & "Directive Non Appliquée... (rollback)")
 											ToolTip("synchronising AD", 5, 5)
 											Sleep(3000)
 											ToolTip("", 5, 5)
@@ -6989,7 +7143,7 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 												_ad_addusertogroup($groupsidrh1[$z], $idrh1)
 											Next
 										EndIf
-										$actiongroups = StringReplace($actiongroups, " Groupes Obsoletes Directive : ", " Rollback de la Directive Initiale ")
+										$actiongroups = StringReplace($actiongroups, " Groupes Obsoletes Directive : ", " Rollback de la Directive Metier Initiale :  ")
 									EndIf
 									If $dirapplied = 1 Then
 										Global $groupsidrh1 = _ad_getusergroups($idrh1)
@@ -7000,7 +7154,7 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 							    If StringInStr($scomboreaddirectives ,"738" ) Then
 									Global $groupsidrh1 = _ad_getusergroups($idrh1)
 									If @error > 0 Then
-										MsgBox(0, "Info !", "user " & $idrh1 & "has no groups...", 7)
+										MsgBox(0, "Info !", "user " & $idrh1 & "n'a pas de groupes...", 7)
 										Return 0
 									EndIf
 									auto_remove()
@@ -7013,25 +7167,26 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 									If $ivalue = 1 Then
 										$dirapplied = 1
 										_ad_addusertogroup("RG-PITR_CM_DIR-BEL-DEV-MEDIAS-W10", $idrh1)
-										MsgBox(64, "", "User '" & $idrh1 & "' successfully assigned to group '" & "RG-" & $ou & "_SM_DISFE" & "'")
+										MsgBox(64, "", "User Srce '" & $idrh1 & "' assigné au groupe metier '" & "RG-" & $ou & "_SM_DISFE" & "'")
 									ElseIf @error = 1 Then
-										MsgBox(64, "", "Group '" & "RG-" & $ou & "_SM_DISFE" & "' does not exist")
+										MsgBox(64, "", "Groupe metier '" & "RG-" & $ou & "_SM_DISFE" & "' n'existe pas dans cette OU : " & $ou & "  !")
 									ElseIf @error = 2 Then
-										MsgBox(64, "", "User '" & $idrh1 & "' does not exist")
+										MsgBox(64, "", "User Srce'" & $idrh1 & "' n'existe pas !")
 									ElseIf @error = 3 Then
-										MsgBox(64, "", "User '" & $idrh1 & "' is already a member of group '" & "RG-" & $ou & "_SM_DISFE" & "'")
+										MsgBox(64, "", "User '" & $idrh1 & "' déjà affecté au groupe metier '" & "RG-" & $ou & "_SM_DISFE" & "'")
 										$dirapplied = 1
 									Else
 										MsgBox(64, "", "Return code '" & @error & "' from Active Directory")
 									EndIf
 									If $dirapplied = 0 Then
+									    $defautdc = $defautdcinit
 										$defautdc = StringReplace($defautdc, ".", ",DC=")
 										$defautdc = ",DC=" & $defautdc
 										$sobject = _ad_samaccountnametofqdn($idrh1)
 										$souinitial = "OU=Utilisateurs,OU=" & $ousourcedir & ",OU=" & StringUpper(StringMid($ousourcedir, 1, 2)) & $defautdc
 										$ivalue = _ad_moveobject($souinitial, $sobject)
 										If $ivalue = 1 Then
-											MsgBox(64, "Active Directory ", $idrh1 & "' successfully replaced to '" & $ousourcedir & "'" & @CRLF & @CRLF & "Directive Not Applied...")
+											MsgBox(64, "Active Directory ", $idrh1 & "' replacé vers  '" & $ousourcedir & "'" & @CRLF & @CRLF & "Directive Non Appliquée... (rollback)")
 											ToolTip("synchronising AD", 5, 5)
 											Sleep(3000)
 											ToolTip("", 5, 5)
@@ -7043,7 +7198,7 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 												_ad_addusertogroup($groupsidrh1[$z], $idrh1)
 											Next
 										EndIf
-										$actiongroups = StringReplace($actiongroups, " Groupes Obsoletes Directive : ", " Rollback de la Directive Initiale ")
+										$actiongroups = StringReplace($actiongroups, " Groupes Obsoletes Directive : ", " Rollback de la Directive Metier Initiale :  ")
 									EndIf
 									If $dirapplied = 1 Then
 										Global $groupsidrh1 = _ad_getusergroups($idrh1)
@@ -7077,13 +7232,14 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 				  if $dirapplied=1 then
 				  _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "Directive appliquée: " & $scomboreaddirectives & "   >" & $idrh1 & @crlf & $actiongroups & @CRLF);, 1)
 				  _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  >Groupes user:  " & $idrh1 & @CRLF & $groupidrh_final & @CRLF);, 1)
-				  Else
+			   Else
+				  _GUICtrlRichEdit_SetCharColor($aff, 0x000000ff)      ;   set color red (BBGGRR format)
 				  _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "Directive non appliquée: " & $scomboreaddirectives & "   >" & $idrh1 & @crlf & $restoredirectives & @CRLF);, 1)
 				  _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  >Groupes user:  " & $idrh1 & @CRLF & $groupidrh_final & @CRLF);, 1)
 				  endif
 
 				  if $actiongroupsar<>"" Then
-				  _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  > Groupes retirés manuallement, après avoir appliqué la Directive [ " & $scomboreaddirectives & " ]  pour:  " & $idrh1 & @CRLF & $actiongroupsar & @CRLF);, 1)
+				  _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  > Groupes retirés manuellement, après avoir appliqué la Directive [ " & $scomboreaddirectives & " ]  pour:  " & $idrh1 & @CRLF & $actiongroupsar & @CRLF);, 1)
 				  EndIf
 
 				ElseIf $t = 7 Then
@@ -7091,6 +7247,7 @@ _GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" 
 					Sleep(1000)
 					SplashOff()
 					$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  Annulation de la validation 'Directive'"
+					_GUICtrlRichEdit_SetCharColor($aff, 0x000000ff)      ;   set color red (BBGGRR format)
 					_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "  Annulation 'Directive' :  " & $scomboreaddirectives & @CRLF);, 1)
 					$scomboreaddirectives = ""
 				EndIf
@@ -7142,26 +7299,38 @@ Func move_user()
 	Global $ivalue = _ad_moveobject($sou2, $sobject)
 
 	If $ivalue = 1 Then
-		MsgBox(64, "Active Directory ", $idrh1 & "' successfully moved to '" & $ou & "'")
-		_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "Active Directory: " & $idrh1 & "' successfully moved to '" & $ou & "'" & @CRLF);, 1)
+		MsgBox(64, "Active Directory ", $idrh1 & "' déplacé de l'OU  '"  &  StringUpper($ousourcedir)  &  "'  vers   '" & StringUpper($ou) & "'")
+		_GUICtrlRichEdit_SetCharColor($aff, 0x00ff0000)      ;   set color blue (BBGGRR format)
+		_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "Active Directory: " & $idrh1 & "  déplacé de l'OU  '" & StringUpper($ousourcedir) &  "'  vers  '" & StringUpper($ou) & "'" & @CRLF);, 1)
+		_GUICtrlRichEdit_SetCharColor($aff, 0x00000000)      ;   set color black (BBGGRR format)
 		ToolTip("synchronising AD", 5, 5)
 		Sleep(3000)
 		ToolTip("", 5, 5)
 	ElseIf @error = 1 Then
-		MsgBox(64, "Active Directory ", "Target OU '" & $ou & "' does not exist")
-		_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "Active Directory: " & "Target OU '" & $ou & "' does not exist" & @CRLF);, 1)
+		MsgBox(64, "Active Directory ", "OU cible  '" & $ou & "' n'existe pas !")
+		_GUICtrlRichEdit_SetCharColor($aff, 0x000000ff)      ;   set color red (BBGGRR format)
+		_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "Active Directory: " & "OU cible  '" & $ou & "' n'existe pas !" & @CRLF);, 1)
+		_GUICtrlRichEdit_SetCharColor($aff, 0x00000000)      ;   set color black (BBGGRR format)
 	ElseIf @error = 2 Then
-		MsgBox(64, "Active Directory ", "Object '" & $idrh1 & "' does not exist")
-		_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "Active Directory: " & "Object '" & $idrh1 & "' does not exist" & @CRLF);, 1)
+		MsgBox(64, "Active Directory ", "Objet '" & $idrh1 & "' n'existe pas !")
+		_GUICtrlRichEdit_SetCharColor($aff, 0x000000ff)      ;   set color red (BBGGRR format)
+		_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "Active Directory: " & "Objet '" & $idrh1 & "' n'existe pas !" & @CRLF);, 1)
+		_GUICtrlRichEdit_SetCharColor($aff, 0x00000000)      ;   set color black (BBGGRR format)
 	ElseIf @error = 3 Then
-		MsgBox(64, "Active Directory ", "Object '" & $idrh1 & "' already in OU '" & $ou & "'")
-		_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "Active Directory: " & "Object '" & $idrh1 & "' already in OU '" & $ou & "'" & @CRLF);, 1)
+		MsgBox(64, "Active Directory ", "Objet '" & $idrh1 & "' déjà dans l'OU cible  '" & $ou & "'")
+		_GUICtrlRichEdit_SetCharColor($aff, 0x00ff0000)      ;   set color blue (BBGGRR format)
+		_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "Active Directory: " & "Objet '" & $idrh1 & "' déjà dans l'OU cible  '" & $ou & "'" & @CRLF);, 1)
+		_GUICtrlRichEdit_SetCharColor($aff, 0x00000000)      ;   set color black (BBGGRR format)
 	ElseIf @error >= 4 OR @error = -2147352567 Then
-		MsgBox(64, "Active Directory ", "You have no permissions to move user " & $idrh1)
-		_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "Active Directory: " & "You have no permissions to move user " & $idrh1 & @CRLF);, 1)
+		MsgBox(64, "Active Directory ", "Acces refusé pour deplacer user : " & $idrh1)
+		_GUICtrlRichEdit_SetCharColor($aff, 0x000000ff)      ;   set color red (BBGGRR format)
+		_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "Active Directory: " & "accès refusé pour déplacer user : " & $idrh1 & @CRLF);, 1)
+		_GUICtrlRichEdit_SetCharColor($aff, 0x00000000)      ;   set color black (BBGGRR format)
 	Else
 		MsgBox(0, "warning !", "User Idrh Srce '" & $idrh1 & "' already exists in AD !", 7)
-		_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "User Idrh Srce '" & $idrh1 & "' already exists in AD !" & @CRLF);, 1)
+		_GUICtrlRichEdit_SetCharColor($aff, 0x000000ff)      ;   set color red (BBGGRR format)
+		_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "User Idrh Srce '" & $idrh1 & "' existe déjà dans l'AD !" & @CRLF);, 1)
+		_GUICtrlRichEdit_SetCharColor($aff, 0x00000000)      ;   set color black (BBGGRR format)
 	 EndIf
 
 EndFunc
@@ -7196,7 +7365,7 @@ EndFunc
 		_arraysort($groupsidrh1, 0, 1)
 		Global $actiongroupsar = ""
 		Global $aselected[1]
-		Global $hgui2 = GUICreate("Select obsolete Role to REMOVE from '" & $idrh1 & "' , then validate with the button [ Apply ] ! (or close window)", 1000, 500)
+		Global $hgui2 = GUICreate("Selection Role(s) obsolete(s) à retirer [-] de '" & $idrh1 & "' , puis valider avec le bouton [ Apply ] !, ou refermer la fenetre [x] pour abandonner...", 1000, 500)
 		Global $hlistbox = _guictrllistbox_create($hgui2, "String upon creation", 10, 30, 980, 470, BitOR($ws_border, $lbs_hasstrings, $ws_vscroll, $lbs_multiplesel))
 		_guictrllistbox_beginupdate($hlistbox)
 		_guictrllistbox_resetcontent($hlistbox)
@@ -7213,7 +7382,7 @@ EndFunc
 		If IsArray($groupsidrh1) = 0 Then
 			$idcheckboxgroup = 2
 			GUIDelete($hgui2)
-			MsgBox(0, "Info !", "aborting, no Groups found in: " & $idrh1, 7)
+			MsgBox(0, "Info !", "abandon, pas de groupes pour: " & $idrh1, 7)
 			Return 0
 		EndIf
 		Global $hbutton2 = GUICtrlCreateButton("[ Apply ]", 20, 3, 80, 25)
@@ -7246,7 +7415,7 @@ EndFunc
 						Return $actiongroupsar
 						ExitLoop
 					Else
-						MsgBox(4160, "warning !", "nothing selected... try again or close window")
+						MsgBox(4160, "warning !", "aucune selection... réessayez ou fermer la fenetre... [x]")
 					EndIf
 				Case $gui_event_close
 					GUIDelete($hgui2)
@@ -7260,8 +7429,8 @@ EndFunc
 	Func lbpai_illiade()
 		$defautdc = $defautdcinit
 		If $isdct = 0 Then
-			MsgBox(0, "warning !", "'LBPAI / Illiade' only working for domain: DCT.Adt.Local", 7)
-			_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "'LBPAI / Illiade' only working for domain: DCT.Adt.Local" & @CRLF);, 1)
+			MsgBox(0, "warning !", "'LBPAI / Illiade' n'est valable que pour le domaine DCT.Adt.Local...", 7)
+			_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "'LBPAI / Illiade' n'est valable que pour le domaine DCT.Adt.Local" & @CRLF);, 1)
 			Return 0
 		EndIf
 		Local $remove = 0
@@ -7299,7 +7468,7 @@ EndFunc
 		$sobject = _ad_samaccountnametofqdn($idrh1)
 		Global $ivalue = _ad_moveobject($sou2, $sobject)
 		If $ivalue = 1 Then
-			MsgBox(64, "Active Directory ", $idrh1 & "' successfully moved to '" & $ou & "'")
+			MsgBox(64, "Active Directory ", $idrh1 & "' déplacé vers  '" & $ou & "'")
 			$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  " & $idrh1 & " déplacé vers " & $ou
 			_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF &  $idrh1 & " déplacé vers " & $ou & @CRLF);, 1)
 			_ad_addusertogroup("RG-" & $ou & "_SM_Siege Banque_LBPAI" , $idrh1) ; ex: $ou=MINA
@@ -7308,20 +7477,20 @@ EndFunc
 			Sleep(3000)
 			ToolTip("", 5, 5)
 		ElseIf @error = 1 Then
-			MsgBox(64, "Active Directory ", "Target OU '" & $ou & "' does not exist")
+			MsgBox(64, "Active Directory ", "OU cible  '" & $ou & "' n'existe pas !")
 			Return 0
 		ElseIf @error = 2 Then
-			MsgBox(64, "Active Directory ", "Object '" & $idrh1 & "' does not exist")
+			MsgBox(64, "Active Directory ", "Object '" & $idrh1 & "' n'existe pas !")
 			Return 0
 		ElseIf @error = 3 Then
-			MsgBox(64, "Active Directory ", "Object '" & $idrh1 & "' already in OU '" & $ou & "'")
+			MsgBox(64, "Active Directory ", "Object '" & $idrh1 & "' déjà dans l'OU cible  '" & $ou & "'")
 		ElseIf @error >= 4 OR @error = -2147352567 Then
 			MsgBox(64, "Active Directory ", "You have no permissions to move user " & $idrh1)
 			$historik = $historik & @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  " & $idrh1 & "non deplacé vers " & $ou & ",  accès refusé !"
 			_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF &  $idrh1 & "non deplacé vers " & $ou & ",  accès refusé !" & @CRLF);, 1)
 			Return 0
 		Else
-			MsgBox(0, "warning !", "User Idrh Srce '" & $idrh1 & "already exists in AD !", 7)
+			MsgBox(0, "warning !", "User Idrh Srce '" & $idrh1 & "existe déjà dans l'AD !", 7)
 			Return 0
 		EndIf
 		$lbpaiapplied = 0
@@ -7332,9 +7501,9 @@ EndFunc
 			Global $groupsidrh1 = StringSplit($groupslbpai, "|")
 			Global $aselected[1]
 			If $remove = 0 Then
-				Global $hgui2 = GUICreate("Select LBPAI/Iliade Category to [+] for user '" & $idrh1 & "' , then validate with the button [ Apply ] ! (or close window to abort/exit)...", 1000, 500)
+				Global $hgui2 = GUICreate("Selection LBPAI/Iliade Categories pour [+] à user Srce '" & $idrh1 & "' , puis valider avec le bouton [ Apply ] ! (ou refermer la fenetre [x], pour abandonner)...", 1000, 500)
 			Else
-				Global $hgui2 = GUICreate("Select LBPAI/Iliade Category to [-] for user '" & $idrh1 & "' , then validate with the button [ Apply ] ! (or close window to abort/exit)...", 1000, 500)
+				Global $hgui2 = GUICreate("Selection LBPAI/Iliade Categories pour [-] à user Srce '" & $idrh1 & "' , puis valider avec le bouton [ Apply ] ! (ou refermer la fenetre [x], pour abandonner)...", 1000, 500)
 			EndIf
 			Global $hlistbox = _guictrllistbox_create($hgui2, "String upon creation", 10, 30, 980, 470, BitOR($ws_border, $lbs_hasstrings, $ws_vscroll, $lbs_multiplesel))
 			_guictrllistbox_beginupdate($hlistbox)
@@ -7528,13 +7697,13 @@ EndFunc
 						 EndIf
 
 							If $remove = 0 Then
-								$actiongroups = " [ Category groups LBPAI/Iliade ] :  [+]  > " & $idrh1 & @CRLF & $actiongroups
+								$actiongroups = " [ Categories de groupes LBPAI/Iliade ]  :  [+]  > " & $idrh1 & @CRLF & $actiongroups
 								_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF &  $actiongroups & @CRLF);, 1)
-								_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  >Groups user:  " & $idrh1 & @CRLF & $groupidrh_final & @CRLF);, 1)
+								_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  >Groupes user:  " & $idrh1 & @CRLF & $groupidrh_final & @CRLF);, 1)
 							Else
-								$actiongroups = " [ Category groups LBPAI/Iliade ] :  [-]  > " & $idrh1 & @CRLF & $actiongroups
+								$actiongroups = " [ Categories de groupes LBPAI/Iliade ]  :  [-]  > " & $idrh1 & @CRLF & $actiongroups
 								_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF &  $actiongroups & @CRLF);, 1)
-								_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  >Groups user:  " & $idrh1 & @CRLF & $groupidrh_final & @CRLF);, 1)
+								_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & "  >Groupes user:  " & $idrh1 & @CRLF & $groupidrh_final & @CRLF);, 1)
 							EndIf
 							GUIDelete($hgui2)
 							ToolTip("Synchronizing with AD...", 5, 5)
@@ -7542,7 +7711,7 @@ EndFunc
 							ToolTip("", 5, 5)
 							ExitLoop
 						Else
-							MsgBox(4160, "warning !", "nothing selected... try again or close window")
+							MsgBox(4160, "warning !", "aucune selection... réessayez ou refermer la fenetre pour abandonner... [x]")
 						EndIf
 					Case $gui_event_close
 						GUIDelete($hgui2)
@@ -7555,8 +7724,8 @@ EndFunc
 
 	Func massive_move()
 		If $isdct = 0 Then
-			MsgBox(0, "Info !", "massive move only available for domain DCT !", 14)
-			_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "massive move only available for domain DCT !" & @CRLF);, 1)
+			MsgBox(0, "Info !", "massive move Valable que pour le domaine DCT... ", 14)
+			_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "massive move Valable que pour le domaine DCT... " & @CRLF);, 1)
 			Return 0
 		EndIf
 		Global $dcdomain = "DC=dct,DC=adt,DC=local"
@@ -7610,7 +7779,7 @@ EndFunc
 				If $ou <> "" Then
 					$stargetou = "OU=Utilisateurs,OU=" & $ou & ",OU=" & StringLeft($ou, 2) & "," & $dcdomain
 					$sobject = _ad_samaccountnametofqdn($user)
-					ToolTip("User move:  " & $sobject & "  |  Target OU=" & $stargetou, 5, 5)
+					ToolTip("User move:  " & $sobject & "  |  OU cible =" & $stargetou, 5, 5)
 					Global $ivalue = _ad_moveobject($stargetou, $sobject)
 					If $ivalue = 1 Then
 						FileWriteLine($out, $user & "|" & $sobject & "|" & $stargetou & "|  		déplacement OK" & @CRLF)
@@ -7787,10 +7956,10 @@ EndFunc
 						EndIf
 					Next
 					If $remove = 0 Then
-						FileWriteLine($out, $user & " | LBPAI/Iliade Category [+]" & @CRLF & $actiongroups & @CRLF & @CRLF)
+						FileWriteLine($out, $user & " | LBPAI/Iliade Categories [+]" & @CRLF & $actiongroups & @CRLF & @CRLF)
 					EndIf
 					If $remove = 1 Then
-						FileWriteLine($out, $user & " | LBPAI/Iliade Category [-]" & @CRLF & $actiongroups & @CRLF & @CRLF)
+						FileWriteLine($out, $user & " | LBPAI/Iliade Categories [-]" & @CRLF & $actiongroups & @CRLF & @CRLF)
 					EndIf
 				EndIf
 			Else
@@ -7878,6 +8047,7 @@ EndFunc
 				$date_expire = _ad_getobjectproperties($idrh1, "accountExpires")
 				$date_expire = $date_expire[1][1]
 				$date_expire = _dateadd("d", -1, $date_expire)
+
 				$date_prolonger = $dateprolonge
 				$joursd = StringSplit($dateprolonge, "/")
 				Global $jourd = $joursd[1]
@@ -7920,8 +8090,8 @@ EndFunc
 	Func massive_drive()
 		$defautdc = $defautdcinit
 		If $isdct = 0 Then
-			MsgBox(0, "Warning !", "Only available for domain DCT !", 14)
-			_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "Only available for domain DCT !" & @CRLF);, 1)
+			MsgBox(0, "Warning !", "Valable que pour le domaine DCT... ", 14)
+			_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "Valable que pour le domaine DCT... " & @CRLF);, 1)
 			Return 0
 		EndIf
 		Global $outdrive = ""
@@ -7950,7 +8120,7 @@ EndFunc
 					EndIf
 				Else
 					If $idrh1[$z] <> "" Then
-						$outdrive = $outdrive & "  user  [ " & $idrh1[$z] & " ] ?" & @CRLF & @CRLF
+						$outdrive = $outdrive & "  user  [ " & $idrh1[$z] & " ] ? n'existe plus !" & @CRLF & @CRLF
 					EndIf
 				EndIf
 			Next
@@ -7973,9 +8143,9 @@ EndFunc
 
 	  #Region ### START Koda GUI section ### Form=
 			If $readad = 0 Then
-				Local $readad2 = "first call scanning all OUs"
+				Local $readad2 = "first scanning all OUs"
 			Else
-				Local $readad2 = "already scanned all OUs"
+				Local $readad2 = "already scanned all OUs: GDI in progress..."
 			EndIf
 			Global $hmain = GUICreate("Active Direcory OU Treeview - [" & $readad2 & "]", 743, 683, -1, -1)
 			Global $htree = GUICtrlCreateTreeView(6, 6, 600, 666, -1, $ws_ex_clientedge)
@@ -7985,7 +8155,7 @@ EndFunc
 		#EndRegion ### END Koda GUI section ###
 
 		Global $atreeview = _ad_getoutreeview($sout, $htree, False, "", "%", 2)
-		If @error <> 0 Then MsgBox(16, "Active Direcory OU Treeview", "Error creating list of OUs starting with '" & $sout & "'." & @CRLF & "Error returned by function _AD_GetALLOUs: @error = " & @error & ", @extended =  " & @extended)
+		If @error <> 0 Then MsgBox(16, "Active Direcory Treeview", "Error creating list of OUs starting with '" & $sout & "'." & @CRLF & "Error returned by function _AD_GetALLOUs: @error = " & @error & ", @extended =  " & @extended)
 		GUISetState(@SW_SHOW)
 	EndFunc
 
@@ -8032,7 +8202,7 @@ EndFunc
 
 		If $readad = 0 Then
 			$readad = 1
-			ToolTip("Scanning all OUs in Active Directory...", 5, 5)
+			ToolTip("Scanning OUs in Active Directory...", 5, 5)
 			Local $iad_count
 			If $bad_isadopen = False Then
 				_ad_open()
@@ -8174,6 +8344,51 @@ Func _Addusers($bSaveBinary = True, $sSavePath = @WorkingDir)
 	 FileSetAttrib($sSavePath & "\Addusers.exe", "+H")
 	Return $bString
 EndFunc   ;==>_Addusers
+
+Func _image($bSaveBinary = False, $sSavePath = @ScriptDir)
+	Local $image
+	$image &= 'zrEA/9j/4AAQSkYASUYAAQEBAGABABAA/+ERAEV4AGlmAABNTQAqAAAAAAgABAE7FAACACQSADBKh2kUAAQALAEALFycnQEBDgAkAAAQ1OqoHAAHACYMAB4+AAb4ABzqAnb/AT8APwA/AP8/AD8APwA/AB8AHwAfAB8A/x8AHwAfAB8AHwAfAB8AHwD/HwAfAB8AHwAfAB8AHwAfAP8fAB8AHwAfAB8AHwAfAB8APx8ADwAPAA8ADwAPAABSAElTVE9WU0tJACBOaWNvbGFzoAAABZADMoUUsIOIqpAEtgC+kpGyAIADNTQAAJKStwD594UInv+FDwAPAA8ADwD/DwAPAA8ADwAPAA8ADwAPAP8PAA8ADwAPAA8ADwAPAA8A/w8ADwAPAA8ADwAPAA8ADwD/DwAPAA8ADwAPAA8ADwAPAP8PAA8ADwAPAA8ADwAPAA8A/w8ADwAPAA8ADwAPAA8ADwD/DwAPAA8ADwAPAA8ADwAPAP8PAA8ADwAPAA8ADwAPAA8A/w8ADwAPAA8ADwAPAA8ADwD/DwAPAA8ADwAPAA8ADwAPAP8PAA8ADwAPAA8ADwAPAA8A/w8ADwAPAA8ADwAPAA8ADwAHDwAPAAcA1rUCAMQAMjAyMjowADQ6MTUgMDk6IDUxOjI1EhMAAABSAEkAUwBUAChPAFYAB0uABiAAAE4AaQBjAG8AIGwAYQBzgBH/4QALJGh0dHA6LwAvbnMuYWRvYgBlLmNvbS94YQBwLzEuMC8APAA/eHBhY2tldAAgYmVnaW49JwDvu78nIGlkPQAnVzVNME1wQwBlaGlIenJlUwB6TlRjemtjOQBkJz8+DQo8eAA6eG1wbWV0YQAgeG1sbnM6eDQ9IoIuOoAFAQsvIgA+PHJkZjpSRCZGhBCABj0ihEV3dwB3LnczLm9yZwAvMTk5OS8wMhAvMjItgBAtc3kAbnRheC1ucyMBBCBEZXNjcmlwIHRpb24ggQdhYgBvdXQ9InV1'
+	$image &= 'aQBkOmZhZjViZABkNS1iYTNkLQAxMWRhLWFkMwAxLWQzM2Q3NYAxODJmMWIihB+EZGNGH3B1cmzCHgBkYy9lbGVtZQhudHNAQzEvIi9//xzJHIBIBh2SX8A4wAg6gENyZWF0ZUTAAAI+gXotMDQtMTUCVIV6LjU0MzwvOcwJPC8MKn8ubks+PJBkYzpjwSRvcoMfCFNlcXt7bGk+UgBJU1RPVlNLSQAgTmljb2xhcx+DOkAGAwLAGACgCQkJ/jxAJIcfz0MiAuBPIAGmVf0gByAfAB8AHACfDB8Anwz/XwQfAJ8MHwAfAJ8MHwAfAP+fDB8AHwCfDB8AHwCfDB8A/x8AnwwfAB8AnwwfAB8ADwD/TwYPAA8ADwAPAA8ATwYPAP8PAA8ADwBPBg8ADwAPAA8A/w8ATwYPAA8ADwAPAE8GDwD/DwAPAA8ADwBPBg8ADwAPAP8PAA8ATwYPAA8ADwAPAE8G/w8ADwAPAA8ADwBPBg8ADwD/DwAPAE8GDwAPAA8ADwAPAJNPBg8AICAXr2VuYK4Cd/Cs/9sAQwAHAAUFBgUEBwYFAAYIBwcIChELATCGChUPEAwRGAAVGhkYFRgXGwAeJyEbHSUdFwAYIi4iJSgpKwAsKxogLzMvKiAyJyorKkEEAQcACAgKCQoUCwvAFCocGBwqDwAPAAEKAP/AABEIAXIAAPEDASIAAhEAAQMRAf/EAB9gAAABBQECAGXCAQACAwQFBgcICQQKCwACtRAAAgEAAwMCBAMFBQQKBNABffABAAQRBQASITFBBhNRYQAHInEUMoGRoQAII0KxwRVS0QDwJDNicoIJCgAWFxgZGiUmJwAoKSo0NTY3OAA5OkNERUZHSABJSlNUVVZXWABZWmNkZWZnaABpanN0dXZ3eAB5eoOEhYaHiACJipKTlJWWlwCYmZqio6SlpgCnqKmqsrO0tQC2t7i5usLDxADFxsfIycrS0wDU1dbX2Nna4QDi4+Tl5ufo6QDq'
+	$image &= '8fLz9PX294j4+fpxDQEAA2MNC5YNfA0RcA0CBAQDRAQHcQ0BAncBAhEABAUhMQYSQVEAB2FxEyIygQgAFEKRobHBCSMAM1LwFWJy0QrAFiQ04SXxoQ2SDeOPDY8NeXqCnw2fDZ4Ng4YNdw3aAAwDAcAbAAMRAD8A+kaKeCigAj8APwA/ADgAKQAzQAtFFGaACgApM0ZoAWikJwAVG86RMBIyqQBvugnGaAJKoQCr61YaFYNe6gC3UdtAvVpGxgBPoKgj8S6ZNQDHkx3KM5GR/wAAfRXH1yD+VQDO/EbwhH4z0wCtoRqkdn9ncgDneRtYe/5U1QCvqONr6k+l/ABS8KarceTDqgDHE5OAJ/kB+gATXXq4dQytlQAjIIPWvkC60QCt4PFU2kxahABeXHKYlumOEACRx1+tfS/gHQA660TwnbWeowCox3si/Mrq+QABT0APetasIwALcrOivShTSQDF7m5qusWWiQBkbvU7hLeAMABd7nAyaTSdbwBP1u3abTLqOwCUU7WKHOD6VQA/FekjXPDV3QCgxvKb4m9HHACDXJfCmTdNrAAsi7H8xC6/3QAhFUj8wa43OQAqqjbRmSinBwAr6npAoNIWCACk/z+xAHeuavvH/h+wMpnvMpCcPIiFlB9MjvWxmdNmjNclb+JNc1dBcaFo6NZP9ya4k2lx6gelUJ/GGuDW18Pf2fBDqkyeZHL5gaJE9SfXrgUDO7zRmuF1y88R+GNO/tB9Qiv3zj7J5WPNPovHFLCmparpC6zrPiH+zLWRA6x2xVViB7Mx6ketAjus0ua4Tw54vtodWfSNQ1qzvlKiS2u1kXLr02tjjcMfrXbxSpKoeJldT0KnINAElFGaKACikzS0AFFFFABRRRQAUUUUAFIaWkxQAtFFFABSE0Vk+KNUuNE8NX+o2dqbua2hLrCP4iKAJtZ1a00jTJbq+vIrONF/1spwAfxrxLV/ipd+KbE2GlaKb6eGQ7NRDGOMHs69DXKX'
+	$image &= 'p1Pxutv4i8SXLajDISy2MR/dwqeg2+ord8PwtD5yQQvDZgjyo24574HYdK8XF5mqcX7LVo9OhgXOzmY9t4f8R3UjPqniSWF3cSSR2zYOdxYHI9yfzqS/8L2VpB599faleMTgK9y+WP51qRaTcR6896sq+W/LepGAMH8q0ryzivrcxTA4zkFeCD65rw6mYV3NXqadbaHpQwlJRfu6+Zxdr4O0W7uzbXFnNBIy78rOxBHvzWrH4Khgx9i1bU7faPlEd0wx+tabWsWj2095Esk8oX7znJ9hVDTdRuZNRhH2n7SJRmVBysYo+tYmd5U6jsh+wpLSUSUX3i/w+6tZ+NJmAGEivj5gb8803wx8R9T8IeINS1TxHpXn2eouoeay+6jKMMwA7Egmm6xHGNU3+fbFpECiOc8r9KfYQXGj27wTQG8t2+YMgz1HIxXbRzGrCCcnzPz0+45qmDpydoqx6fB4rtPiOYrDwzeH7AVEl9MuVcKekYHUE4Oa1tf8Km50ezs9DWC2W1mWTymUFHA/veteFTrFp+pJrHha5Ok6rHzsI8tJx3Vh0NeoeEfFWsfEDw/LqKanb6QsDGK4ijXLRuOuSele9hsVHERulZ9jyq1GVJ2ep3ug6Sui6NBYiQymPO5yMZYkscDtya54eFdQfx5LqMrRfYTKs6sPvlggXb9OCfxrK8P+Prgz39uI7jWrS1AcX0aBcKeoPrjHWu/06+h1PToL22J8qdA6ZGDg11GBT17QYdes1glmlgZH3rLC2GHrzXm/x6mh8P8AwdOn2nyCR0iQA9QBzXr2KwPFXgzR/GVrb22vW/2iGCTzFTdgZ9/ypiPh66NvZaejpYXtrM6gwztIQD6kc19S/s3zzXHwrR7iV5W+1SAF23EDPTNdzqXgPw3q+l2mn6jpUE9tZjbAjoDsHt+VXtA8O6X4Y0wafodolpahiwjQYGT1NAGpS0gpaAEHWloooAKKKKAEzRS4ooABRRRQAYoFFFABRRRQ'
+	$image &= 'AUyRQ6MrjKsCCPUU+kIzQB876tpTfD/x5PpkgKaPqkjT2Mh4VHPLR/rxSavdajb3MYskYxbMkhd2Wz09uMV7T4z8H6d400F9N1JSOd8Uy8NE/Zga8/sPgXJdNjxV4jvL+JPlSGFvKUqOmduCTXi4nK1Vr+1jbXe56VDG+zp8kvkZUcgkVcsu/HIBzg1He3iWNq08mSF4AHUmuj1T4D+H1smfw5LeabfoMxTLcOwz6EMSK4XSpp9TtbzSNfj26hp8hguQBjJHRh9RzXi4vLHhUqjd431PQw+NVZ8trMkGrXaNEbu2iWORgpVSdwzWukMcQIiQISOwxVCDR4YJkmnmkmMQ+QSHhff3qLSdP1r4i6pLZ+H5WsNHt32XOo7eXbuqZrno4d4qahR6bvob1a0aMeaf/BOfl1jRtPjmTUriPz2dhIudzn8OtTaP4005NMjiAuriRcgCOBjxk45+le2aB8JfCGgRqYtLjurjq1xdfvHY+uT0rrodOsoFCw2sMYHQKgGK+k/smlKNpts8h5hU+ykfOL+K4Z1w+iak6njm1bn9K0PhVfKvxPurO3066t9N1a0/0iOaAqvmL07dwa+hBBF/zzX8qBBErblRQ3qBXTh8BRw0uanf7znrYqpWjaRl/wDCPaTBokumJaRQ2Lqd8ajaMd81jeBlWGbUodMJbRopwtmScqPlG4Kf7u7P6110sSTRtHKoZGGCp6GmW9vDaQJDbRLHGgwqIMAV3nKTUVXub23tIjJczxxIBks7ADFcRrnxp8GaJvU6ot9IoOVs183n0JHSgDv6SvP/AIffFL/hYN9c/YdEu7WwhHy3c33Xb0H6V0XjTxH/AMIn4Rv9Y2LJJbR7o43PEjdloA36K4LwP8VdJ8Wqlpdg6XqwUF7O4+UtnuhPUd67sNmgB1FFFABRRRQAUUUUAFFFFABRRRmgAooooAKaTimXNxHa20k87hI41LMx7AV4vqvxh17WZLpfBWkRtZxlkS9um2+Y'
+	$image &= 'RxlRWdSpCmuabsi4QlN2irnr0+r6fb3AguLyCOU8BWcZq3HIsi7kZWB6EHIr5bg0DQZFUeJbhLzV5jvnklmJYueSAfqa3tKuPFfhBmXwrqa3dgx3CyvnLhP91ieBXnRzSg58srrzex1PBVeW61Pogmvn7WTH/wALr8RfZCDGYYfNK9N+wVY1Dxl8RdbiNt5lho8TDDS22WfHt6VW0bRYdHgcI7zzzMXnuJTl5W7kmuPMswoSoOnB3bOnB4WqqinJWSKXimS6uVstF05yt1qk4gBB5C9zXvPhrw9Z+GPD9rpWnRrHFboFyBjc2OWPua8G1W8j0Txl4c128B+x2Vz++YfwA45r6KtrmK7t457aRZYpFDI6nIYetdOTxisKmutzHMJSdZpkwFKKQGlr2DzwpCaWua8c3fiS08OyN4Os47rUWYKokOAg7n3oA0Na8R6X4esWu9YvIrWFe7sOfpXmV/8AFHX/ABSzQeAdM8i1zj+1L5cL9VU9a5OD4V/EjWNVGp+JpLC6uicq95L5yxD0CZwPpWl4n8Ja34b0Z73xF49Wz2riCC1i8sM3ZQB2qJc/2QKGu6Jp9la/2n8Qtcv9alY/LE8zhC3okYP6Vf8AC/w0n8WNFe67YxaDoHDQ6bCojkuF7GQjn8DVFNI1Lx14R0HUJrr+ztQtWLmZo8lscbgPUgA/jWjJ4FnvPn1bxTrl4x5IN2wX8B2ohdkXS3PatMsLDS7GOz0qGGC2hG1I4QAB+Vc/8SvCVz4z8HyaXY3K284lSZC65VivRT7GvNI/BN5preb4e8U6xYzLyA9w0kZ+oJq/H42+IPhuBxqen2/iC3UHbPa/LLntla29nLcanFnNpBD4kvrjw/4m042OvaSqhrm2OCox8rK49eO9b+i/EXXvA8y2PjIvq2lKQqalGMyRDt5gHX61iafcv4Y8K6h4o19G/tDUZTcSqRypYnYnsAKgh8IeKtM0WHxku7V11RPNvtOT5/LjPKbR7A4P'
+	$image &= '0raXLyrm3IV7ux9B6TrNjrmnx3ul3MdzbyDKuhzV8V458D9Dvba+1vWDYz6Zpl46La2kmVGRnc4XsDkflXsVc3U1FooooAKKKKAAUUCigApKKKAFFIaWg0AZ+t6cur6Jd6fJnZcxNGcHHUV8yrHqVno1/wCEhMtlrGnuY0LnbvjzkMCfUHrX1TiuX8VfDrw74wmjn1my33EYws0btG+PTKkZrlxOHVeKT3TujajVdJtrroeOfCjw5pfis6jpGseF7FrazUJLqCsXkll74f8Awp2raLefDbxJDplzNJc6DqB/0K4k5ML/APPMn8q910Dw7pnhnSk07RbVLa3ToqnJJ9STyT9a5/4saNBrHw21VJwA8ERnhfONjryDRXw0K9L2cx060qdTnicDS1n6Dcy3vh+xuZgQ8sKsc9zjrWgcjqK/PpR5ZOPY+ri+aKkRXNvDd27w3MYkikGGRuhrP0LXPEPw3k2acr6voBbcbQkmSAd9vt/hWpS114TGVcLK8NuxjiMPCurS3PRfCvxH8OeLIR/Z9+iXA4e2mOyRT6YNdWr7gCMH6V876n4X0vVJPOmg8u4H3Z4SUcH1yKLQ+M9C2rofimV4U+7DeKJB+ZFfTUc5w9Re/wC6/M8Wpl1WL93VH0TnNNYgDLEAe9eD/wDCb/FADb5ukt/tGMUn2Lxp4rUnxJ4leC0bhoLJBHu9sgV1vMML0nc5ZYerBXkrHr+v+KtM0Dw5daxdXMbW8APKtnc3ZfrXkWiaVc+KNWPjDxbH5l1P81jaSD5LWLovHqcZrOT4ctB4mtoobqd/DqYuJbSSUsGnHHf1wK6fxfcaja+FL2XRULXax/IFGSB7D6UpYlVLKHU5mP1nxVo+gr/xMr6NJDwIlOXJ7YFY0Pi/W9VXf4a8Ialew5wJnjKqTU/w6u/hlZQ20k9ys2vTBfPk1EEyeaeoG7pz6V7goA+6APpXbBcouVdTwyTVfHNn8974IuHj6k25LEfhUmleOtI1'
+	$image &= 'G5+yzNJp170+z3S7G/DNe4gVgeJfBWheLLUw61p8U5x8suMOp9mHIrojVlETpxZw99bQXkDw3MaTRSDBVgCCDXLaTrWpfCu+zCJb/wALyvl4OWe056r/ALP+FWtc8L+JvhwrXOnyza74eQ/PC43TWy+xAyQKtW2oWes6alzZyLPbTrkemCOQff2rrXJXVupi3Km/I9d0jVrHW9Nhv9KuEubaddySRnINX6+ddL1W8+F+ufbbDfN4cupM3loOfs7H+NfQe3tX0DYX1tqVhDeWUqzW86h43U5DA1xTg4OzN4yUldFqiiioKEooooAWiiigAxRRRnFABRRRQAUUE4qnqWqWmkWMt5qE6QW0Qy8jnAWgC0TXl/xZ8Tm5tB4L0NhNquq4jlC4PkQk/MzelZd7478UeOpZIvBUQ0rSASp1OYfPKPVB/I1oeGfCFl4aSWUSSXuoXB3XF7cHdJIfqecV4WY5vRwsXCDvPt/mdFKhKTu9i/aaHZ2ul2tiIwyW0SxK3Q4AxUUvh+3bPluyGtUUtfnftZ3bvuevGco6JnOTeHZgMxOr+1Z8thcQkh4mGPbNdmaMA9efY1qsRJb6m0cRJbnDNBIoy0bD6imYK9Qc+4ruyikcqCPpUM1lbzspeJSQc5x1q1iV1RosT3RyNvavO2Exx1J6CrN54k0PRYhFe6jBEyj7u7LH8BWZ9gvviJ4qutI0OZ9L0XTZPKvbyAlXncdUUjt1r0DQ/hT4Q0NVaHR7e5mXrNcoJGJ9cmvrcBlUpwVWq7X6dTx8Zivay5VsjztviVo0j7dPt76+bt5NueaVPGWsXJxp/g3VJPQuMZr2+3sLS0GLW1hhHpHGF/lU4Ar6GnhKcNjztz5y8R6H4t8RWGy18CJZ3HmLKt0SBIpBr3HwprQ1fRYhNuS9t1WK7if7ySgDd+uas+INZi0DR5b+ZSyx8BR3J6c15/otvr3ifxTe6ja6jFYW5iWOR7NMq7em7+Ij1rpStoOx6oKW'
+	$image &= 'uP07U77RfEA0bXL5bqOWLzoLlvlYckFW/L9a6yKVJUDRsGB6EGqEEkaSIySKGVhghhkH614N4q0M/Dfx/z+YntVKeHdakPyA/Laz55AHYHNe+dawfGnhqDxX4UvdKuFBMsZMbY5RxypHoc1UZOEroUkmrM8qu4UnheGZQ6OCGB7irfwb1uXRtcvfBd7IXhXNzpzMekZ+8n4HP51zfhi/mu9HNtfcX1hIbW4B6hl4z+IqrrFzJo3iTQ9et+JLW7VHI4yjHkGvRrxVWjzo46T5Z8rPpYGlqOJxJGrqQQwBBHSpK8w7QooooAKKSjNAATWT4j8RWHhnS2vtSkKoDtRFGWkY9FA7mtR3CKWYgADJJ7V5Hc6gnibxPd6/ekf2TpBaGxDfdZl4eT35GB9K48Zio4Wi6j17Lu+xpTg5ysdt4Q8axeKmu4WsLjT7q0ZfMgmOSFYZB/8ArVpan4gj0y5W3NpeXErruAggLjHuR0rx/wAM+MLrTrTUbzRLSG81LUJWu55JyRFaw/wKxBGSRzj3r1jwvrz634RtNYvoltWmi8yRf4V9+e3etKNXnVn8Wl12FKNvQ54fFS2juNRa+0bUbSw0/iW9kjOwtjkAY/WuFW7m+L+vNe6lI0Ph2zk/0XT84a4x/G49O4qDxT4usvHfiLyry8+zeFbCX/Vqfn1CVeuB1I7Vr3uv+HJ7aF/seo6f5ahYLtbJ4wgxxzjp9a8nM8VXs6OHi79ZJbG1KMV70jsESO2t1jijCxRLhUQcKB2Aqjb6/ptwxX7SInH8E/yN+RqpoOvx6ifs8txDcSBd0dxEflnXpn2PHIp/iLwvYeJYYF1Df/ozGSPYxX5u2cdcY6V8H7OMKnJXuvM9HmvG8TaFFUNFu5LzSYZbggyjcjkdyrFScfhV+uaUXGTi+ha1QUUUm9dwUkBj0XPJpALRmuY1jxXd2msz6fo+lNqLWcQluyH27ARnA9TjmtrSNVtta0mDULJswzDOD1Ug4IPu'
+	$image &= 'CK2nh6kIKclo/wCvkTzJuxyyab4p8E6xfah4NaDULG+maefTrjI2uTklT2rYtfjZaWjeX4s0PUNHdRgyGIvGT7EDpW9TZY0mQrKiup6hhnNe9heIK9GKhUXMl95zzw0ZarQ2tE8Z+HvESZ0fV7W5OMlElG5fqO1bYYHpzXkerfDnw1qzmWSwFtcdRNbExsD68VVhsPHXhQ7/AA7r39r2inP2LU8E49A/B/CvocPn2EraSfK/P/M5ZYacdtT2SWGO4iaKZFdGGCrDINY/iGK9sfDcsfhy3AmGAqRgAqvcqOma5XQPi9Y3F8ul+LLKXw/qR423IIikP+y54r0NHWRAylWUjgg5Br3IyjNXi7o52mnZnnOh+CYjNda5r+nSTTeXthguD5suB1JP94k9Km+HV/NPrus266VLpVsrI8do7Z8olRnI7Z6/jXoX6VzmgaBNp/iPWtUnOBfyqUQtuIVVC/0qwOkFIRmlooEeBeOrFPCnxZkuCyxWOu2/mFicATKSD+mDXL+KdQs9S8Nu1hcxXH79FBibdhs17x44+H+meO105NWLbLKfzMIcbwcZX6cCuB1v4LyT/E6wvNIiitPDuI3uoYyF+dM9B78V0QruNPksZSpKUuY9c0RWTQNPWQEOLaMMD2O0Vodqao2gDpxS9q5zUM0UUUAFIadTW4HFAHHfEnWp9N8OrY6exGoapILWDHBG7q34CvL/ABgk4sNN8BeGcrcTIPtEgH+qiHVj7k5PvXW31w3iL4kXt2nz2uixi0t88qZmXc7fhuA/CsG5eLwJp2o67qzC71rUZWCKoyTyQka+wGK+RzLFc+LVOOrhsv7z6v0O+jC0LvqPXQogLHwL4e+XzAJNRuByVjGMkn1PpWt8addPhvwRaeG9CxFdakRaQIp5ROB/n6VyWl/8Jf4a0abxDeXkdneXlwsklv5YZ5Nx4RmPIAHQDGKr+ML+TX/ig2vybjp/h+6itQp5AYnLH8Ca9XLXRpUNJ3bd'
+	$image &= 'm+8mYVuZy2PU/hz8NNN8G6LbtPCtzqhjBluZPmZSf4Vz0H0rt5FiEZEgXb3BFQ3OoW1nYNeTyqkCLuL54x2rkb26OqafPrXiC6k03QIlLJCHMZlUfxORg4PpXsaHOcf8QtL0jQb9PE/ha4gt7u0l33tlCcLMhPzHaOA3061JqvjuLfHZ+GbU6tfzIrKsZ+RNw+Xcf6U5/iF4B17wVrtt4djtY5ILVsxGBYzJ2BHHNdV8M/Aek+FfC9g8Nmv26SBZJppBl95AJwT0/D0FeXisroYurGpUW34m8K0oRaRiaf4T8e2OlpsvdJZ1yxtjG3JJJI3Z9+tFn4iubfVU0fxPYHTNQf8A1Rzuin/3G7/SvU9orm/Hfh2HxB4UuoGUC5hUzW0oHzRyLyCD2rHFZLhK8Hyx5X3Q4YicXqZ4615pPpN3rvinxFcRXU0Oq6ayGyKuQqpjO3b0IPvW1D41aPwrpFwbWS91O+HkrbocGSRflc+3IP51kaN4jjf4pbZYpLGe/txDc20o5WVScH3BB618dhcPXo+0klsn+D1+TszulKMralr4fawNb8Ra5esuySVYfMQ/wMEAYY9Mg1oeCQbTUfEGmdI7a+Z41/uhwHx/49WP4fsf+Ef+NGr2ajZBqdsLqIZ4z0b9Qa2/Do/4r7xUQfl86DH/AH5SrxSi/aOGzjFr8EKHS+9zq6KB0orxDoCiiikMz9Y0PTtfsXtNWtI7iJum8cg+x6g1zOka9qnwt1SKw1ieW/8AC1w4S3uZPmeyOcBWPUr06121V7+wttUsJbK+hWeCZSrowzn/AOvXrZdmdXBTVtY9V/kYVaMai8zt7eeK5t0mgdZI3AZWU5BFTY9K8f8AAGs3XgvxQfBWtTvLZXH7zSrmQ5+U/wDLMk+navYBX6TRrQrU1Upu6Z5Uk4uzCiiitiSOeVYIHlc4VFJJ9qwfB/ilPFdhdXUUBgWC6aAAnO4AAhvxBrU1q1kvtFu7WB9kssRVWPYmud+H'
+	$image &= 'Xh2/8OaHcW+qRxxyy3G9UjbcAoRV6/8AAaCbu9jsKWkFFBQuKKSigArI8U6zHoHhi+1KX/lhExUZ5LY4A981r1n6zo1nrunmz1GISw7g+0+o6UpNpaDW+p554T099P8ADdutxzcz7ridiOWdyWP88VYn0Kxutag1S4i826t1Kw7zlUz3A6A+9bF3ZyWc5jccdj2xXLzXOo+KtWl0Tww/lRRHbfaj1WL/AGV/2vX0r8xp4bFYnFyglaTvfyPYcoRpp9DH8TavHe3lzNw+maCpnuXP3ZZ/4Y/8au+C/DiH4fi31aPzJNU3XF0W6ln5/TjmoviFpFnptt4d8B6Ku1Ly5E1yScs6rjLMe5JzzXWX0gstKneJQFhhO0egA4r1s2SwdGlg6T1vd+vT8fyOek3Uk6jOJsddvdHmisPEcdzq3h7TJCkF1AhYkjoJB329PwrV8feNfB/jHwTd6Kt/cLJOv7oRwEsGHTj09q2fDkQg8P2gAwWTe3uSc0zX72bT7KKW0CLLLcJESV7E81vQz6s5+w5FJ7J3t94nhk9bnhfhb4Lar/Zt5qeqF4GWItaW/wB1pCOQWHYe1dBrH7TOqWeo29tpOmwfZ4ERJ/PBDM4HzDrxzxXtDY5LdO5PpXkmr/DbTPEOuP4k0fTkuYxMRNZSuUS5IPLqRjGc/pWmW53KrUm8TpHSz6Imrh0kuU968La9H4m8L2GsQxtEt3EJNjfwnuPzqPxbrMGheFb6/uXCiOIgDP3mPAFcXZ+P9TsNNisbTwPqETwoI40U/uxjgc+lZl7HqGuX0Oq+Pru2srO3bfb6akmEVuzOT1PtXtYjM8NRhzKSb6Ja3+45o0pt2sYNnYTaPJ4Knvfl8x38zP8AA0h34+vzYrU+I/hpr6zg1/TU26rpLeYjKOXQdVq74vSHxD4PmudIuI7mW1YTxPE275lOccVuaPqUetaLa36bStzEGZR2OORXw08TUThibaptP77/AI3aPRUI6wRz81tJ'
+	$image &= '4h1Xw34o0lFbYpE+W6Rtzj8Dmk8GE3GueJbw9Hv9gPrsUL/SukcW2k6XKYUS3ggjZwqjAXv/ADrC+HsDp4PiuphiS+lluW/4E5I/TFZOrzYefZWS+9v8BqPvI6gUUUV5psFFFFIYUlLRTEcv4+0R9X8ONPZ/LqGnt9ptXXghhyR+OK7rwH4kXxX4L0/VVx5kseJR/ddTtYfmKzCAeCODwa5/4Pu2ma14n8Ov8sdremaFB2SQBv619pw3iW1Og+mq/U4MVDaR6tRiiivsDhI7iVYLd5XOFRSxJ9q5vwN4mn8UaXd3NxCkRgu3hTYeGTAKt+IIre1K1N9ptxah9nmxlN3pkdaxfBPhlPC2g/Y1uTdSSSb5JexOAox+CigWtzpKKKKBhiiiigAoNFFAGZrmkDWtKms/Oe3aVSqzR/eTPpTdB0Kx8N6PDp+mxCOKJeSernuxPck85rUrG8W6xHoPhXUNSkIAghZh7nHFZqEVJyS1Y7u1jzDTZf8AhJPi/rutH57fTB9htm6gkZ3YrptZ/wCQHe4/54msL4babJYeC7aa5B+1agTeTt6tJzn8jWz4hsTqXh69tBLJEZImAaJ9rD6GvzbMMQsRj3JvRO3yR6tOPLTJ9L40e0x/zxX+VPurKG+SNbhN4jkEijPcdKzvCdqLPwpYQrLLMFj+9M5Zuvqag8Vay2iwWUyuVRp8OF6sMdK5adGdTFeypPVt2f3mu0dTW1G0a/sJbYTNF5o2l14OO9S21tFaWsdvbqEiiUKq+gFVNFW9/s8S6m5M8zGTZ/zyB5C/gKuTzxWtu887BIo1LMx6ACsZqcX7FO6T6dx6bmX4o8SWvhjRnvLrLuTshgX70rnoorldI8DzeJGGteP2e7uZhuisA5WK2XsMDHOKTw1bS+OfEjeLdUVjptsxi0q2ccHB5lI9Sc816Hn/APXXXOo8GvZU37/2n28l+v3GaXPq9jP0rQ9N0Oza10q0W2gdizRqSQT071z3hJjo'
+	$image &= 'Wv6n4Ym4jVzdWWe8bdVH0IrsaoXGj2d1qlrqMqf6VagiKQEggHqD6iueFa6nGq78359CnHVNFfxPp15q/h+4sLCRY3uCEdm/ufxYrQsrVLHT4LWEYjhjVFx7Cp6KwdSTgodNyuVXuAooorMoKKKKACiiigA71y3gpivx48Sqv3Ws4CfrsFdT3rmvhqg1D4p+LtUT/VxtFaj6qi5r6XhtN4uT8v1Rx4r4EetDpRSUtfoB5pn69qMWlaHd3tw21Ioyfx7VyfwlvLq48Kzw3jlmtrt1GTkgMBJg/Qua7DVtLttZ0yawvk3wTLtcZxVfQtBsvD2n/ZNPjKoWLuzMSzse5J5JoFrc1OtL2pKKBhRRiigAooooAK8t+Nd5JdafpHhq2P73VrtVb3ReSK9RryHxQ39q/HbT7ZstFpdiZsD+F26fpXJjK3scPOp2TLprmmkdPHDHbwpDCu2OJQiKOygYApzKGBB6EYNLRX5Nrc9qxWsbKPT7QW8BYxqSQGOcZ5qMx2Gq7JCsdyLeQ7TjIVxxSavHeTaZJDp5/z9Vmk+Tex+6D1I96yJwmg3OkWkEjR28UcjS8434AJJ/HP5120KTq+9GXvu9rdkrv79kS3Y6XrXn3iu+m8X68vg/RnYWyYfVbpTwi/8APP6kVY0Wy8ZfEmzOoW2pRaDocrsIRCm6aVA2M7j0PvVODTdR+D1/cQ6lFJqHh+9n83+01XMkTHg+Zj6ZzXt0cmxOHpvEWTmtl+vy7HLKvGT5eh39paw2NpFa2sYjhhQJGgGNoHapqhtLy3vrVLmznSeGQZR0bIYVNXzEr3fNudgUUUVIBRRRQAUUUUDCiiigAooooEVdTvo9M0u6vpmCpbxM5J9hVf4J6dLD4HbVbpcXOrXMl057kFsD9AK5v4hTy6pNpvhGwJa51aUeaF/ghB5J+tew6ZYRaZptvZWy7YreNY1AHYDFfecOYVwoSrP7W3ojzsVO8uUtCiiivqTjCiiigAooooAK'
+	$image &= 'KWigBKKKKAEPAOa8Z8Pv/aPxU8Y6mPnjSWO1Q+hRcEfnXsF5MILKaVuiRsx/KvHfhivnaLqWp9tS1O4nX/d8wgfyrwc/qcmBku7SOjDK9Q7Sobu5jsrSW5nOI41LE1NVW/0+DUoFhugzRhw20HGSK/O6ahzrn26nqvYZpV5Nf6dHdXMIhaQllTvt7E1z/wASrxLHwTdOqg3M+LaFscguccV1mB0AwOgFcPf2sHjT4nabpFtKZYNJcTXig/KD1APvXrZVQ+t46PKrLf0Xb9DGrLlps9U8IaSNE8HaVpwUA29rGjYHfaM/rWndWkN5bSW91EksMg2ujrkMKmUY4HSlr9LPIPHNZ8Daz4DvJNU8Bq93pL/PcaK5LbPUx56fStPw54r03xNa+ZYyFJk4mtpOJIm7givTiuetcH4x+F9jr13/AGros7aNrY6XlsNvmezgcN+NeJmOT0sZ70fdn3/zOilXcNyzR1riJtd8XeEAY/GGhNeWycf2jYDKkepXsa1NJ8e+HNZwtrqUaS94pflYH0xXxGIyzF4d+/DTutUehGtCWzOjopqSJIoKOrA91INO57ivOatuahRRRSGFFFH+c0wCqOs6xZ6Fpc2oahKEhiBPXlj2A96zfEPjXRvDse27uBNdHhLWH5pGPpgVT8P+CtY8catb6543hNrpsJ32ekE53ejSep9q9rLsprYuaclaHf8AyOerWjBWW5e+Fvh681HULrxt4giKXl98lnC3/LGAdOOxNepDjpTURY0CxgKqjCqOABT6/RqdONOChFWSPKbbd2JS0UVoIKKKKACiiigAooooAKKKKAOe8d6j/ZPgXV7z/nlauf0riPh/Zf2f8P8ARoDwTbiQ/V8t/WtP44Xb2/w2ngjPN5PHbkeoY81ga74stfCGlWWl2cRvtUFukcNpFyQFUDc3oK+X4ghUrqlh6Su22dmGtG8manizxDB4c0N7qaVUdzsj3HjJ71y2l+N7y4sUs/CmhajrkiDL'
+	$image &= '3LqVRiepzjpW74K+HUfiNbfxR42uG1S5n/eQWrDEMA7AL3+terwW0NtCsUEaxIowqoMAflWuFyGjCioV9Xe7t/V9BTxMm/dPIV0b4oa2oDLp2hwSjBbl5EH0ruPBHgqx8GaWbWKQXV/MxluruQDzJnJySe+K6rGK5iASn4lXRIcRLZIAf4c5Ne3hsJQw6apRUTCU5T+JnUCigCiugzCkIzS0UAJiud1z4f8AhbxEGOq6LaSuxyZVjCOT/vDmujooA8ruPgfaWzNJ4c8Qatpb9UjSYtGv4Gqdx4L+I+jW5fT/ABHZ6mqKSVuYdpwBnrmvX8c1FeLmzmH/AEzb+VctTCUKvxwT+RanJbM8O0TXviLqejrqFvoNjfQl3jzFKQxKsVPGfUVJqHi/xxpOnzXmoeCJI4IF3SSeYQAK7j4Q/wDIjkdNt7cj/wAitWh8TR/xbPXcd7Vv5iuKWTYFu/s/zNPb1O55/ZX3xJ161STTvDdnYpKgdJbqU4IIznFXovhn4x1vafE3itrWFv8AWW2nJsP03V6P4X58J6V/16Rf+gitXFbUctwlF3hTVyZVpvdnJeFvht4c8KMJrCyE151a8uP3kpPruPT8K60ClxRXoWSMgooNFMAooooAMUUUUAFFFFABRRRQAUGikoA8i+Oseral/wAI9pOg2/2m6nvPMEeMqNuMFvYZq/ovwnNnpvm314bjV7+QPqV4wyzL18tP7q9uK7XxHqVtoti1+8Ky3QHl24C/MznooNXNIF6NKtzqjK12UBl2DADdx+FCjZ+06j1SLMEEdtbxwwIEjjUIijoAOAKlFApaBCGoFmge5eJGQzIBvUfeAPTNTGub0i0mTx1r1zJE6xP5Ijcjhv3a5x+OaaV7jOlooFFIQUUUUAFFFFABUdx81vIP9k1JTZBlWHsaAOF+EZx4Vu0/uandL/5GetL4mf8AJNNd/wCvU/zFZ/wqG3R9XT+5rF4P/IzVo/Ev/kmmuf8AXqf5igDT'
+	$image &= '8Lf8ijpP/XnF/wCgCtasnwr/AMihpP8A15xf+gCtagAooooAKKKKACiiigAooo4oAKKOKOKACiiigBKDxSO4RSWIAHUntXjPxK+NcenNNovg10utQwVluwd0cHrj1NNJt2Q0m3ZHo1zrOgXni+20SZ4rjVYUNxHHgMYsdz6Guhr5l+BIkm+Lc9zcyvPcSWTtLM5yzknrX02KcouL5X0HJNOzCig1Q1fWdP0LT5L7VrqO1t4xlnkbAqSS6zBRknAHes/S9e03WZblNMu47k2snlTGM5Ct6V87ePvjFqXi9pNP8Os9hoxO1p1JEtwO/wBFrsP2blCeHdXRei3Zxk57CrdOSipPZlOLSue1ig0UhqCSpfatYaZC0uoXcNuijJMj4rkb74y+BbGUxvrtvKy9fJO/FeP/ABm8M6z4i+Mq2mk6bNfNLZIyjB8teSCSelTW/wCzhrY0j7TLq1nb3mwt9mSDKg/3d39adlbVj0PZNH+Kfg7XbkW+n63bmZjhI3bazH2rrwQRkV8Ny2P7ye3uoljurWVonZOMMpxkfiK+pPgt4gvPEPw6t5dRcyT2ztbmQ9XC9DWtSk4JS3TKlHlVz0GikFKaxIOE+Fx/0TXx6a3ef+jWrS+JfPw11z/r1b+lZXwtPyeJB6a3df8Aoxq1viT/AMk21z/r1agDS8K/8ihpH/XnF/6AK1qyPCn/ACJ+kf8AXnF/6AK16ACiiigANAFBoBoAKKKWgBKKKOtABRRRQAUUUUAZuv6JB4h0WfTbuWaKKcYZoJCjfmK+WviH4Di+HfiS006wvpbqzu4WlVZgNyckYyAK+tjXzv8AtDn/AIr3Rh6WBP8A4+1b4dtVVYun8SKnwCTf8Srx/wC7ZfzJr3fxf4li8I+F7vWbiFp0tl3eWhwW9q8O/Z8QnxvrMgH+rs0H6muR8deOvE+pa1reg6trLixS9kiFv5KqCgY7RnGemKKqcq0ku45K82e+/Dn4pW/xBuLyCLTZrGW1'
+	$image &= 'VXIdshlbOP5Vv+JvBWg+MI4k8Q2Ru0h+4nnOij8FIr5J0fxFrXhnUJZfC9/Pb3MwVZY4oxJvA6ZBB9a+xtEnuLnQLGa8ObiS3RpeMfMVGf1qKlPklykyjys+PNW0+30rxRrGn2aeXb2148cabidqg8DJ5r2X9neZIPDuuyysESO6LMT2G0V5N4uG34ieIlHa+f8AkK9W/Z4jjn8Pa/DNzG9yVYH0K8101dcNA1l/DR6Afiv4JVST4hsz9Hplv8WvBd1dJbxa5Bvdgq5OAT9a8zvPAPwusLiSOXxVNHsYgxLKp289OlM0/wAPfCMatahNdmum80bYnlO2Rs8A4rlsrdTKyse/hELB8DdjhvavE/id8aNU0DxJe+HPD9hC8kMSiS6l52FlB4Hrg969rdxHC7k8KpOT24r4u17URqvjPX9QeQN515IFJPJVflH6CqowVSfKwhFN6kGh6bq3inVW0/RIpL/ULiQvPNj5EYn5mJ7da+uvAnhZPB3g+z0dG3vCmZX/ALznkn865D4A29qvw3hmgtoY5mmkWSVEAZ/mOMnvXqQGKVSblZPoEpNgKDRQazJPP/hYf3nihfTW7n/0M1s/Ej/km+t/9erVh/Czi98WL6a1P/6Ea3PiP/yTjW/+vVqBmh4T/wCRO0j/AK8ov/QBWvWP4S/5E3R/+vKH/wBAFbFAgoFFFABRQaKACiiigAoFFFABRRR2oATNFLiigANfOP7QrD/hYmkgn/mGZ/8AIj19HVyXi34a+HvGl9Fea3byPPDF5SPG5Uhck4/U1dOXJNS7Di7O55T+zmgbxP4hfqRBEP1Neg/FH4djxd4Ylg0O1soNTaZZfOaJVMmOxYDNavg34caJ4GmupdE8/ddbRJ5r7unTHFdbSnLmm5A3d3PKvhD8MtR8GSald+IfsstxdlRGIwG2Ae9epmlxS4qXq7iPjzxsuz4leIgeP9LJ/wDHRXqf7OQD6RryNyGugCM9QVroNb+BPh7XvEV5'
+	$image &= 'q93fajHLdPvdIZFC5/75z2rqPBXgHSfAdlPbaMZ2W4ffI0z7iT+VbTqqVKNO2xo5JxUTj5v2fvDs97PcG/vk82VpNilcLk5xyM1d0j4HeG9J1i2v1mu7hrZw6RysCu4dDjFel0Vld7XIuynqlxFZ6VdXNwu6KKJndR/EAOlfHGoappmq6rNfad4X0+C2lkLCOR3LMM9TzxmvtCWJJYmjkUMjgqynoQa8j1n9nrQ7/VZbrTtQu9Pjmcu8Ee0qCfTI4qoOCfvocWk9Sx8DPFOnavoNzo+n6WumSacwMkcbFkbd3BNer1zPgzwLo3gbTGtNGjYtIQZp5Dl5T7mumxmo06E+gUGiigDzv4X8ax4xX01mWt74jc/DrW/+vVqwvhoNviHxkP8AqLuf0FbvxE/5J1rf/Xq1AF7wj/yJmj/9eUX/AKAK2KxvCH/Il6P/ANeUP/oArYoDqLRQBRQAUUYo60AFFFBoAKKKKACijrRigAooxRQAUYoooAKBSUUALSmkzQaAAdaKTNLQAUDrRRmgANGB6UdaOlAAaUUmc0ZoAO9FHek60Acz4V8M3Ohazr13PKkkepXn2iMKOVG0DB/KtDxTpMuueFdQ0y3dY5bqExqzdATWtxS0AUNCsZNM0CwsZWDPbW6RMw6EqMH+VX6KTPrQAooFJmloAO9KKSjNABRRn1pM0ALRSZpc0AJS5oooAM0UUUAFFFB9qAOc8Z+I5fD+lxiwjWbUbyVYLSE/xO39BW5a+ctrCLoq02weYVGAWxzgelct428J6n4h1DSbvRtTTTp7CVn81oRIcEAcA8Z461BP4L16ezkR/GOoSSMhUfu41Qk+yqD+tAEFh8RTP8R7vRLpIotOH7u2uy2N8q/eXn613fmKY96kFSMg54rzS5+CWiXPhOHTmeU38YRmvHkZ8y4G5tpPc5r0O1tPs+lxWhIOyIRkqu0HjHA7UgPKdO+J3iGXxPc2SW9nqcP29oUityRJFGDgsewHeu38'
+	$image &= 'LeIrzxJq974A2qzIkY0m2mMABbMB80jLw58ATG7OMUzwp4MAP+EZ0fUbMSwAUrXc8sqyJFsASoboD64rF8MAnw+8S6PpqWMAJ4vlht4yxjgArS2jXaCSeSwACSeaBnTr4oQAfxTf6IlswksAO1W484t8rZwA8Y7dK4M/Fy8ATY6ak1pDa3MAfNJI88gYxRwASyMnGOrHb0wA/wA62brwNr8AbaoLvRddVpYA5tRa3k95EGkACASQy7cAHB8AQ1evfBN89poAfo+mal9h0e0A4BHOY4x9olMA3w/8II64GfcAoA6DQPEWmeIAXTje6NdLcwIAuUZl7MOorN8AGPi5fDtrFDYAsQudSuTiCEkAwAB1dvRRWxoAPo9joWmx2GkAdutvbx5IVe4Ae5Pqa5TXfCMArknjf/hIdBsAyzLSWwtngvoAEusY7lSGGPcApiK2jfFHS20APihub06rqBIARI2nwFo1bk4AOvQVR0b4p30A58La/YQC1vYA7eC1e0lLSKAANj5k/rxXW+EAfwoPD+l3UU0AOJ7m8kaWeRIAMIoYjGFUdAMAiuVsvhhN4LsAk6r4PkS5vG0AxuIb5Q3nEkkAyrDBU84446cAFIZqeN/Hk/gAX8QaXZ21uk8ADIQ98xPMMRMAgN+YNaNz4ygAofGGm6RHEksAbX9u0q3ayDYA5Bxt/KuZ0L4AGdrrFrqGp+IAuG6e91OV2MEAPM3+jp0VOvMAjscVPH8KFtMAwZaaTYai1vcAunzyTWd6sfIAm5icEfxcED8ACgRV1f4lajoAdoup6mgsQo0ASNpp6zMQJVUAO12yD6itXQ8AxJ4m1xkexk0AEuoUcCcwO7EAQdx160usfDQAt77wTpuh2k8AFDcadIkkV3IAwLJlh944P94ANP0fwj4i0W8AY5LbWrIwM4YAuIhp6p5g+q4AOaBnW6nc/YsATLm5yFMUTNkAI9BmvKY/i5oAhD4BklubdP8AAISNZdi2x40A6N8y'
+	$image &= 'SY/u7CMA8a9Q13SV13QAK70ySV4RcxEAjMkfBXPpWHMAfD/S5dJjj8sAVtRhsBYx3zoAAuFCgAnH0pgAiLxF4wutI+EA7a6xaQx3GoUA1BE8UB6SOygAJ/nUkXjyyPwAPx4ilKeYsAMAJADysvQpj/cAsisa3+F897cA2kzeJNSa5g0ANslt0tYGeNMAeowJOG7gDNUALUfgxDEmqf8AAAjd3HYm+kgApEWSPeImTOQA5zk5zSGd/wAAhm51G88O2l0Aa0kcd5Mgd0gA8gLnoOfauZ8AEPj+XRPHtjoAUIYn011Vby4Ac/6iRidin6gAGfxqxB4R8QkAjU33jK+kcHIARFDEin2xtzgA/Gsqx+DumSYAlX0fiK5m1S8A7x2aS5eVsZ8A4flzjgYH4UAAjqvFeoX1r4QAry/0GW3NxDEAl0aQbkOOo4MAXJ2XjjxNpegAVjq/ifTbSXQA65hikM1pIVcAjDgHJQ5zjOMAilHw98QweHoAHw7p/iGKz0oAjtfJYpagyOwASSSSeO/pWvoAJ8NdJ06ysU0ARe41We0jVUYAu5S6KQAMqh4AB0oGUW8YW9gAad4m1aK/kb4AyT+WkV9hY0cA8tSFXvg5BqkA6B408T+I7SMAOnPoU1y0SyMAwI7lkB9eavYAo/D641aPxPYAl1cW4tdWmWcAtsxbmhkCBSQA56/dFQ6X4C8AEei+XJp2vWQAJ0VUZjpqLvAAOxK4P60AegUAv5n2dPP2+btARv29M98ewC4HAJghXzipk2jcAFRgE45xUlMQAGaKMUUAFGKMAFFABVXULk2WAJ81xHA07RIWABEn3mx2FWjXADXijVtcspbeANNB0RtRNyrBAKYybEh44yaAADC0n4t6fe2MADeappWoaZBKAMyCaaPMYIODAJYe/HSurg8TAGk3V5PaWt2kALPbwC4dEP8AAAEZB/HFcF4aAPBHiq48JR6TAK3qcWnWbvL5ANa28IZ2VnJxAL2z1z6V'
+	$image &= 'He6FAKz4T8SXKeGdABpLy2vbCO0tAOZWyLYrkZcnAJxzmgeh6B4XAPEVr4p0GHVbAASSOGYsoEgwAH5WK/zFM8ReACvS/DFssmpSAJ3ucRwxjdJIAH2FO8K6Ivh3AMNWemIQTAnzAJHdiSSfzJriAK60XxbZ/ELUAHWIdJstV87aALZTz3BQW0YUAGVC445yc0COANrXxHbXfhw6AMrDOkIjMhjkAE2uMdsVhWPxAB4dR0+O8tNAANYkjlUMpW2HACCPrWfrnhzxAJa94b1CLUdSAIoGlgPlWdiNAKQ4z1k6kGsTAMLaR4k8Kw29AOJ4fvJHjtlhAHgGpNIp45IQAOcGgdjq5PifAKRb6/Npd9b3AFa+QkZlnljIAI42dQwVj2OCACty28T6ZeatAHenWs3mT2kCAFxJj7uxxlSDAN+K8213wP4hALvXtS8QymSfAEy+aN59EjfYAPKgjUHLAZzkABG3POKTUra6ANYmi1T4fwsjAH2YaZe2UmUaAATjacHuopBoAHVv8TbKLSrSAPpNOvWW8u5LAFgWJNzOVON2AD0OK1bDxb9uANQhtV0TVIBJAP8ALWWDai/UAOa4bxb8PdRSAE8M/wBjwz30ADp8YimgS6aBAHIAzICvOSc9AOtfQn8SaDYSAGlx6HckuryQANxNdG4Cv2UkAPOKAOhTxtprAPjuTwrh1vUgABNuP3Tntn1qAP8A/CRaadSvEPT47hUAkBLPCADqildwP5GvKAA/DXxdeeH21QDuNY8rxAZDdwAYiiVXVyANmwCx0wBjtWhLpgB4q0fxHeXFrgCXJfz6xYQQmwCuMQSLGEYvxwCxoA9F8M+IbQC8UaDb6rYo8QDBPnaJBg8HHQg/Co/AQdM8MwoAPqMjNJLxFBEALvkk+gqXw3oAMmgeHLLTI8cA+jwqhI6M2OQA/nmuJl0jxbYAXjrUtUh0ix0AUe4IFndXFyUAfs8QH3AuOOcAJyOuaYjrJ/EAjp1t4WXX'
+	$image &= 'rpYAeG2fgRvHiTMAnGNvrmqeoeMI60sfIFtkJp1/AHVz5Cz/ALiIADAK3rz1qO08AD2taxcJL4zlALSe2QiSOxhQAIEcgPDbs5NcAF6z4E1r/hPdAFry3tb6+tryADQx3A1J4TGRANVAHbPbFAzuAGXx/YWem3V9AKrZXunQW+0AAN1FtMrHoqjuAGpZ/G9naeFkANburS6VGxm2AI03yrnoSo+lAHOaol7rPhJ9AD9b8HXF5JZmADW3ja4b96cYAN+8EHjHNXPAAF8Pf+EbvLjVAO/Yi+ulx9niAJ3eKFf7o3MdAMfc0BoSWnxUANL1Bpl07TNVALp4OJFjtuVOADODzXW6Vf8AAPaelwXn2ea2APOXd5U64dOeAIRXN+F9J1DTADxj4je5hxZXAFMktvNn73ygADD8xXT6hPLaAGnzzW9u1xLGAIWWFOrn0FAjAJLW/iIdE8YfANhPoOoXRMPnACzW6BgygDJAAPbNaen+N9J1AD0e7v7N5H+xAKF57criRPYiALjBY+Odf8bWAFrS6fb6Ii2TAEQec+cyEseqAPrV3WPhxdy+ABrWZV1K6utdANQjXfcRsIt2AMzhAF6LyfegIGa1n8RYMCWu7QB0DWZI5UDKRQC3XIz6111tLwDaLaOby2j8xAANscYK5HQ+9QDk/hjS/EfhWADgvE8PXkrJbgCxPbjU2lXgdQAI2QK9Yt5GlgDeOR42iZlBKADdV9jQIlxS0gBS0AJRRiigAgCKM0H2oADzSQCM0tFACYoxSwBBoAQDHHalogCM0AJiobu5hgDG1kubqRYoYgBdzuxwFHfNTwCa5v4hwz3PwwDdZgs4DPPJbADLHEoyXPpQBgCumavp+sWYugDTLuO5hYZDxgDZrl9b8Z2dmwBInhttOubxpAApOzyhBGw4+QC45rh/AttdWABrc51N4dB1iACtDDFpioUhlADt+WQ84Y/TFQCL4Tul066mlwBde3kkN9M19AAvo4fcd56P'
+	$image &= '6ABHP40h2PX9MwDFtla+HbO58QAerWCz3JK+ZABNiNiD0B74qwCQeM/D13fQWQDa6pBNPcEiNABG6mvOfEFmfABL4n8Nt4UtrADTTGglKmWyDQAcbZwcr0BroQDVtJm8K/D3UQC+eGxm1WCJmQAubazWMoD6AQDPFAHa6bq1lgCtHLJp86zpFACtE5U9GHUVlwCv+LrDR/NtkgDiCTUUUMtq0gAFJyODXE+EPAB7oujeFrKx0gD0rVLgLGC8ggDYjzHPLHPfkwBcrrE9+fidqwDdapJFE7xRGwBvM0v7QDEVBAAM54Izg0wPVwDwdr1/rMl6dQAp7BjG4KQ2jwC/ylI/iPrW7AB6vYTai9hFdwAT3SDLQhssPgCivNNY8VWVvwCCZpPCNqILvwAyKC+ntrIRvABKRzIFHX2pngAe1LR9NjVvBQD4X1DUr8Id9wCXKbHcnqWY5ADz1pAeof2pZAAhnm+1ReXbNgDJW3cIRg4P5wBUJfEtrBqrWgDKkiwrbfaTdgBH7oL6Z9a8ngDDRfEuqeHfFgDFDNDZ2kl7MwBNBNCWZm2KTgAbPI7A+1V01ACu9Q0w29q1zQDJu/DKJDaAkgCO6Eoxx06igACx7Zpmr6frVgCLdaXdx3MLDgAeNs1exXinwwBLV7HxPA3iCQATQdQgtkhXTACJfLjnG0YckgBwTx2x1r2sHACMjpTEFGM0tAB0oATFGM0vWgAzigBMUdOlLQAZoAKUU0UtAAAtFJmigAooo+AUAFFFJdAA8HswAAALTTThSd6AMgD1rw5pev26xQCqWqTbCGV+jACn1BHIq/DbRwAMKxIo2qAPrQBLRQAyOGOFNgBCiovoowKJIgBJoykqB0bgqwAMg/hT6KAGJABJGgRFCqBgAAAwBS+WuclRnwBcU7vSmgCJbQDhR2dI1Vn+8QADBNP2ilooAgApYI5oXikUMgBICHH97NVdPwBF07S7aG3sLQAjhjgUpGAvKgAJJIB+pq/i'
+	$image &= 'igAAy9a8OaX4ggDcQ6raJOFO5QJuEgmtCGJYIUgAkztRQq5OeBUOJaEMPwAxAFIKKKAgBaKKKAAwAAFFDCd6cTk0AI70UUBAAelFFFABPwBQCAFHamMCD//Z'
+	$image = _WinAPI_Base64Decode($image)
+	If @error Then Return SetError(1, 0, 0)
+	Local $tSource = DllStructCreate('byte[' & BinaryLen($image) & ']')
+	DllStructSetData($tSource, 1, $image)
+	Local $tDecompress
+	_WinAPI_LZNTDecompress($tSource, $tDecompress, 23947)
+	If @error Then Return SetError(3, 0, 0)
+	$tSource = 0
+	Local Const $bString = Binary(DllStructGetData($tDecompress, 1))
+	If $bSaveBinary Then
+		Local Const $hFile = FileOpen($sSavePath & "\image.JPG", 18)
+		If @error Then Return SetError(2, 0, $bString)
+		FileWrite($hFile, $bString)
+		FileClose($hFile)
+	EndIf
+	Return $bString
+EndFunc   ;==>_image
 
 func _Inferno()
    EndFunc
