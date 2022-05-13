@@ -702,8 +702,12 @@ $defautdc = $defautdcinit
 					$idcheckboxlbpai = BitAND(GUICtrlRead($idcheckboxlbpai), $gui_checked)
 					$listmanualdrives = ""
 					Global $scomboreaddirectives = ""
+
 					;_GUICtrlRichEdit_AppendText($aff, @CRLF & "  Time: " & @HOUR & ":" & @MIN & ":" & @SEC & @CRLF & "IDRH: [OK]" & @CRLF);, 1)
 					_GUICtrlRichEdit_SetCharColor($aff, 0x00000000) ;set color black (BBGGRR format)
+
+					;   $isDCT=0 	;pour tester si DCT ou pas...
+
 					If $idcheckboxmove = 1 AND $isdct = 1 AND StringLen($idrh1) = 0 Then
 						massive_move()
 						_GUICtrlRichEdit_SetCharColor($aff, 0x00ff0000)      ;   set color blue (BBGGRR format)
@@ -722,6 +726,7 @@ $defautdc = $defautdcinit
 						Guidelete($hGUI)
 						Return 0
 					EndIf
+
 					If $idcheckboxdrive = 1 AND $isdct = 1 AND StringInStr($idrh1, ";") Then
 
 						_GUICtrlRichEdit_SetCharColor($aff, 0x00ff0000)      ;   set color blue (BBGGRR format)
@@ -738,9 +743,13 @@ $defautdc = $defautdcinit
 						EndIf
 						Guidelete($hGUI)
 						Return 0
+				    ElseIf $idcheckboxdrive = 1 AND $isdct = 0 AND StringInStr($idrh1, ";") Then
+						MsgBox(0,"Info !","[+] Drive n'est valable que sur le domaine DCT !")
+						Guidelete($hGUI)
+						Return 0
 					EndIf
 
-				   If $idcheckboxdriveremove = 1 And $isdct = 1 And StringInStr($idrh1, ";") Then
+				    If $idcheckboxdriveremove = 1 And $isdct = 1 And StringInStr($idrh1, ";") Then
 					  _GUICtrlRichEdit_SetCharColor($aff, 0x00ff0000)      ;   set color blue (BBGGRR format)
 					  _GUICtrlRichEdit_SetFont($aff, 10)                   ;   set size
 					  _GUICtrlRichEdit_SetCharAttributes($aff, '+bo')      ;   set bold
@@ -749,7 +758,11 @@ $defautdc = $defautdcinit
 					  massive_drive_remove()
 					  Guidelete($hGUI)
 					  Return 0
-				   EndIf
+				    ElseIf $idcheckboxdriveremove = 1 AND $isdct = 0 AND StringInStr($idrh1, ";") Then
+						MsgBox(0,"Info !","[-] Drive n'est valable que sur le domaine DCT !")
+						Guidelete($hGUI)
+						Return 0
+				    EndIf
 
 
 					If StringCompare($idrh1, $idrh2) = 0 AND $idrh1 <> "" Then
@@ -1923,7 +1936,12 @@ $defautdc = $defautdcinit
 									Guidelete($hGUI)
 									Return 0
 								EndIf
-							Case $idcheckboxdrive = 1 AND $userexist = 1
+						    Case $idcheckboxdrive = 1 AND $userexist = 1
+				    If  $isdct = 0 Then
+						MsgBox(0,"Info !","[+] Drive n'est valable que sur le domaine DCT !")
+						Guidelete($hGUI)
+						Return 0
+					EndIf
 								$defautdc = $defautdcinit
 								Global $drivesidrh1 = ""
 								Global $drivesidrh1 = _ad_getobjectproperties($idrh1, "LaPoste00-NetworkDrive")
@@ -2173,7 +2191,12 @@ $defautdc = $defautdcinit
 								EndIf
 								Guidelete($hGUI)
 								Return 0
-							Case $idcheckboxdriveremove = 1 AND StringLen($idrh1) <> 0 AND $userexist = 1
+						    Case $idcheckboxdriveremove = 1 AND StringLen($idrh1) <> 0 AND $userexist = 1
+				    If  $isdct = 0 Then
+						MsgBox(0,"Info !","[-] Drive n'est valable que sur le domaine DCT !")
+						Guidelete($hGUI)
+						Return 0
+					EndIf
 								$defautdc = $defautdcinit
 								Global $drivesidrh1 = _ad_getobjectproperties($idrh1, "LaPoste00-NetworkDrive")
 								_arraydelete($drivesidrh1, 0)
@@ -2260,7 +2283,13 @@ $defautdc = $defautdcinit
 											ExitLoop
 									EndSwitch
 								WEnd
-							Case $idcheckboxscan = 1 AND StringLen($idrh1) <> 0 AND $userexist = 1
+						    Case $idcheckboxscan = 1 AND StringLen($idrh1) <> 0 AND $userexist = 1
+					 If  $isdct = 0 Then
+						MsgBox(0,"Info !","Comment 'Mes Scan',  n'est valable que sur le domaine DCT !")
+						Guidelete($hGUI)
+						Return 0
+					 EndIf
+
 								$defautdc = $defautdcinit
 								$descriptsrce = _ad_getobjectattribute($idrh1, "Comment")
 								$descriptsrce = InputBox("Comment " & $idrh1, " ", $descriptsrce)
@@ -2848,11 +2877,42 @@ $defautdc = $defautdcinit
 								EndIf
 							Else
 								$accountexpire = _dateadd("d", -1, $accountexpire)
-							EndIf
+						    EndIf
+
+						   ;mail & AW detection sur DCT...
 							$mail = _ad_getobjectattribute($idrh1, "mail")
-							If $mail = "" Then
-								$mail = " adresse mail non renseignée sur l'AD !"
+
+						    if $mail<>"" And $isDCT=1 Then		; CAS ou $mail n'est pas vide
+							;  if StringRegExp($groupsidrh1,"_AW",3)>1 Then
+							  Local $nbre= UBound (StringRegExp($groupsidrh1,"_AW",3) )
+							    if $nbre>1 Then
+							    $mail  = $mail & "   ,  [ Anomalie: " & $nbre & "  groupes  _AirWatch_  ont été detectés ! ]"
+							    ElseIf $nbre=1 Then
+								$mail  = $mail & "   ,  [ 1 groupe  _AirWatch_   est présent: OK ]"
+							    ElseIf $nbre=0 then
+								$mail  = $mail & "   ,  [ aucun groupe  _AirWatch_  présent: OK  ]"
+							    EndIf
+							 ; EndIf
+						    EndIf
+
+							if StringRegExp($groupsidrh1,"_AW",3)>=1 And $mail="" And $isDCT=1 Then  ; CAS ou $mail est vide
+							 Local $nbre= UBound (StringRegExp($groupsidrh1,"_AW",3) ) ; _ArrayDisplay(StringRegExp($groupsidrh1,"_AW",3))
+							 if $nbre>1 Then
+							   $mail  = " adresse mail non renseignée sur l'AD,  [ Anomalie: " & $nbre & "  groupes  _AirWatch_  ont été detectés ! ]"
+							ElseIf $nbre=1 Then
+							   $mail  = " adresse mail non renseignée sur l'AD,  [ Anomalie: " & $nbre & "  groupe  _AirWatch_   à été detecté ! ]"
+						    ElseIf $nbre=0 Then
+							   $mail  = " adresse mail non renseignée sur l'AD,  [ aucun groupe  _AirWatch_  présent: OK  ]"
 							EndIf
+						   EndIf
+
+						   if $mail="" And $isDCT=0 Then
+						   $mail=" adresse mail non renseignée sur l'AD !"
+						   EndIf
+
+						   ;mail & AW detection sur DCT...
+
+
 							$checkbuttonpwdreset = BitAND(GUICtrlRead($idcheckboxpwdreset), $gui_checked)
 							If $checkbuttonpwdreset = 1 Then
 								$password = InputBox("password reset", "mot de passe par defaut: W!nd0ws10" & @CRLF & "Vous pouvez modifier le mdp par defaut", "W!nd0ws10")
@@ -8525,6 +8585,12 @@ Next ;$i
 										Return 0
 			EndIf
 
+			;MsgBox(0,"",$choixlecteur & @crlf & @crlf & "Lettres disponibles:" & @crlf & $chaineF & @crlf & "reg" & StringRegExp ($chaineF,$test,0) )
+			If StringRegExp ($chaineF, $test ,0) = 0 Then
+									   MsgBox(0, "Warning !", "drive ! chemin saisi déjà utilisé, abandon ..." & @CRLF & $choixlecteur & @crlf & @crlf & "Lettres disponibles:" & @crlf & $chaineF , 7)
+			;							Guidelete($hGUI)
+									   Return 0
+			EndIf
 
 
 		;	MsgBox(0,"info !","Liste users: " & @CRLF & $listeusers & @crlf & @CRLF & "Commun Drive [+]: " & @CRLF & $choixlecteur)
